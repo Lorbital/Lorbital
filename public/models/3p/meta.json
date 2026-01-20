@@ -1,0 +1,13 @@
+{
+  "id": "3p",
+  "n": 3,
+  "l": 1,
+  "type": "p",
+  "displayName": "3p",
+  "description": "第二主壳层 p 轨道（pz），哑铃形",
+  "pointCount": 500000,
+  "physicalDiameter": 4.76,
+  "recommendedScale": 0.6,
+  "color": "#00ffff",
+  "opacity": 0.8
+}

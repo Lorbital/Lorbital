@@ -1,0 +1,13 @@
+{
+  "id": "5f_fxz2",
+  "n": 5,
+  "l": 3,
+  "type": "f",
+  "displayName": "5f (fxz²)",
+  "description": "第二主壳层 f 轨道，fxz² 变体",
+  "pointCount": 500000,
+  "physicalDiameter": 13.23,
+  "recommendedScale": 0.4,
+  "color": "#00ffff",
+  "opacity": 0.8
+}

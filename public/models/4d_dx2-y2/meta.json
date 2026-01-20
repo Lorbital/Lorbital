@@ -1,0 +1,13 @@
+{
+  "id": "4d_dx2-y2",
+  "n": 4,
+  "l": 2,
+  "type": "d",
+  "displayName": "4d (dx²-y²)",
+  "description": "第二主壳层 d 轨道，dx²-y² 变体",
+  "pointCount": 500000,
+  "physicalDiameter": 8.47,
+  "recommendedScale": 0.5,
+  "color": "#00ffff",
+  "opacity": 0.8
+}

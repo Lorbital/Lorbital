@@ -1,0 +1,13 @@
+{
+  "id": "2s",
+  "n": 2,
+  "l": 0,
+  "type": "s",
+  "displayName": "2s",
+  "description": "第二主壳层 s 轨道，有一个节点",
+  "pointCount": 500000,
+  "physicalDiameter": 2.12,
+  "recommendedScale": 0.8,
+  "color": "#00ffff",
+  "opacity": 0.8
+}

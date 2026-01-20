@@ -1,0 +1,13 @@
+{
+  "id": "6p",
+  "n": 6,
+  "l": 1,
+  "type": "p",
+  "displayName": "6p",
+  "description": "第五主壳层 p 轨道（pz），哑铃形",
+  "pointCount": 500000,
+  "physicalDiameter": 19.04,
+  "recommendedScale": 0.3,
+  "color": "#00ffff",
+  "opacity": 0.8
+}

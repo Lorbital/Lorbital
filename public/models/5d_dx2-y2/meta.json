@@ -1,0 +1,13 @@
+{
+  "id": "5d_dx2-y2",
+  "n": 5,
+  "l": 2,
+  "type": "d",
+  "displayName": "5d (dx²-y²)",
+  "description": "第三主壳层 d 轨道，dx²-y² 变体",
+  "pointCount": 500000,
+  "physicalDiameter": 13.23,
+  "recommendedScale": 0.4,
+  "color": "#00ffff",
+  "opacity": 0.8
+}

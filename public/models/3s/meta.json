@@ -1,0 +1,13 @@
+{
+  "id": "3s",
+  "n": 3,
+  "l": 0,
+  "type": "s",
+  "displayName": "3s",
+  "description": "第三主壳层 s 轨道，有两个节点",
+  "pointCount": 500000,
+  "physicalDiameter": 4.76,
+  "recommendedScale": 0.6,
+  "color": "#00ffff",
+  "opacity": 0.8
+}

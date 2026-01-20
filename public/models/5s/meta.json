@@ -1,0 +1,13 @@
+{
+  "id": "5s",
+  "n": 5,
+  "l": 0,
+  "type": "s",
+  "displayName": "5s",
+  "description": "第五主壳层 s 轨道",
+  "pointCount": 500000,
+  "physicalDiameter": 13.23,
+  "recommendedScale": 0.4,
+  "color": "#00ffff",
+  "opacity": 0.8
+}

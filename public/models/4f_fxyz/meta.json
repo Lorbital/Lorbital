@@ -1,0 +1,13 @@
+{
+  "id": "4f_fxyz",
+  "n": 4,
+  "l": 3,
+  "type": "f",
+  "displayName": "4f (fxyz)",
+  "description": "第一主壳层 f 轨道，fxyz 变体，xyz 空间对称",
+  "pointCount": 500000,
+  "physicalDiameter": 8.47,
+  "recommendedScale": 0.5,
+  "color": "#00ffff",
+  "opacity": 0.8
+}

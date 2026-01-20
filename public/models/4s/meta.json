@@ -1,0 +1,13 @@
+{
+  "id": "4s",
+  "n": 4,
+  "l": 0,
+  "type": "s",
+  "displayName": "4s",
+  "description": "第四主壳层 s 轨道",
+  "pointCount": 500000,
+  "physicalDiameter": 8.47,
+  "recommendedScale": 0.5,
+  "color": "#00ffff",
+  "opacity": 0.8
+}

@@ -1,0 +1,13 @@
+{
+  "id": "6d_dxy",
+  "n": 6,
+  "l": 2,
+  "type": "d",
+  "displayName": "6d (dxy)",
+  "description": "第四主壳层 d 轨道，dxy 变体",
+  "pointCount": 500000,
+  "physicalDiameter": 19.04,
+  "recommendedScale": 0.3,
+  "color": "#00ffff",
+  "opacity": 0.8
+}

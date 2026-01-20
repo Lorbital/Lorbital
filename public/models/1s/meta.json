@@ -1,0 +1,13 @@
+{
+  "id": "1s",
+  "n": 1,
+  "l": 0,
+  "type": "s",
+  "displayName": "1s",
+  "description": "基态氢原子轨道，球对称",
+  "pointCount": 500000,
+  "physicalDiameter": 0.529,
+  "recommendedScale": 1.0,
+  "color": "#00ffff",
+  "opacity": 0.8
+}

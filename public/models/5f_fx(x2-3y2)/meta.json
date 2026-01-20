@@ -1,0 +1,13 @@
+{
+  "id": "5f_fx(x2-3y2)",
+  "n": 5,
+  "l": 3,
+  "type": "f",
+  "displayName": "5f (fx(x²-3y²))",
+  "description": "第二主壳层 f 轨道，fx(x²-3y²) 变体",
+  "pointCount": 500000,
+  "physicalDiameter": 13.23,
+  "recommendedScale": 0.4,
+  "color": "#00ffff",
+  "opacity": 0.8
+}
