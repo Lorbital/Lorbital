@@ -163,15 +163,21 @@ export class OrbitalViewer {
       // 清除旧模型
       this.orbitalGroup.clear();
 
-      // 创建材质
+      // 若 PLY 含顶点颜色（红/蓝表示波函数正负），则使用顶点颜色；否则用 metadata/设置中的颜色
+      const hasVertexColors = !!(geometry.attributes && geometry.attributes.color);
+
       const material = new THREE.PointsMaterial({
         size: this.settings.particleSize,
-        color: new THREE.Color(this.metadata.color || this.settings.orbitalColor),
+        color: hasVertexColors
+          ? new THREE.Color(0xffffff)
+          : new THREE.Color(this.metadata.color || this.settings.orbitalColor),
+        vertexColors: hasVertexColors,
         transparent: true,
         opacity: this.metadata.opacity || DEFAULT_OPACITY,
         blending: THREE.AdditiveBlending,
         depthWrite: false
       });
+      material.userData.baseOpacity = this.metadata?.opacity ?? DEFAULT_OPACITY;
 
       // 创建点云
       this.orbitalPoints = new THREE.Points(geometry, material);

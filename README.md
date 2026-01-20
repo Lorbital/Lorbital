@@ -57,6 +57,9 @@
 - **PLY**: 点云几何数据（用于渲染与制造）
 - **JSON**: 元数据（轨道类型、量子数、推荐参数、颜色、透明度）
 
+### 后续调整备注
+- **坐标轴**：探测器中的坐标轴重设计需在 Python 点云生成程序 `models/model.py` 内完成（如将坐标轴作为点云的一部分导出，或调整坐标系方向/尺度），与 Web 端 Three.js AxesHelper 解耦，可单独迭代。
+
 ---
 
 ## 快速开始
@@ -66,7 +69,7 @@
 1. **克隆项目**
 ```bash
 git clone <repository-url>
-cd QuantumProject
+cd Lorbital
 ```
 
 2. **启动本地服务器**
@@ -96,40 +99,42 @@ npx serve
 
 ---
 
-## 项目结构
+## 项目结构（整理后）
 
 ```
-QuantumProject/
-├── models/             # 模型文件目录
-│   └── model++/       # 重组后的模型文件
-│       ├── s/         # S轨道
-│       │   └── {orbitalId}/
-│       │       ├── {orbitalId}.ply
-│       │       └── meta.json
-│       ├── p/         # P轨道
-│       ├── d/         # D轨道
-│       ├── f/         # F轨道
-│       └── g/         # G轨道
+Lorbital/
+├── index.html              # 主页
+├── explorer.html           # 3D 探测器
+├── knowledge.html          # 知识库
+├── story.html              # 我们的故事
 │
-├── src/                # 源代码
-│   ├── pages/         # HTML 页面（可选）
-│   ├── components/    # UI 组件
-│   ├── three/         # Three.js 相关
-│   ├── gesture/       # 手势控制
-│   ├── data/          # 数据层（模型注册表）
-│   └── utils/         # 工具函数
+├── css/
+│   └── shared.css          # 全局样式
 │
-├── js/                # JavaScript 文件
-│   └── explorer.js    # 3D探测器主逻辑
+├── src/                    # 源代码
+│   ├── explorer.js         # 探测器主逻辑（入口脚本）
+│   ├── components/         # UI 组件（OrbitalViewer, GestureController, ModelSelector）
+│   ├── three/              # Three.js（setupScene, loadPly, renderer）
+│   ├── gesture/            # 手势控制（handTracker, gestureMapping, smoothing）
+│   ├── data/               # 数据层（modelRegistry, orbitalKnowledge）
+│   └── utils/              # 工具函数（constants）
 │
-├── css/               # 样式文件
-├── docs/              # 文档
-├── explorer.html      # 3D探测器页面
-├── index.html         # 主页
+├── models/
+│   ├── model.py            # Python 生成脚本
+│   └── model++/            # PLY 模型数据（按 s/p/d/f/g 分类）
+│       ├── s/{orbitalId}/{orbitalId}.ply
+│       ├── p/, d/, f/, g/  # 同上，可选 meta.json 同目录
+│
+├── public/
+│   └── images/story/       # 故事页图片
+│
+├── docs/                   # AGENTS, CODING_STANDARDS, DATA_FORMAT, ORBITALS
+├── ARCHITECTURE.md
+├── CONTRIBUTING.md
 └── README.md
 ```
 
-详细结构说明请参考 [ARCHITECTURE.md](ARCHITECTURE.md)
+详细架构与数据路径说明请参考 [ARCHITECTURE.md](ARCHITECTURE.md)、[docs/DATA_FORMAT.md](docs/DATA_FORMAT.md)。
 
 ---
 
@@ -150,8 +155,8 @@ QuantumProject/
 3. **模型目录结构**
    - 模型文件存储在 `models/model++/` 目录下
    - 按照轨道类型分类：`models/model++/{type}/{orbitalId}/`
-   - 每个轨道文件夹包含：`{orbitalId}.ply`（点云文件）和 `meta.json`（元数据文件）
-   - 颜色信息存储在 meta.json 中，加载时自动应用
+   - 每个轨道文件夹包含：`{orbitalId}.ply`（点云文件，必需）；`meta.json`（元数据，可选，缺省时使用默认值）
+   - 颜色优先使用 PLY 顶点颜色；PLY 无颜色时才使用 meta.json 的 color
    - 文件夹结构：
      ```
      models/model++/
@@ -195,11 +200,11 @@ QuantumProject/
 models/model++/
 ├── s/                  # S轨道
 │   ├── 1s/
-│   │   ├── 1s.ply      # PLY 点云文件
-│   │   └── meta.json   # 元数据文件
+│   │   ├── 1s.ply      # PLY 点云文件（必需）
+│   │   └── meta.json   # 元数据（可选）
 │   ├── 2s/
 │   │   ├── 2s.ply
-│   │   └── meta.json
+│   │   └── meta.json   # 可选
 │   └── ...
 ├── p/                  # P轨道
 │   ├── 2px/
@@ -221,9 +226,9 @@ models/model++/
 ```
 
 **路径规则**：
-- PLY文件路径：`models/model++/{type}/{orbitalId}/{orbitalId}.ply`
-- meta.json路径：`models/model++/{type}/{orbitalId}/meta.json`
-- 例如：`models/model++/s/1s/1s.ply`、`models/model++/p/2px/2px.ply`、`models/model++/d/3d_dz2/3d_dz2.ply`
+- PLY 文件（必需）：`models/model++/{type}/{orbitalId}/{orbitalId}.ply`
+- meta.json（可选）：`models/model++/{type}/{orbitalId}/meta.json`
+- 示例：`models/model++/s/1s/1s.ply`、`models/model++/p/2px/2px.ply`、`models/model++/d/3d_dz2/3d_dz2.ply`
 
 ### meta.json 格式
 
@@ -296,7 +301,7 @@ export const MODEL_REGISTRY = {
 
 **症状**：所有模型都无法显示，浏览器控制台报错找不到文件（404错误）。
 
-**原因**：ES6 模块中的相对路径是基于模块文件位置的，而不是 HTML 文件位置。当 `js/explorer.js` 导入 `src/data/modelRegistry.js` 时，如果使用 `./models/model++/` 这样的相对路径，浏览器会基于 `src/data/` 目录来解析，导致路径错误。
+**原因**：ES6 模块中的相对路径是基于模块文件位置的，而不是 HTML 文件位置。`src/data/modelRegistry.js` 通过 `getBasePath()` 与 `buildModelUrl()` 使用相对于网站根目录的路径（如 `/models/model++/...`），以规避基于模块或 HTML 位置的解析差异。
 
 **解决方案**：
 1. **使用绝对路径（推荐）**：直接使用相对于网站根目录的绝对路径
@@ -318,10 +323,10 @@ export const MODEL_REGISTRY = {
 
 **验证方法**：
 ```javascript
-// 在浏览器控制台测试路径是否正确
+// 在浏览器控制台测试路径（需在 explorer 页执行，或使用 importmap 等）
 import { getPlyUrl } from './src/data/modelRegistry.js';
 console.log(getPlyUrl('1s')); 
-// 应该输出类似：http://localhost:8000/models/model++/s/1s/1s.ply
+// 应输出类似：http://localhost:8000/models/model++/s/1s/1s.ply
 ```
 
 ### 模型显示为二维图片，无法交互
@@ -381,7 +386,7 @@ console.log(getPlyUrl('1s'));
    }
    ```
 
-**代码位置**：`js/explorer.js` 中的 `loadOrbital()`, `showViewer()`, `animate()`, `initMouseEvents()` 函数
+**代码位置**：`src/explorer.js` 中的 `loadOrbital()`, `showViewer()`, `animate()`, `initMouseEvents()` 函数
 
 ### 加载提示一直显示
 
@@ -410,7 +415,7 @@ console.log(getPlyUrl('1s'));
    }
    ```
 
-**代码位置**：`js/explorer.js` 中的 `loadOrbital()` 和 `showViewer()` 函数
+**代码位置**：`src/explorer.js` 中的 `loadOrbital()` 和 `showViewer()` 函数
 
 ### meta.json 文件缺失
 
@@ -424,7 +429,7 @@ console.log(getPlyUrl('1s'));
 - 可以手动创建 `meta.json` 文件来覆盖默认值
 - **注意**：这些 404 错误是正常的，不影响功能，可以忽略
 
-**代码位置**：`src/data/modelRegistry.js` 中的 `loadMetadata()` 和 `getDefaultMetadata()` 函数
+**代码位置**：`src/data/modelRegistry.js` 中的 `loadMetadata()`（缺省时使用内部默认值）
 
 ### GUI 控制台显示 empty
 
@@ -488,7 +493,7 @@ function buildModelUrl(relativePath) {
 1. 打开开发者工具（F12）
 2. 查看 Console 标签页的错误信息
 3. 查看 Network 标签页，检查文件请求状态
-4. 使用以下代码测试路径：
+4. 使用以下代码测试路径（在 explorer 页控制台）：
    ```javascript
    import { getPlyUrl } from './src/data/modelRegistry.js';
    console.log(getPlyUrl('1s'));
@@ -745,17 +750,17 @@ if (window.gui) {
 - ✅ **修复模型显示问题**
   - 问题：模型加载后显示为二维图片，无法交互
   - 解决方案：修复相机位置、模型位置重置、强制渲染
-  - 修改文件：`js/explorer.js`
+  - 修改文件：`src/explorer.js`
   
 - ✅ **修复交互功能**
   - 问题：鼠标拖拽、滚轮缩放、自动旋转不工作
   - 解决方案：修复事件绑定、确保渲染循环正常工作
-  - 修改文件：`js/explorer.js`
+  - 修改文件：`src/explorer.js`
   
 - ✅ **修复GUI控制台显示**
   - 问题：GUI控制台显示为empty
   - 解决方案：确保GUI元素正确添加到DOM，添加调试日志
-  - 修改文件：`js/explorer.js`
+  - 修改文件：`src/explorer.js`
 
 #### 📚 文档更新
 - ✅ 在 README 中新增"常见问题与故障排除"章节
@@ -773,7 +778,7 @@ if (window.gui) {
   - 问题：ES6 模块中的相对路径基于模块文件位置，导致模型文件路径解析错误
   - 解决方案：使用 `new URL()` 和 `window.location.href` 构建相对于 HTML 文件的正确路径
   - 修改文件：`src/data/modelRegistry.js`
-  - 新增 `getBasePath()` 函数，自动判断路径深度（根目录 vs `src/pages/`）
+  - 新增 `getBasePath()` 函数，自动判断路径深度（根目录与子路径，如 GitHub Pages `/Lorbital/`）
 
 #### 📚 文档更新
 - ✅ 在 README 中新增"常见问题与故障排除"章节

@@ -16,59 +16,37 @@
  * 实际存在的轨道模型（已生成PLY文件）
  * 用于验证轨道是否存在实际模型
  */
+/** 已生成 PLY 的轨道（新 ID：d/f/g 为 {n}d|f|g_{suffix}，suffix 去首字母，消除 dd/ff/gg） */
 export const EXISTING_ORBITALS = new Set([
-  // S轨道
   '1s', '2s', '3s', '4s', '5s', '6s', '7s',
-  // P轨道（当前只有pz）
-  '2p', '3p', '4p', '5p', '6p', // 这些实际是pz方向
-  // D轨道
-  '3d_dz2', '3d_dx2-y2', '3d_dxy',
-  '4d_dz2', '4d_dx2-y2', '4d_dxy',
-  '5d_dz2', '5d_dx2-y2', '5d_dxy',
-  '6d_dz2', '6d_dx2-y2', '6d_dxy',
-  // F轨道
-  '4f_fz3', '4f_fxz2', '4f_fxyz', '4f_fx(x2-3y2)', '4f_fy(x2-z2)',
-  '5f_fz3', '5f_fxz2', '5f_fxyz', '5f_fx(x2-3y2)', '5f_fy(x2-z2)',
-  // G轨道
-  '5g_gz4', '5g_gxz3', '5g_gyz3', '5g_gz2x2-y2', '5g_gxyz2',
-  '5g_gxzx2-3y2', '5g_gyzy2-3x2', '5g_gx4+y4', '5g_gxyx2-y2'
+  '2px', '2py', '2pz', '3px', '3py', '3pz', '4px', '4py', '4pz', '5px', '5py', '5pz', '6px', '6py', '6pz',
+  '3d_z2', '3d_xz', '3d_yz', '3d_x2-y2', '3d_xy',
+  '4d_z2', '4d_xz', '4d_yz', '4d_x2-y2', '4d_xy',
+  '5d_z2', '5d_xz', '5d_yz', '5d_x2-y2', '5d_xy',
+  '6d_z2', '6d_xz', '6d_yz', '6d_x2-y2', '6d_xy',
+  '4f_z3', '4f_xz2', '4f_yz2', '4f_zx2-y2', '4f_xyz', '4f_x(x2-3y2)', '4f_y(x2-z2)',
+  '5f_z3', '5f_xz2', '5f_yz2', '5f_zx2-y2', '5f_xyz', '5f_x(x2-3y2)', '5f_y(x2-z2)',
+  '5g_z4', '5g_xz3', '5g_yz3', '5g_z2x2-y2', '5g_xyz2',
+  '5g_xzx2-3y2', '5g_yzy2-3x2', '5g_x4+y4', '5g_xyx2-y2'
 ]);
 
+/** 新 ID：d/f/g 为 {n}d|f|g_{suffix} */
 export const MODEL_REGISTRY = {
-  's': [
-    '1s', '2s', '3s', '4s', '5s', '6s', '7s'
-  ],
-  'p': [
-    // 2p层：px, py, pz
-    '2px', '2py', '2pz',
-    // 3p层：px, py, pz
-    '3px', '3py', '3pz',
-    // 4p层：px, py, pz
-    '4px', '4py', '4pz',
-    // 5p层：px, py, pz
-    '5px', '5py', '5pz',
-    // 6p层：px, py, pz
-    '6px', '6py', '6pz'
-  ],
+  's': ['1s', '2s', '3s', '4s', '5s', '6s', '7s'],
+  'p': ['2px', '2py', '2pz', '3px', '3py', '3pz', '4px', '4py', '4pz', '5px', '5py', '5pz', '6px', '6py', '6pz'],
   'd': [
-    // 3d层：dxz, dyz, dz2, dx2-y2, dxy
-    '3d_dxz', '3d_dyz', '3d_dz2', '3d_dx2-y2', '3d_dxy',
-    // 4d层：dxz, dyz, dz2, dx2-y2, dxy
-    '4d_dxz', '4d_dyz', '4d_dz2', '4d_dx2-y2', '4d_dxy',
-    // 5d层：dxz, dyz, dz2, dx2-y2, dxy
-    '5d_dxz', '5d_dyz', '5d_dz2', '5d_dx2-y2', '5d_dxy',
-    // 6d层：dxz, dyz, dz2, dx2-y2, dxy
-    '6d_dxz', '6d_dyz', '6d_dz2', '6d_dx2-y2', '6d_dxy'
+    '3d_xz', '3d_yz', '3d_z2', '3d_x2-y2', '3d_xy',
+    '4d_xz', '4d_yz', '4d_z2', '4d_x2-y2', '4d_xy',
+    '5d_xz', '5d_yz', '5d_z2', '5d_x2-y2', '5d_xy',
+    '6d_xz', '6d_yz', '6d_z2', '6d_x2-y2', '6d_xy'
   ],
   'f': [
-    // 4f层：7种变体
-    '4f_fz3', '4f_fxz2', '4f_fyz2', '4f_fxyz', '4f_fx(x2-3y2)', '4f_fy(x2-z2)', '4f_fzx2-y2',
-    // 5f层：7种变体
-    '5f_fz3', '5f_fxz2', '5f_fyz2', '5f_fxyz', '5f_fx(x2-3y2)', '5f_fy(x2-z2)', '5f_fzx2-y2'
+    '4f_z3', '4f_xz2', '4f_yz2', '4f_zx2-y2', '4f_xyz', '4f_x(x2-3y2)', '4f_y(x2-z2)',
+    '5f_z3', '5f_xz2', '5f_yz2', '5f_zx2-y2', '5f_xyz', '5f_x(x2-3y2)', '5f_y(x2-z2)'
   ],
   'g': [
-    '5g_gz4', '5g_gxz3', '5g_gyz3', '5g_gz2x2-y2', '5g_gxyz2',
-    '5g_gxzx2-3y2', '5g_gyzy2-3x2', '5g_gx4+y4', '5g_gxyx2-y2'
+    '5g_z4', '5g_xz3', '5g_yz3', '5g_z2x2-y2', '5g_xyz2',
+    '5g_xzx2-3y2', '5g_yzy2-3x2', '5g_x4+y4', '5g_xyx2-y2'
   ]
 };
 
@@ -93,7 +71,7 @@ export function getOrbitalsByType(type) {
   }
   return getAllOrbitalIds().filter(id => {
     if (type === 's') return /^\d+s$/.test(id);
-    if (type === 'p') return /^\d+p$/.test(id);
+    if (type === 'p') return /^\d+p[xyz]$/.test(id);
     if (type === 'd') return /^\d+d_/.test(id);
     if (type === 'f') return /^\d+f_/.test(id);
     if (type === 'g') return /^\d+g_/.test(id);
@@ -113,13 +91,32 @@ export function getOrbitalsByType(type) {
  * @param {string} orbitalId - 轨道 ID
  * @returns {string} 轨道类型 (s, p, d, f, g)
  */
+/** 支持新 ID：d/f/g 为 {n}d|f|g_{suffix}，如 3d_z2、4f_z3、5g_z4；^\d+d_、^\d+f_、^\d+g_ 可匹配 */
 export function getOrbitalType(orbitalId) {
-  if (orbitalId.startsWith('1s') || orbitalId.match(/^\d+s$/)) return 's';
-  if (orbitalId.match(/^\d+p[xyz]?$/)) return 'p';
+  if (orbitalId.match(/^\d+s$/)) return 's';
+  if (orbitalId.match(/^\d+p[xyz]$/)) return 'p';
   if (orbitalId.match(/^\d+d_/)) return 'd';
   if (orbitalId.match(/^\d+f_/)) return 'f';
   if (orbitalId.match(/^\d+g_/)) return 'g';
-  return 's'; // 默认
+  return 's';
+}
+
+/**
+ * 将 UI 的 orbitalId 转为磁盘上的文件夹/文件名
+ * 磁盘仍为旧命名：d/f/g 的 suffix 前保留首字母，如 3d_dz2、4f_fz3、5g_gz4
+ * 规则：{n}d_{suffix} → {n}d_d{suffix}，{n}f_{suffix} → {n}f_f{suffix}，{n}g_{suffix} → {n}g_g{suffix}
+ * s、p 不变
+ *
+ * @param {string} orbitalId - 轨道 ID（UI 用）
+ * @returns {string} 实际路径名（文件夹名与 .ply 文件名）
+ */
+function orbitalIdToPathName(orbitalId) {
+  const m = orbitalId.match(/^(\d+)([dfg])_(.+)$/);
+  if (m) {
+    const n = m[1], type = m[2], suffix = m[3];
+    return `${n}${type}_${type}${suffix}`;
+  }
+  return orbitalId;
 }
 
 /**
@@ -174,9 +171,10 @@ function buildModelUrl(relativePath) {
  * @returns {string} meta.json 文件 URL
  */
 export function getMetadataUrl(orbitalId) {
-  // 从 models/model++/{type}/{orbitalId}/meta.json 读取
+  // 从 models/model++/{type}/{pathName}/meta.json 读取；pathName 与磁盘文件夹一致
   const orbitalType = getOrbitalType(orbitalId);
-  const relativePath = `${orbitalType}/${orbitalId}/meta.json`;
+  const pathName = orbitalIdToPathName(orbitalId);
+  const relativePath = `${orbitalType}/${pathName}/meta.json`;
   return buildModelUrl(relativePath);
 }
 
@@ -187,9 +185,10 @@ export function getMetadataUrl(orbitalId) {
  * @returns {string} PLY 文件 URL
  */
 export function getPlyUrl(orbitalId) {
-  // 从 models/model++/{type}/{orbitalId}/{orbitalId}.ply 读取
+  // 从 models/model++/{type}/{pathName}/{pathName}.ply 读取；pathName 与磁盘文件夹/文件名一致
   const orbitalType = getOrbitalType(orbitalId);
-  const relativePath = `${orbitalType}/${orbitalId}/${orbitalId}.ply`;
+  const pathName = orbitalIdToPathName(orbitalId);
+  const relativePath = `${orbitalType}/${pathName}/${pathName}.ply`;
   return buildModelUrl(relativePath);
 }
 

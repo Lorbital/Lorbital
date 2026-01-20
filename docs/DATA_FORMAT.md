@@ -13,13 +13,15 @@
 ### 文件位置
 
 ```
-public/models/{orbital_id}/cloud.ply
+models/model++/{type}/{orbital_id}/{orbital_id}.ply
 ```
 
+其中 `{type}` 为轨道类型（s, p, d, f, g），由 `orbital_id` 推导。
+
 例如：
-- `public/models/1s/cloud.ply`
-- `public/models/2p/cloud.ply`
-- `public/models/3d_dz2/cloud.ply`
+- `models/model++/s/1s/1s.ply`
+- `models/model++/p/2px/2px.ply`
+- `models/model++/d/3d_z2/3d_z2.ply`（d/f/g 为新 ID：`{n}d|f|g_{suffix}`，suffix 去首字母，消除 dd/ff/gg）
 
 ### 格式说明
 
@@ -46,13 +48,16 @@ end_header
 
 ### 内容要求
 
-1. **只包含几何信息**
+1. **几何信息**
    - x, y, z 坐标（必需）
    - 可选：颜色信息（r, g, b）
 
-2. **不包含元数据**
-   - 轨道类型、量子数等信息在 `meta.json` 中
-   - PLY 文件只负责几何数据
+2. **坐标轴（内嵌点云）**
+   - 由 `models/model.py` 在导出时追加，与 Web 端 AxesHelper 解耦
+   - +X 红、+Y 绿、+Z 蓝；L=max(r_limit×1.2, 1.0)，每轴 80 点，端点各 +2 强调
+
+3. **元数据**
+   - 轨道类型、量子数等在 `meta.json` 中；PLY 只负责几何与坐标轴点
 
 ### 生成规范（Python 层）
 
@@ -63,14 +68,18 @@ end_header
 
 ### 加载方式（Web 层）
 
+推荐使用 `modelRegistry.getPlyUrl(orbitalId)` 获取 URL；或直接拼接路径：
+
 ```javascript
 import { PLYLoader } from 'three/addons/loaders/PLYLoader.js';
+import { getPlyUrl } from './data/modelRegistry.js';
 
 const loader = new PLYLoader();
-loader.load('./public/models/1s/cloud.ply', (geometry) => {
+loader.load(getPlyUrl('1s'), (geometry) => {
   geometry.center();  // 几何体居中
   // 使用 geometry 创建 Points
 });
+// 或直接使用路径：'./models/model++/s/1s/1s.ply'
 ```
 
 ---
@@ -84,8 +93,10 @@ loader.load('./public/models/1s/cloud.ply', (geometry) => {
 ### 文件位置
 
 ```
-public/models/{orbital_id}/meta.json
+models/model++/{type}/{orbital_id}/meta.json
 ```
+
+**可选**：若不存在 meta.json，`modelRegistry.loadMetadata` 会返回基于 `orbital_id` 的默认值，系统可正常运行。
 
 ### 完整格式
 
@@ -109,11 +120,11 @@ public/models/{orbital_id}/meta.json
 
 | 字段 | 类型 | 必需 | 说明 | 示例 |
 |------|------|------|------|------|
-| `id` | string | 是 | 轨道唯一标识符 | `"1s"`, `"2p"`, `"3d_dz2"` |
+| `id` | string | 是 | 轨道唯一标识符 | `"1s"`, `"2px"`, `"3d_z2"` |
 | `n` | number | 是 | 主量子数 | `1`, `2`, `3` |
 | `l` | number | 是 | 角量子数 | `0` (s), `1` (p), `2` (d), `3` (f) |
 | `type` | string | 是 | 轨道类型字符串 | `"s"`, `"p"`, `"d"`, `"f"` |
-| `displayName` | string | 是 | 显示名称 | `"1s"`, `"2p"`, `"3d (dz²)"` |
+| `displayName` | string | 是 | 显示名称 | `"1s"`, `"2px"`, `"3d (z²)"` |
 | `description` | string | 是 | 描述文本 | `"基态氢原子轨道，球对称"` |
 | `pointCount` | number | 是 | 点云点数 | `500000` |
 | `physicalDiameter` | number | 是 | 物理直径（Å） | `0.529` |
@@ -126,12 +137,8 @@ public/models/{orbital_id}/meta.json
 #### `id`
 
 - 唯一标识符，用于文件路径与注册表
-- 格式：`{n}{type}` 或 `{n}{type}_{variant}`
-- 示例：
-  - `"1s"` - 1s 轨道
-  - `"2p"` - 2p 轨道
-  - `"3d_dz2"` - 3d dz² 轨道
-  - `"4f_fz3"` - 4f fz³ 轨道
+- 格式：`{n}s`、`{n}p[xyz]` 或 `{n}d|f|g_{suffix}`（d/f/g 的 suffix=去首字母，消除 dd/ff/gg）
+- 示例：`"1s"`、`"2px"`、`"3d_z2"`、`"4f_z3"`、`"5g_z4"`
 
 #### `n` (主量子数)
 
@@ -170,15 +177,7 @@ public/models/{orbital_id}/meta.json
 
 ### 加载方式（Web 层）
 
-```javascript
-async function loadMetadata(orbitalId) {
-  const response = await fetch(`./public/models/${orbitalId}/meta.json`);
-  if (!response.ok) {
-    throw new Error(`Failed to load metadata for ${orbitalId}`);
-  }
-  return await response.json();
-}
-```
+推荐使用 `modelRegistry.loadMetadata(orbitalId)`（已处理路径与 meta.json 缺省）；或自行 fetch `getMetadataUrl(orbitalId)`，响应非 200 时回退到默认值。
 
 ---
 
@@ -202,58 +201,48 @@ async function loadMetadata(orbitalId) {
 - 示例：`2p`, `3p`, `4p`, `5p`, `6p`
 - 特点：以 pz 为代表
 
-### D 轨道
+### D 轨道（新 ID：`{n}d_{suffix}`，suffix 去首字母 d）
 
-- 格式：`{n}d_{variant}`
-- 变体：
-  - `dz2` - dz² 轨道
-  - `dx2-y2` - dx²-y² 轨道
-  - `dxy` - dxy 轨道
-- 示例：
-  - `3d_dz2`
-  - `3d_dx2-y2`
-  - `3d_dxy`
-  - `4d_dz2`, `5d_dz2`, `6d_dz2`
+- 变体：`z2`, `xz`, `yz`, `x2-y2`, `xy`（来自 dz2、dxz、dyz、dx2-y2、dxy）
+- 示例：`3d_z2`, `3d_x2-y2`, `4d_xz`, `6d_x2-y2`
 
-### F 轨道
+### F 轨道（新 ID：`{n}f_{suffix}`，suffix 去首字母 f；fxx2-3y2→x(x2-3y2)、fyy2-3x2→y(x2-z2)）
 
-- 格式：`{n}f_{variant}`
-- 变体：
-  - `fz3` - fz³ 轨道
-  - `fxz2` - fxz² 轨道
-  - `fxyz` - fxyz 轨道
-  - `fx(x2-3y2)` - fx(x²-3y²) 轨道
-  - `fy(x2-z2)` - fy(x²-z²) 轨道
-- 示例：
-  - `4f_fz3`
-  - `4f_fxyz`
-  - `5f_fx(x2-3y2)`
+- 变体：`z3`, `xz2`, `yz2`, `zx2-y2`, `xyz`, `x(x2-3y2)`, `y(x2-z2)`
+- 示例：`4f_z3`, `4f_xyz`, `5f_x(x2-3y2)`
 
-**注意**：文件名中不能使用括号，使用 `()` 替代 `()`：
-- 文件名：`4f_fx(x2-3y2).ply`
-- JSON 中：`"4f_fx(x2-3y2)"`
+**注意**：括号在文件名与 JSON 中为 `()`，如 `4f_x(x2-3y2).ply`。
+
+### G 轨道（新 ID：`{n}g_{suffix}`，suffix 去首字母 g）
+
+- 示例：`5g_z4`, `5g_x4+y4`
 
 ---
 
 ## 目录结构示例
 
 ```
-public/models/
-├── 1s/
-│   ├── cloud.ply
-│   └── meta.json
-├── 2s/
-│   ├── cloud.ply
-│   └── meta.json
-├── 2p/
-│   ├── cloud.ply
-│   └── meta.json
-├── 3d_dz2/
-│   ├── cloud.ply
-│   └── meta.json
-└── 4f_fz3/
-    ├── cloud.ply
-    └── meta.json
+models/model++/
+├── s/
+│   ├── 1s/
+│   │   ├── 1s.ply
+│   │   └── meta.json    # 可选
+│   ├── 2s/
+│   │   └── 2s.ply
+│   └── ...
+├── p/
+│   ├── 2px/
+│   │   ├── 2px.ply
+│   │   └── meta.json    # 可选
+│   └── ...
+├── d/
+│   ├── 3d_z2/
+│   │   └── 3d_z2.ply
+│   └── ...
+├── f/
+│   └── 4f_z3/4f_z3.ply
+└── g/
+    └── ...
 ```
 
 ---
@@ -263,36 +252,30 @@ public/models/
 ### 必需检查
 
 1. **文件存在性**
-   - 每个 `{orbital_id}` 目录必须包含 `cloud.ply` 和 `meta.json`
+   - 每个 `{orbital_id}` 目录必须包含 `{orbital_id}.ply`（路径：`models/model++/{type}/{orbital_id}/{orbital_id}.ply`）
+   - `meta.json` 为可选；缺失时 `loadMetadata` 返回基于 orbital_id 的默认值
 
 2. **ID 一致性**
-   - `meta.json` 中的 `id` 必须与目录名一致
+   - 若存在 `meta.json`，其中的 `id` 应与目录名（orbital_id）一致
 
 3. **点数量一致性**
-   - `meta.json` 中的 `pointCount` 应该与 PLY 文件中的点数一致（可选，用于验证）
+   - `meta.json` 中的 `pointCount` 可与 PLY 点数对比做校验（可选）
 
 ### 验证脚本示例
 
 ```javascript
-// 验证所有模型文件的完整性
+import { getPlyUrl, getMetadataUrl, getOrbitalType, getAllOrbitalIds } from './data/modelRegistry.js';
+
 async function validateModels() {
-  const orbitalIds = ['1s', '2s', '2p', ...];  // 从 registry 获取
-  
+  const orbitalIds = getAllOrbitalIds();
   for (const id of orbitalIds) {
-    // 检查文件是否存在
-    const plyExists = await checkFileExists(`./public/models/${id}/cloud.ply`);
-    const jsonExists = await checkFileExists(`./public/models/${id}/meta.json`);
-    
-    if (!plyExists || !jsonExists) {
-      console.error(`Missing files for ${id}`);
-      continue;
-    }
-    
-    // 检查 JSON 内容
-    const meta = await loadMetadata(id);
-    if (meta.id !== id) {
-      console.error(`ID mismatch for ${id}: ${meta.id}`);
-    }
+    const type = getOrbitalType(id);
+    const plyPath = `models/model++/${type}/${id}/${id}.ply`;
+    const jsonPath = `models/model++/${type}/${id}/meta.json`;
+    const plyExists = await checkFileExists(getPlyUrl(id));
+    const jsonExists = await checkFileExists(getMetadataUrl(id)).then(r => r.ok).catch(() => false);
+    if (!plyExists) console.error(`Missing PLY: ${plyPath}`);
+    // meta.json 可选，仅在有时检查 id 一致性
   }
 }
 ```

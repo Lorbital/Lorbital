@@ -5,7 +5,7 @@
  */
 
 import * as THREE from 'three';
-import { LERP_FACTOR } from '../utils/constants.js';
+import { LERP_FACTOR, SCALE_OPACITY_THRESHOLD, MIN_OPACITY_AT_MIN_SCALE } from '../utils/constants.js';
 
 /**
  * 渲染控制器
@@ -19,13 +19,15 @@ export class RenderController {
    * @param {THREE.WebGLRenderer} renderer - 渲染器
    * @param {THREE.Group} orbitalGroup - 轨道对象组
    * @param {Object} settings - 设置对象
+   * @param {Object} [options={}] - 可选，如 { css2DRenderer }
    */
-  constructor(scene, camera, renderer, orbitalGroup, settings) {
+  constructor(scene, camera, renderer, orbitalGroup, settings, options = {}) {
     this.scene = scene;
     this.camera = camera;
     this.renderer = renderer;
     this.orbitalGroup = orbitalGroup;
     this.settings = settings;
+    this.css2DRenderer = options.css2DRenderer || null;
 
     // 使用四元数避免万向锁问题
     // 使用四元数存储旋转，确保无论旋转到什么角度，左右移动都是沿着屏幕的垂直轴旋转
@@ -59,8 +61,9 @@ export class RenderController {
    * 
    * @param {number} deltaX - 屏幕X轴旋转增量（鼠标/手势向右为正）
    * @param {number} deltaY - 屏幕Y轴旋转增量（鼠标/手势向上为正）
+   * @param {boolean} [fromAutoRotate=false] - 若为 true，不设置 isInteracting，避免阻断下一帧的自动旋转
    */
-  setTargetRotation(deltaX, deltaY) {
+  setTargetRotation(deltaX, deltaY, fromAutoRotate = false) {
     // 屏幕坐标系的固定轴（世界坐标系中的固定轴）
     // 这些轴始终相对于屏幕，不随模型旋转而改变
     // 相机默认朝向 -Z，上方向是 +Y，右方向是 +X
@@ -85,7 +88,7 @@ export class RenderController {
     // 规范化四元数，避免数值误差
     this.targetQuaternion.normalize();
     
-    this.isInteracting = true;
+    if (!fromAutoRotate) this.isInteracting = true;
   }
 
   /**
@@ -161,7 +164,31 @@ export class RenderController {
     this.orbitalGroup.quaternion.copy(this.currentQuaternion);
     this.orbitalGroup.scale.setScalar(this.currentScale);
 
+    // 缩放过小时降低不透明度，避免 AdditiveBlending 叠加发白
+    const points = this.orbitalGroup.children[0];
+    if (points?.isPoints && points.material?.userData?.baseOpacity != null) {
+      const base = points.material.userData.baseOpacity;
+      if (this.currentScale < SCALE_OPACITY_THRESHOLD) {
+        points.material.opacity = Math.max(
+          MIN_OPACITY_AT_MIN_SCALE,
+          base * (this.currentScale / SCALE_OPACITY_THRESHOLD)
+        );
+      } else {
+        points.material.opacity = base;
+      }
+    }
+
     // 渲染
     this.renderer.render(this.scene, this.camera);
+    if (this.css2DRenderer) this.css2DRenderer.render(this.scene, this.camera);
+
+    // 每帧同步坐标轴 X/Y/Z 标签显隐：CSS2DRenderer 会持续更新 DOM，需在渲染后覆盖 display
+    const axes = this.orbitalGroup?.children?.find((c) => c.userData?.isAxesHelper);
+    if (axes && typeof axes.traverse === 'function') {
+      const show = !!this.settings.showAxes;
+      axes.traverse((c) => {
+        if (c.element) c.element.style.display = show ? '' : 'none';
+      });
+    }
   }
 }

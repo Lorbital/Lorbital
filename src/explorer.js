@@ -1,0 +1,951 @@
+/**
+ * Quantum Orbital Explorer - v10.0
+ * 新特性：分类选择界面、meta.json颜色支持、新模型目录结构
+ */
+
+import * as THREE from 'three';
+import { PLYLoader } from 'three/addons/loaders/PLYLoader.js';
+import { Line2 } from 'three/addons/lines/Line2.js';
+import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
+import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+import { MODEL_REGISTRY, getPlyUrl, loadMetadata, hasOrbitalModel, getActualModelId } from './data/modelRegistry.js';
+import { getOrbitalKnowledge } from './data/orbitalKnowledge.js';
+import { RenderController } from './three/renderer.js';
+import { GestureController } from './components/GestureController.js';
+import { ROTATION_SENSITIVITY, ZOOM_SENSITIVITY, MIN_SCALE, MAX_SCALE } from './utils/constants.js';
+
+let scene, camera, renderer, orbitalPoints, renderController, axesHelper, css2DRenderer;
+const orbitalGroup = new THREE.Group();
+const loader = new PLYLoader();
+
+// 界面状态
+let currentView = 'category'; // 'category', 'orbital', 'viewer'
+let currentCategory = null;
+let currentMetadata = null;
+let currentOrbitalId = null; // 当前查看的轨道 id，用于同分类切换与信息按钮
+let lastErrorOrbitalId = null;
+let lastErrorOpts = null;
+
+// --- 手势控制器 ---
+let gestureController = null;
+
+// 动画循环 id，用于 visibility 暂停与页面卸载时取消
+let animateId = null;
+
+// 页面卸载时是否已执行清理，避免重复
+let pageUnloadCleaned = false;
+
+// 鼠标状态
+let isMouseDown = false;
+let lastMousePos = { x: 0, y: 0 };
+
+const settings = {
+    autoRotate: false,
+    showAxes: true,
+    particleSize: 0.012,
+    rotationSpeed: 0.0025
+    // 不使用默认颜色，完全使用PLY文件中的原始颜色
+};
+const invertRotationY = true;
+
+init();
+
+function init() {
+    // 初始化界面
+    initUI();
+    
+    // 初始化Three.js场景（但先隐藏）
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 2000);
+    camera.position.z = 15;
+
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    const container = document.getElementById('container');
+    container.appendChild(renderer.domElement);
+    container.style.display = 'none'; // 初始隐藏
+
+    css2DRenderer = new CSS2DRenderer();
+    css2DRenderer.setSize(window.innerWidth, window.innerHeight);
+    css2DRenderer.domElement.style.pointerEvents = 'none';
+    css2DRenderer.domElement.style.position = 'absolute';
+    css2DRenderer.domElement.style.left = '0';
+    css2DRenderer.domElement.style.top = '0';
+    container.appendChild(css2DRenderer.domElement);
+
+    scene.add(orbitalGroup);
+
+    renderController = new RenderController(scene, camera, renderer, orbitalGroup, settings, { css2DRenderer });
+    renderController.start();
+
+    initMouseEvents();
+    initExperimentConsole();
+    initGestureController();
+    animate();
+
+    window.addEventListener('resize', onWindowResize);
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            pauseBackgroundWork();
+        } else {
+            resumeBackgroundWork();
+        }
+    });
+
+    window.addEventListener('pagehide', onPageUnload);
+    window.addEventListener('beforeunload', onPageUnload);
+
+    if (document.hidden) pauseBackgroundWork();
+}
+
+// 初始化UI界面
+function initUI() {
+    // 分类选择界面
+    const categoryCards = document.querySelectorAll('.category-card');
+    categoryCards.forEach(card => {
+        card.addEventListener('click', () => {
+            const type = card.dataset.type;
+            showOrbitalList(type);
+        });
+    });
+
+    // 返回按钮（轨道列表界面）
+    const backButton = document.querySelector('.back-button');
+    if (backButton) {
+        backButton.addEventListener('click', () => {
+            showCategorySelector();
+        });
+    }
+    
+    // 返回按钮（查看器界面）
+    const viewerBackButton = document.getElementById('viewer-back-button');
+    if (viewerBackButton) {
+        viewerBackButton.addEventListener('click', () => {
+            if (currentCategory) {
+                showOrbitalList(currentCategory);
+            } else {
+                showCategorySelector();
+            }
+        });
+    }
+
+    // 加载遮罩：重试、返回
+    const retryBtn = document.getElementById('loading-retry');
+    const backBtn = document.getElementById('loading-back');
+    if (retryBtn) {
+        retryBtn.addEventListener('click', () => {
+            if (lastErrorOrbitalId != null) loadOrbital(lastErrorOrbitalId, lastErrorOpts || {});
+        });
+    }
+    if (backBtn) {
+        backBtn.addEventListener('click', () => {
+            hideLoadingOverlay();
+            if (currentCategory) showOrbitalList(currentCategory);
+            else showCategorySelector();
+        });
+    }
+}
+
+// 显示分类选择界面
+function showCategorySelector() {
+    currentView = 'category';
+    document.getElementById('category-selector').classList.remove('hidden');
+    document.getElementById('orbital-selector').classList.add('hidden');
+    document.getElementById('container').style.display = 'none';
+    document.getElementById('instructions').classList.add('hidden');
+    document.getElementById('orbital-tag').classList.add('hidden');
+    document.getElementById('video-container').classList.add('hidden');
+    document.getElementById('viewer-back-button').classList.add('hidden');
+    const consoleEl = document.getElementById('experiment-console');
+    if (consoleEl) consoleEl.classList.add('hidden');
+    
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:showCategorySelector',message:'leave viewer path',data:{hasGesture:!!gestureController,didStop:!!gestureController},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
+    if (gestureController) gestureController.stop();
+}
+
+// 智能布局函数：根据轨道类型设置网格布局
+function setupGridLayout(categoryType, orbitalList) {
+    // 移除所有布局类
+    orbitalList.classList.remove('orbital-list-s', 'orbital-list-p', 'orbital-list-d', 'orbital-list-f', 'orbital-list-g');
+    
+    // 根据类型添加对应的布局类
+    switch(categoryType) {
+        case 's':
+            orbitalList.classList.add('orbital-list-s');
+            orbitalList.style.gridTemplateColumns = 'repeat(4, 1fr)';
+            orbitalList.style.gridTemplateRows = 'auto auto';
+            break;
+        case 'p':
+            orbitalList.classList.add('orbital-list-p');
+            orbitalList.style.gridTemplateColumns = 'repeat(3, 1fr)';
+            orbitalList.style.gridTemplateRows = 'repeat(5, auto)';
+            break;
+        case 'd':
+            orbitalList.classList.add('orbital-list-d');
+            orbitalList.style.gridTemplateColumns = 'repeat(5, 1fr)';
+            orbitalList.style.gridTemplateRows = 'repeat(4, auto)';
+            break;
+        case 'f':
+            orbitalList.classList.add('orbital-list-f');
+            orbitalList.style.gridTemplateColumns = 'repeat(7, 1fr)';
+            orbitalList.style.gridTemplateRows = 'repeat(2, auto)';
+            break;
+        case 'g':
+            orbitalList.classList.add('orbital-list-g');
+            orbitalList.style.gridTemplateColumns = 'repeat(3, 1fr)';
+            orbitalList.style.gridTemplateRows = 'repeat(3, auto)';
+            break;
+        default:
+            // 默认布局
+            orbitalList.style.gridTemplateColumns = 'repeat(auto-fill, minmax(150px, 1fr))';
+            orbitalList.style.gridTemplateRows = 'auto';
+    }
+}
+
+// 显示轨道列表
+function showOrbitalList(categoryType) {
+    currentView = 'orbital';
+    currentCategory = categoryType;
+    
+    document.getElementById('category-selector').classList.add('hidden');
+    document.getElementById('orbital-selector').classList.remove('hidden');
+    document.getElementById('current-category-title').textContent = categoryType.toUpperCase();
+    
+    const consoleEl = document.getElementById('experiment-console');
+    if (consoleEl) consoleEl.classList.add('hidden');
+    
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:showOrbitalList',message:'leave viewer path',data:{hasGesture:!!gestureController,didStop:!!gestureController},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
+    if (gestureController) gestureController.stop();
+    
+    // 获取该分类下的所有轨道
+    const orbitals = MODEL_REGISTRY[categoryType] || [];
+    const orbitalList = document.getElementById('orbital-list');
+    orbitalList.innerHTML = '';
+    
+    if (orbitals.length === 0) {
+        orbitalList.innerHTML = '<div style="color: rgba(255,255,255,0.5); text-align: center; padding: 40px;">该分类下暂无可用模型</div>';
+        return;
+    }
+    
+    // 设置网格布局
+    setupGridLayout(categoryType, orbitalList);
+    
+    orbitals.forEach(orbitalId => {
+        const item = document.createElement('div');
+        const hasModel = hasOrbitalModel(orbitalId);
+        const actualModelId = getActualModelId(orbitalId);
+        
+        // P轨道的px/py已经有模型文件，不需要显示占位符
+        const isPOrbital = /^\d+p[xyz]$/.test(orbitalId);
+        
+        if (!hasModel || (actualModelId === null && !isPOrbital)) {
+            // 占位符轨道：不可点击，显示"即将推出"（P轨道除外）
+            item.className = 'orbital-item orbital-item-placeholder';
+            item.innerHTML = `
+                <div class="orbital-item-name" style="opacity: 0.5;">${formatOrbitalName(orbitalId)}</div>
+                <div style="font-size: 12px; color: rgba(255,255,255,0.3); margin-top: 8px;">即将推出</div>
+            `;
+            item.style.cursor = 'not-allowed';
+            item.style.opacity = '0.5';
+        } else {
+            // 实际存在的轨道：可点击，仅加载轨道（信息 i 已移至模型控制页）
+            item.className = 'orbital-item';
+            item.innerHTML = `<div class="orbital-item-name">${formatOrbitalName(orbitalId)}</div>`;
+            item.addEventListener('click', () => {
+                loadOrbital(actualModelId || orbitalId);
+            });
+        }
+        
+        orbitalList.appendChild(item);
+    });
+}
+
+// 格式化轨道名称显示。新 ID：d/f/g 为 {n}d|f|g_{suffix}，如 3d_z2 → 3d (z²)、4f_x(x2-3y2) → 4f (x(x²-3y²))
+function formatOrbitalName(orbitalId) {
+    function toSub(s) { return s.replace(/2/g, '²').replace(/3/g, '³').replace(/4/g, '⁴'); }
+    const m = orbitalId.match(/^(\d+)(d|f|g)_(.+)$/);
+    if (m) return m[1] + m[2] + ' (' + toSub(m[3]) + ')';
+    return orbitalId;
+}
+
+// 与 orbital-list 可点击项、loadOrbital 参数一致，用于查看器内上一/下一轨道
+function getNavigableOrbitalIds(category) {
+    const raw = MODEL_REGISTRY[category] || [];
+    return raw.filter(id => {
+        if (!hasOrbitalModel(id)) return false;
+        const a = getActualModelId(id);
+        return a != null || /^\d+p[xyz]$/.test(id);
+    }).map(id => getActualModelId(id) || id);
+}
+
+// --- 加载遮罩 overlay 辅助 ---
+function hideLoadingOverlay() {
+    document.getElementById('loading-overlay').classList.add('hidden');
+}
+function showLoadingOverlay(orbitalId) {
+    const o = document.getElementById('loading-overlay');
+    const txt = document.getElementById('loading-text');
+    const name = document.getElementById('loading-orbital-name');
+    const bar = document.getElementById('loading-progress-bar');
+    const pct = document.getElementById('loading-percent');
+    const err = document.getElementById('loading-error');
+    const act = document.getElementById('loading-actions');
+    const wrap = document.getElementById('loading-progress-wrap');
+    txt.textContent = '量子态同步中...';
+    name.textContent = formatOrbitalName(orbitalId);
+    name.style.display = '';
+    bar.classList.add('indeterminate');
+    bar.style.width = '';
+    pct.classList.add('hidden');
+    pct.textContent = '';
+    err.classList.add('hidden');
+    act.classList.add('hidden');
+    wrap.style.display = '';
+    o.classList.remove('hidden');
+}
+function updateLoadingProgress(progress) {
+    const bar = document.getElementById('loading-progress-bar');
+    const pct = document.getElementById('loading-percent');
+    if (progress && progress.total > 0) {
+        bar.classList.remove('indeterminate');
+        const ratio = progress.loaded / progress.total;
+        bar.style.width = (ratio * 100) + '%';
+        pct.textContent = Math.round(ratio * 100) + '%';
+        pct.classList.remove('hidden');
+    }
+}
+function showLoadingError(msg, orbitalId, opts) {
+    lastErrorOrbitalId = orbitalId;
+    lastErrorOpts = opts || {};
+    const txt = document.getElementById('loading-text');
+    const name = document.getElementById('loading-orbital-name');
+    const wrap = document.getElementById('loading-progress-wrap');
+    const pct = document.getElementById('loading-percent');
+    const err = document.getElementById('loading-error');
+    const act = document.getElementById('loading-actions');
+    const bar = document.getElementById('loading-progress-bar');
+    txt.textContent = '加载失败';
+    name.textContent = formatOrbitalName(orbitalId);
+    name.style.display = '';
+    bar.classList.remove('indeterminate');
+    wrap.style.display = 'none';
+    pct.classList.add('hidden');
+    err.textContent = msg;
+    err.classList.remove('hidden');
+    act.classList.remove('hidden');
+    document.getElementById('loading-overlay').classList.remove('hidden');
+}
+
+// 加载轨道模型；opts.isSwitch 为同分类切换，不显示全屏 loading、不重复 showViewer
+async function loadOrbital(orbitalId, opts = {}) {
+    try {
+        if (!opts.isSwitch) showLoadingOverlay(orbitalId);
+
+        // 获取实际模型ID（处理P轨道映射等）
+        const actualModelId = getActualModelId(orbitalId) || orbitalId;
+        
+        // 加载元数据（包含颜色信息）
+        currentMetadata = await loadMetadata(actualModelId);
+        
+        // 更新轨道名称显示（使用科学命名法）
+        const nameEl = document.getElementById('orbital-name');
+        if (nameEl) {
+            // 使用格式化函数，保持科学命名法的正确大小写
+            nameEl.textContent = formatOrbitalName(orbitalId);
+        }
+
+        // 加载PLY文件
+        const plyUrl = getPlyUrl(actualModelId);
+        console.log('Loading PLY from URL:', plyUrl);
+        console.log('Orbital ID:', orbitalId, 'Actual Model ID:', actualModelId);
+        
+        console.log('Starting PLYLoader.load() with URL:', plyUrl);
+        loader.load(plyUrl, (geometry) => {
+            console.log('PLY file loaded successfully!', geometry);
+            console.log('Success callback executed!');
+            // 确保geometry存在
+            if (!geometry) {
+                console.error('Geometry is null or undefined');
+                showLoadingError('模型文件格式错误', orbitalId, opts);
+                return;
+            }
+            
+            console.log(`Geometry loaded: ${geometry.attributes.position.count} vertices`);
+
+            // #region agent log
+            var _disposed = 0;
+            // #endregion
+            orbitalGroup.children.slice().forEach((child) => {
+                if (child.isPoints && child.geometry) { child.geometry.dispose(); _disposed++; }
+                if (child.isPoints && child.material) child.material.dispose();
+                if (child.userData?.isAxesHelper) disposeAxesGroup(child);
+            });
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:loadOrbital',message:'dispose before clear',data:{childCount:orbitalGroup.children.length,disposedCount:_disposed},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'E'})}).catch(()=>{});
+            // #endregion
+            orbitalGroup.clear();
+            geometry.center();
+            geometry.computeBoundingSphere();
+            const L = Math.max(geometry.boundingSphere.radius * 1.2, 0.5);
+
+            // 检查PLY文件是否包含颜色信息
+            const hasColors = geometry.attributes.color !== undefined;
+            
+            let material;
+            if (hasColors) {
+                // 使用PLY文件中的原始颜色（vertexColors会自动使用PLY文件中的颜色）
+                material = new THREE.PointsMaterial({ 
+                    size: settings.particleSize, 
+                    vertexColors: true, // 使用顶点颜色，这是关键
+                    transparent: true, 
+                    opacity: currentMetadata?.opacity || 0.8, 
+                    blending: THREE.AdditiveBlending, 
+                    depthWrite: false 
+                });
+                material.userData.baseOpacity = currentMetadata?.opacity || 0.8;
+            } else {
+                // 如果PLY文件没有颜色信息（应该不会发生，因为模型都有颜色）
+                // 使用白色作为后备，但这种情况不应该出现
+                const opacity = currentMetadata?.opacity || 0.8;
+                material = new THREE.PointsMaterial({ 
+                    size: settings.particleSize, 
+                    color: 0xffffff, // 白色作为后备（不应该用到）
+                    transparent: true, 
+                    opacity: opacity, 
+                    blending: THREE.AdditiveBlending, 
+                    depthWrite: false 
+                });
+                material.userData.baseOpacity = opacity;
+                console.warn(`PLY file for ${orbitalId} has no color information`);
+            }
+            
+            try {
+                orbitalPoints = new THREE.Points(geometry, material);
+                orbitalGroup.add(orbitalPoints);
+                axesHelper = createAxesHelper(L);
+                axesHelper.visible = settings.showAxes;
+                setAxesLabelsVisibility(settings.showAxes);
+                orbitalGroup.add(axesHelper);
+                console.log('OrbitalPoints created and added to scene');
+
+                // 应用推荐缩放
+                if (currentMetadata?.recommendedScale) {
+                    if (renderController) {
+                        renderController.targetScale = currentMetadata.recommendedScale;
+                        renderController.currentScale = currentMetadata.recommendedScale;
+                    }
+                    orbitalGroup.scale.setScalar(currentMetadata.recommendedScale);
+                }
+                
+                currentOrbitalId = orbitalId;
+                if (!opts.isSwitch) {
+                    hideLoadingOverlay();
+                    showViewer();
+                }
+                const orbitalSelect = document.getElementById('experiment-console-orbital-select');
+                // #region agent log
+                fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:loadOrbital.success',message:'before set select',data:{currentOrbitalId,isSwitch:!!opts.isSwitch,hasSelect:!!orbitalSelect,selectValueBefore:orbitalSelect?orbitalSelect.value:null},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H4'})}).catch(()=>{});
+                // #endregion
+                if (orbitalSelect) orbitalSelect.value = currentOrbitalId;
+                // #region agent log
+                fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:loadOrbital.success',message:'after set select',data:{selectValueAfter:orbitalSelect?orbitalSelect.value:null},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H5'})}).catch(()=>{});
+                // #endregion
+                
+                // 重置相机位置和旋转
+                if (camera) {
+                    camera.position.set(0, 0, 15);
+                    camera.lookAt(0, 0, 0);
+                }
+                const initialScale = currentMetadata?.recommendedScale || 1.0;
+                if (renderController) {
+                    renderController.targetQuaternion.set(0, 0, 0, 1);
+                    renderController.currentQuaternion.set(0, 0, 0, 1);
+                    renderController.targetScale = initialScale;
+                    renderController.currentScale = initialScale;
+                }
+                if (orbitalGroup) {
+                    orbitalGroup.quaternion.set(0, 0, 0, 1);
+                    orbitalGroup.scale.setScalar(initialScale);
+                    orbitalGroup.position.set(0, 0, 0);
+                }
+                
+                // 强制渲染一次，确保模型显示
+                setTimeout(() => {
+                    if (renderer && scene && camera) {
+                        renderer.render(scene, camera);
+                        console.log('Forced render after model load');
+                        console.log('Camera position:', camera.position);
+                        console.log('OrbitalGroup position:', orbitalGroup.position);
+                        console.log('OrbitalGroup scale:', orbitalGroup.scale);
+                    }
+                }, 100);
+            } catch (renderError) {
+                console.error('Error creating or rendering orbital points:', renderError);
+                showLoadingError(`渲染失败: ${renderError.message}`, orbitalId, opts);
+            }
+        }, (progress) => {
+            if (!opts.isSwitch) updateLoadingProgress(progress);
+            if (progress && progress.total > 0) {
+                console.log(`Loading progress: ${Math.round((progress.loaded / progress.total) * 100)}% (${progress.loaded}/${progress.total} bytes)`);
+            }
+        }, (error) => {
+            console.error('Failed to load model:', error);
+            console.error('Failed URL:', plyUrl);
+            console.error('Error details:', error.message || error);
+            showLoadingError(error?.message || '请检查模型文件', orbitalId, opts);
+        });
+        
+    } catch (error) {
+        console.error('Failed to load orbital:', error);
+        showLoadingError(error.message, orbitalId, opts);
+    }
+}
+
+function createAxesHelper(L) {
+    const group = new THREE.Group();
+    group.userData.isAxesHelper = true;
+
+    const r = 0.04 * L;
+    const h = 0.1 * L;
+
+    // 三条粗线：Line2 + LineGeometry + LineMaterial
+    const geomX = new LineGeometry().setPositions([0, 0, 0, L, 0, 0]);
+    const matX = new LineMaterial({ color: 0xff0000, linewidth: 2 });
+    matX.resolution.set(renderer.domElement.width, renderer.domElement.height);
+    const lineX = new Line2(geomX, matX);
+    lineX.renderOrder = 1;
+    lineX.onBeforeRender = () => { matX.resolution.set(renderer.domElement.width, renderer.domElement.height); };
+    group.add(lineX);
+
+    const geomY = new LineGeometry().setPositions([0, 0, 0, 0, L, 0]);
+    const matY = new LineMaterial({ color: 0x00ff00, linewidth: 2 });
+    matY.resolution.set(renderer.domElement.width, renderer.domElement.height);
+    const lineY = new Line2(geomY, matY);
+    lineY.renderOrder = 1;
+    lineY.onBeforeRender = () => { matY.resolution.set(renderer.domElement.width, renderer.domElement.height); };
+    group.add(lineY);
+
+    const geomZ = new LineGeometry().setPositions([0, 0, 0, 0, 0, L]);
+    const matZ = new LineMaterial({ color: 0x0000ff, linewidth: 2 });
+    matZ.resolution.set(renderer.domElement.width, renderer.domElement.height);
+    const lineZ = new Line2(geomZ, matZ);
+    lineZ.renderOrder = 1;
+    lineZ.onBeforeRender = () => { matZ.resolution.set(renderer.domElement.width, renderer.domElement.height); };
+    group.add(lineZ);
+
+    // 三个箭头：锥尖在轴端点，锥体向原点
+    const coneX = new THREE.Mesh(new THREE.ConeGeometry(r, h, 8), new THREE.MeshBasicMaterial({ color: 0xff0000 }));
+    coneX.position.set(L - h / 2, 0, 0);
+    coneX.rotation.set(0, 0, -Math.PI / 2);
+    group.add(coneX);
+
+    const coneY = new THREE.Mesh(new THREE.ConeGeometry(r, h, 8), new THREE.MeshBasicMaterial({ color: 0x00ff00 }));
+    coneY.position.set(0, L - h / 2, 0);
+    group.add(coneY);
+
+    const coneZ = new THREE.Mesh(new THREE.ConeGeometry(r, h, 8), new THREE.MeshBasicMaterial({ color: 0x0000ff }));
+    coneZ.position.set(0, 0, L - h / 2);
+    coneZ.rotation.set(Math.PI / 2, 0, 0);  // 锥尖默认 +Y，绕 X 转 +90° 指向 +Z
+    group.add(coneZ);
+
+    // 三个标签 X / Y / Z
+    const divX = document.createElement('div');
+    divX.textContent = 'X';
+    divX.style.color = '#ff0000';
+    divX.style.fontSize = '18px';
+    divX.style.fontWeight = 'bold';
+    divX.style.pointerEvents = 'none';
+    const labelX = new CSS2DObject(divX);
+    labelX.position.set(L * 1.15, 0, 0);
+    group.add(labelX);
+
+    const divY = document.createElement('div');
+    divY.textContent = 'Y';
+    divY.style.color = '#00ff00';
+    divY.style.fontSize = '18px';
+    divY.style.fontWeight = 'bold';
+    divY.style.pointerEvents = 'none';
+    const labelY = new CSS2DObject(divY);
+    labelY.position.set(0, L * 1.15, 0);
+    group.add(labelY);
+
+    const divZ = document.createElement('div');
+    divZ.textContent = 'Z';
+    divZ.style.color = '#0000ff';
+    divZ.style.fontSize = '18px';
+    divZ.style.fontWeight = 'bold';
+    divZ.style.pointerEvents = 'none';
+    const labelZ = new CSS2DObject(divZ);
+    labelZ.position.set(0, 0, L * 1.15);
+    group.add(labelZ);
+
+    return group;
+}
+
+function disposeAxesGroup(axesGroup) {
+    axesGroup.children.forEach((c) => {
+        if (c.geometry) c.geometry.dispose();
+        if (c.material) c.material.dispose();
+        // CSS2DObject 的 div 需从 DOM 移除，否则换模型后旧标签会残留
+        if (c.element && c.element.parentNode) c.element.parentNode.removeChild(c.element);
+    });
+}
+
+/** 同步坐标轴 X/Y/Z 标签（CSS2DObject）的显隐；关闭坐标轴时 CSS2DRenderer 仍可能渲染标签，需显式设 display */
+function setAxesLabelsVisibility(visible) {
+    if (!axesHelper) return;
+    axesHelper.traverse((c) => {
+        if (c.element) c.element.style.display = visible ? '' : 'none';
+    });
+}
+
+function refreshExperimentConsoleBlockSelect() {
+    const select = document.getElementById('experiment-console-orbital-select');
+    if (!select) return;
+    const ids = getNavigableOrbitalIds(currentCategory);
+    // #region agent log
+    const inIds = ids.includes(currentOrbitalId);
+    fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:refreshExperimentConsoleBlockSelect',message:'before fill',data:{currentCategory,currentOrbitalId,idsLen:ids.length,ids0:ids[0],currentInIds:inIds},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2'})}).catch(()=>{});
+    // #endregion
+    select.innerHTML = '';
+    ids.forEach(id => {
+        const opt = document.createElement('option');
+        opt.value = id;
+        opt.textContent = formatOrbitalName(id);
+        select.appendChild(opt);
+    });
+    select.value = currentOrbitalId || ids[0] || '';
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:refreshExperimentConsoleBlockSelect',message:'after set value',data:{selectValue:select.value},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H4'})}).catch(()=>{});
+    // #endregion
+}
+
+function syncExperimentConsoleControls() {
+    const autoRotate = document.getElementById('experiment-console-auto-rotate');
+    const rotationSpeed = document.getElementById('experiment-console-rotation-speed');
+    const showAxes = document.getElementById('experiment-console-show-axes');
+    if (autoRotate) autoRotate.checked = settings.autoRotate;
+    if (rotationSpeed) rotationSpeed.value = String(settings.rotationSpeed);
+    if (showAxes) showAxes.checked = settings.showAxes;
+}
+
+function initExperimentConsole() {
+    const root = document.getElementById('experiment-console');
+    const header = document.getElementById('experiment-console-header');
+    const autoRotate = document.getElementById('experiment-console-auto-rotate');
+    const rotationSpeed = document.getElementById('experiment-console-rotation-speed');
+    const showAxes = document.getElementById('experiment-console-show-axes');
+    const orbitalSelect = document.getElementById('experiment-console-orbital-select');
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:initExperimentConsole',message:'entry',data:{hasRoot:!!root,hasHeader:!!header,hasOrbitalSelect:!!orbitalSelect},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
+    // #endregion
+    if (!root || !header) return;
+
+    header.addEventListener('click', () => root.classList.toggle('is-open'));
+    if (autoRotate) {
+        autoRotate.addEventListener('change', () => { settings.autoRotate = autoRotate.checked; });
+    }
+    if (rotationSpeed) {
+        rotationSpeed.addEventListener('input', () => { settings.rotationSpeed = parseFloat(rotationSpeed.value); });
+    }
+    if (showAxes) {
+        showAxes.addEventListener('change', () => {
+            settings.showAxes = showAxes.checked;
+            if (axesHelper) {
+                axesHelper.visible = showAxes.checked;
+                setAxesLabelsVisibility(showAxes.checked);
+            }
+        });
+    }
+    if (orbitalSelect) {
+        orbitalSelect.addEventListener('change', () => {
+            const id = orbitalSelect.value;
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:orbitalSelect.change',message:'select change',data:{id,isSwitch:true},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H5'})}).catch(()=>{});
+            // #endregion
+            if (id) loadOrbital(id, { isSwitch: true });
+        });
+    }
+}
+
+// 显示查看器界面
+function showViewer() {
+    currentView = 'viewer';
+    document.getElementById('category-selector').classList.add('hidden');
+    document.getElementById('orbital-selector').classList.add('hidden');
+    
+    const container = document.getElementById('container');
+    container.style.display = 'block';
+    container.style.visibility = 'visible';
+    container.style.opacity = '1';
+    
+    document.getElementById('instructions').classList.remove('hidden');
+    document.getElementById('orbital-tag').classList.remove('hidden');
+    document.getElementById('video-container').classList.remove('hidden');
+    document.getElementById('viewer-back-button').classList.remove('hidden');
+    const consoleEl = document.getElementById('experiment-console');
+    if (consoleEl) consoleEl.classList.remove('hidden');
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:showViewer',message:'before refresh',data:{currentCategory,currentOrbitalId},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H3'})}).catch(()=>{});
+    // #endregion
+    refreshExperimentConsoleBlockSelect();
+    syncExperimentConsoleControls();
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:showViewer',message:'after sync',data:{},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H3'})}).catch(()=>{});
+    // #endregion
+    
+    // 确保加载遮罩隐藏（通常已在 loadOrbital onLoad 中 hideLoadingOverlay）
+    hideLoadingOverlay();
+    
+    // 确保渲染器大小正确
+    if (renderer) {
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+    
+    // 更新相机宽高比
+    if (camera) {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+    }
+    
+    console.log('Viewer shown, currentView:', currentView);
+    console.log('Container display:', container.style.display);
+    console.log('Settings autoRotate:', settings.autoRotate);
+    console.log('OrbitalGroup exists:', !!orbitalGroup);
+    console.log('OrbitalGroup children:', orbitalGroup ? orbitalGroup.children.length : 0);
+
+    // #region agent log
+    var _hasG = !!gestureController, _en = gestureController?.enabled, _willStart = _hasG && _en;
+    fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:showViewer',message:'viewer enter',data:{hasGesture:_hasG,enabled:_en,willCallStart:_willStart},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
+    if (gestureController && gestureController.enabled) gestureController.start();
+}
+
+// --- 鼠标交互 ---
+function initMouseEvents() {
+    const container = document.getElementById('container');
+    
+    container.addEventListener('mousedown', (e) => {
+        if (currentView !== 'viewer' || !renderController) return;
+        // 允许在任何容器内点击，不限制为CANVAS
+        isMouseDown = true;
+        lastMousePos = { x: e.clientX, y: e.clientY };
+        renderController.setInteracting(true);
+        console.log('Mouse down, starting drag');
+        e.preventDefault();
+    });
+
+    window.addEventListener('mousemove', (e) => {
+        if (currentView !== 'viewer' || !renderController) return;
+        if (!isMouseDown) return;
+        const deltaX = e.clientX - lastMousePos.x;
+        const deltaY = e.clientY - lastMousePos.y;
+        const rotationDeltaX = deltaX * ROTATION_SENSITIVITY;
+        const rotationDeltaY = (invertRotationY ? deltaY : -deltaY) * ROTATION_SENSITIVITY;
+        renderController.setTargetRotation(rotationDeltaX, rotationDeltaY);
+        lastMousePos = { x: e.clientX, y: e.clientY };
+        e.preventDefault();
+    });
+
+    window.addEventListener('mouseup', () => {
+        if (isMouseDown) {
+            console.log('Mouse up, ending drag');
+        }
+        isMouseDown = false;
+        if (renderController) {
+            renderController.setInteracting(false);
+        }
+    });
+
+    window.addEventListener('wheel', (e) => {
+        if (currentView !== 'viewer' || !renderController) return;
+        e.preventDefault();
+        const zoomDelta = -e.deltaY * ZOOM_SENSITIVITY;
+        const currentScale = renderController.targetScale;
+        const newScale = currentScale + zoomDelta;
+        const clampedScale = THREE.MathUtils.clamp(newScale, MIN_SCALE, MAX_SCALE);
+        renderController.setTargetScale(clampedScale);
+        renderController.setInteracting(true);
+        setTimeout(() => {
+            renderController.setInteracting(false);
+        }, 100);
+        console.log('Wheel zoom, new scale:', clampedScale);
+    }, { passive: false });
+    
+    // ESC键返回分类选择
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            if (currentView === 'viewer') {
+                showCategorySelector();
+            } else if (currentView === 'orbital') {
+                showCategorySelector();
+            }
+        }
+    });
+}
+
+// --- 手势交互 ---
+async function initGestureController() {
+    const videoElement = document.getElementById('input_video');
+    if (!videoElement) {
+        console.warn('Gesture video element not found');
+        return;
+    }
+
+    const viewerAdapter = {
+        getRenderController: () => (currentView === 'viewer' ? renderController : null)
+    };
+
+    gestureController = new GestureController(videoElement, viewerAdapter, { enabled: true, invertRotationY });
+    await gestureController.init();
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:initGestureController',message:'init done',data:{hasGesture:!!gestureController,currentView:typeof currentView!=='undefined'?currentView:'?'},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
+}
+
+function animate() {
+    animateId = requestAnimationFrame(animate);
+
+    // 始终渲染，但只在viewer模式下更新模型
+    if (currentView === 'viewer') {
+        // 自动旋转：仅排除鼠标拖拽（isMouseDown）；不依赖 isInteracting，避免被手势等长期占用阻断
+        if (renderController && !isMouseDown && settings.autoRotate) {
+            renderController.setTargetRotation(settings.rotationSpeed, 0, true);
+        }
+    }
+}
+
+/**
+ * 标签页隐藏时暂停：停止 RenderController、explorer.animate、GestureController，降低后台占用。
+ */
+function pauseBackgroundWork() {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:pauseBackgroundWork',message:'pause',data:{hadGesture:!!gestureController},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
+    if (renderController) renderController.stop();
+    if (animateId != null) {
+        cancelAnimationFrame(animateId);
+        animateId = null;
+    }
+    if (gestureController) gestureController.stop();
+}
+
+/**
+ * 标签页重新可见时恢复：启动 RenderController、explorer.animate；
+ * 仅当处于查看器界面时恢复 GestureController（摄像头）。
+ */
+function resumeBackgroundWork() {
+    var _cv = currentView, _g = !!gestureController, _en = gestureController?.enabled, _cond = _cv==='viewer'&&_en, _did = _cond;
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:resumeBackgroundWork',message:'resume',data:{currentView:_cv,hasGesture:_g,enabled:_en,conditionViewerAndEnabled:_cond,didStartGesture:_did},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
+    if (renderController) renderController.start();
+    animate();
+    if (currentView === 'viewer' && gestureController?.enabled) gestureController.start();
+}
+
+/**
+ * 页面卸载时完整清理：停止渲染与手势、释放 WebGL、移除监听，避免后台残留。
+ */
+function onPageUnload() {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:onPageUnload',message:'unload entry',data:{pageUnloadCleanedBefore:pageUnloadCleaned},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'D'})}).catch(()=>{});
+    // #endregion
+    if (pageUnloadCleaned) return;
+    pageUnloadCleaned = true;
+
+    if (renderController) renderController.stop();
+    if (animateId != null) {
+        cancelAnimationFrame(animateId);
+        animateId = null;
+    }
+    if (gestureController) gestureController.destroy();
+    if (renderer) renderer.dispose();
+    window.removeEventListener('resize', onWindowResize);
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:onPageUnload',message:'unload done',data:{rendererDisposed:!!renderer,resizeRemoved:true},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'D'})}).catch(()=>{});
+    // #endregion
+}
+
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    if (css2DRenderer) css2DRenderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+// 显示知识卡片
+function showKnowledgeCard(orbitalId) {
+    const knowledge = getOrbitalKnowledge(orbitalId);
+    const card = document.getElementById('knowledge-card');
+    const content = document.getElementById('knowledge-content');
+    const closeBtn = document.getElementById('knowledge-close');
+    
+    if (!knowledge) {
+        console.warn(`No knowledge data for orbital: ${orbitalId}`);
+        return;
+    }
+    
+    // 构建知识卡片内容
+    let html = `<div class="knowledge-title">${knowledge.title}</div>`;
+    
+    // 基本信息部分
+    html += '<div class="knowledge-section">';
+    html += '<div class="knowledge-section-title">基本信息</div>';
+    html += `<div class="knowledge-item">
+        <div class="knowledge-item-label">量子数</div>
+        <div class="knowledge-item-value">
+            n = <strong>${knowledge.basicInfo.quantumNumbers.n}</strong>, 
+            l = <strong>${knowledge.basicInfo.quantumNumbers.l}</strong>, 
+            m = <strong>${knowledge.basicInfo.quantumNumbers.m}</strong>
+        </div>
+    </div>`;
+    html += `<div class="knowledge-item">
+        <div class="knowledge-item-label">轨道类型</div>
+        <div class="knowledge-item-value">${knowledge.basicInfo.orbitalType}</div>
+    </div>`;
+    html += `<div class="knowledge-item">
+        <div class="knowledge-item-label">描述</div>
+        <div class="knowledge-item-value">${knowledge.basicInfo.description}</div>
+    </div>`;
+    html += '</div>';
+    
+    // 形状特征部分
+    html += '<div class="knowledge-section">';
+    html += '<div class="knowledge-section-title">形状特征</div>';
+    html += `<div class="knowledge-item">
+        <div class="knowledge-item-label">形状</div>
+        <div class="knowledge-item-value">${knowledge.shapeFeatures.shape}</div>
+    </div>`;
+    html += `<div class="knowledge-item">
+        <div class="knowledge-item-label">对称性</div>
+        <div class="knowledge-item-value">${knowledge.shapeFeatures.symmetry}</div>
+    </div>`;
+    html += `<div class="knowledge-item">
+        <div class="knowledge-item-label">节点数</div>
+        <div class="knowledge-item-value">${knowledge.shapeFeatures.nodes}</div>
+    </div>`;
+    html += '</div>';
+    
+    content.innerHTML = html;
+    card.classList.remove('hidden');
+    
+    // 关闭按钮事件
+    closeBtn.onclick = () => {
+        card.classList.add('hidden');
+    };
+    
+    // 点击外部区域关闭（可选）
+    card.onclick = (e) => {
+        if (e.target === card) {
+            card.classList.add('hidden');
+        }
+    };
+}

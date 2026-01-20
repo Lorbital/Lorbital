@@ -57,7 +57,7 @@ class QuantumOrbitalEngine:
             ]
             return funcs[m_idx], names[m_idx]
             
-        # f (l=3)
+        # f (l=3)：orb_name 保持；在 sample_and_save 做 fxx2-3y2→x(x2-3y2)、fyy2-3x2→y(x2-z2) 及去 f 前缀
         elif l == 3:
             names = ["fz3", "fxz2", "fyz2", "fzx2-y2", "fxyz", "fxx2-3y2", "fyy2-3x2"]
             funcs = [
@@ -90,15 +90,24 @@ class QuantumOrbitalEngine:
         return torch.ones_like(theta), "error"
 
     def sample_and_save(self, n, l, m_idx, num_points=250000):
-        # 1. 确定文件夹结构 (例如: model++/n4/f/)
         l_char = "spdfg"[l]
-        dir_path = os.path.join(self.root_dir, f"n{n}", l_char)
+        _, orb_name = self.get_angular_data(l, m_idx, torch.tensor([0.0]), torch.tensor([0.0]))
+        # 1. full_name：s/p 不变；d/f/g 用 {n}{d|f|g}_{suffix}，suffix=去首字母，f 先做 fxx2-3y2→x(x2-3y2)、fyy2-3x2→y(x2-z2)
+        if l == 0:
+            full_name = f"{n}s"
+        elif l == 1:
+            full_name = f"{n}{orb_name}"  # 2px, 2py, 2pz
+        else:
+            if l == 3 and orb_name in ("fxx2-3y2", "fyy2-3x2"):
+                suffix = "x(x2-3y2)" if orb_name == "fxx2-3y2" else "y(x2-z2)"
+            else:
+                suffix = orb_name[1:]  # 去首字母 d/f/g
+            full_name = f"{n}{l_char}_{suffix}"  # 3d_z2, 4f_z3, 5g_z4 等
+
+        # 2. 目录：models/model++/{type}/{orbitalId}/，与 README 一致
+        dir_path = os.path.join(self.root_dir, l_char, full_name)
         os.makedirs(dir_path, exist_ok=True)
 
-        # 2. 获取名称
-        _, orb_name = self.get_angular_data(l, m_idx, torch.tensor([0.0]), torch.tensor([0.0]))
-        full_name = f"{n}{orb_name}"
-        
         # 3. 采样逻辑
         r_limit = n * (n + l) * 0.9
         points, colors = [], []
@@ -133,7 +142,7 @@ class QuantumOrbitalEngine:
                     colors.append(self.COLOR_POS if psi_np[i] > 0 else self.COLOR_NEG)
                     pbar.update(1)
 
-        # 4. 写入 PLY
+        # 5. 写入 PLY
         save_path = os.path.join(dir_path, f"{full_name}.ply")
         with open(save_path, 'w') as f:
             f.write(f"ply\nformat ascii 1.0\nelement vertex {len(points)}\n")
@@ -144,16 +153,18 @@ class QuantumOrbitalEngine:
 
 # --- 任务编排 ---
 if __name__ == "__main__":
-    BASE_URL = r"E:\文件\orbital玻璃内雕\web_code\model++"
+    # 项目内路径：models/model++，与 README 的 models/model++/{type}/{orbitalId}/ 一致
+    _script_dir = os.path.dirname(os.path.abspath(__file__))
+    BASE_URL = os.path.join(_script_dir, "model++")
     engine = QuantumOrbitalEngine(BASE_URL)
 
     # 定义全量任务 [n_range, l, 简并度]
     task_config = [
-        (range(1, 8), 0, 1), # 1s - 7s
-        (range(2, 7), 1, 3), # 2p - 6p
-        (range(3, 7), 2, 5), # 3d - 6d
-        (range(4, 6), 3, 7), # 4f - 5f
-        (range(5, 6), 4, 9), # 5g
+        (range(1, 8), 0, 1),  # 1s - 7s
+        (range(2, 7), 1, 3),  # 2p - 6p（px,py,pz）
+        (range(3, 7), 2, 5),  # 3d - 6d → 3d_z2 等
+        (range(4, 6), 3, 7),  # 4f - 5f → 4f_z3 等
+        (range(5, 6), 4, 9),  # 5g → 5g_z4 等
     ]
 
     for n_range, l, m_count in task_config:
@@ -161,4 +172,4 @@ if __name__ == "__main__":
             for m_idx in range(m_count):
                 engine.sample_and_save(n, l, m_idx)
 
-    print(f"\n| 教授 | 任务完美完成！模型已按层级存储在: {BASE_URL}")
+    print(f"\n| 教授 | 任务完美完成！模型已按 models/model++/{{type}}/{{orbitalId}}/ 存储在: {BASE_URL}")

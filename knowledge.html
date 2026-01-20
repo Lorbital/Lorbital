@@ -61,6 +61,60 @@
             border-left: 3px solid var(--accent);
             overflow-x: auto; /* 防止长公式溢出 */
         }
+        /* 知识库：左侧目录 + 中间内容 */
+        .knowledge-layout {
+            display: flex;
+            gap: 1.5rem;
+            align-items: flex-start;
+            margin-top: 1.5rem;
+        }
+        .knowledge-sidebar {
+            width: 220px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 90px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1rem 0;
+        }
+        .knowledge-sidebar nav {
+            display: flex;
+            flex-direction: column;
+        }
+        .knowledge-sidebar a {
+            display: block;
+            padding: 0.6rem 1.25rem;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s, background 0.2s;
+        }
+        .knowledge-sidebar a:hover {
+            color: var(--accent);
+            background: rgba(0, 255, 255, 0.08);
+        }
+        .knowledge-sidebar a.active {
+            color: var(--accent);
+            background: rgba(0, 255, 255, 0.12);
+            border-left: 3px solid var(--accent);
+            padding-left: calc(1.25rem - 3px);
+        }
+        .knowledge-main {
+            flex: 1;
+            min-width: 0;
+        }
+        .knowledge-main .glass-panel {
+            padding: 1.5rem 2rem;
+        }
+        .knowledge-main h2 { margin-top: 0; }
+        .knowledge-main h3 { font-size: 1.1rem; margin: 1.25rem 0 0.5rem; color: var(--accent); }
+        .knowledge-main h3:first-of-type { margin-top: 0.5rem; }
+        .knowledge-main p { margin: 0.5rem 0; line-height: 1.65; }
+        @media (max-width: 768px) {
+            .knowledge-layout { flex-direction: column; }
+            .knowledge-sidebar { position: static; width: 100%; }
+        }
     </style>
 </head>
 <body>
@@ -78,38 +132,18 @@
     <div class="page-container">
         <section class="glass-panel">
             <h1>量子力学核心理论</h1>
-            <p>欢迎来到观测实验室的理论核心。在这里，我们将数学的严谨与物理的直观结合。所有你看到的 3D 模型，都是以下方程在三维空间的概率解。</p>
+            <p>欢迎来到观测实验室的理论核心。左侧选择目录，中间查看对应知识点。所有你看到的 3D 模型，都是薛定谔方程在三维空间的概率解。</p>
         </section>
-
-        <section class="glass-panel">
-            <h2>1. 薛定谔方程 (Schrödinger Equation)</h2>
-            <p>描述电子在势场中运动状态的核心。对于氢原子及其类氢离子，随时间演化的波函数满足：</p>
-            
-            <div class="formula-box">
-                $$ \hat{H}\psi(\mathbf{r}, t) = i\hbar \frac{\partial}{\partial t}\psi(\mathbf{r}, t) $$
-            </div>
-            
-            <p>其中 $\hat{H}$ 是哈密顿算符。当我们求解不含时的薛定谔方程时，我们得到的是定态波函数，这正是我们 3D 模型所表现的“形状”。</p>
-        </section>
-
-        <section class="glass-panel">
-            <h2>2. 波粒二象性</h2>
-            <p>德布罗意指出，任何微观粒子都具有波动性。电子的波长 $\lambda$ 与动量 $p$ 的关系为：</p>
-            <div class="formula-box">
-                $$ \lambda = \frac{h}{p} $$
-            </div>
-            <p>这意味着电子并不是像小球一样旋转，而是以一种“驻波”的形式分布在原子核周围。这就是为什么我们使用<b>点云（Point Cloud）</b>来展示轨道——每一个点都代表电子出现的概率，而不是一个固定的坐标。</p>
-        </section>
-
-        <section class="glass-panel">
-            <h2>3. 轨道的种类与量子数</h2>
-            <p>通过求解方程，我们得到三组整数，决定了轨道的形状：</p>
-            <ul>
-                <li><strong>主量子数 ($n$)</strong>：决定能量和大小 (1, 2, 3...)</li>
-                <li><strong>角量子数 ($l$)</strong>：决定形状 (0:s, 1:p, 2:d, 3:f)</li>
-                <li><strong>磁量子数 ($m_l$)</strong>：决定在空间中的取向</li>
-            </ul>
-        </section>
+        <div class="knowledge-layout">
+            <aside class="knowledge-sidebar">
+                <nav id="knowledge-toc" aria-label="知识库目录"></nav>
+            </aside>
+            <main class="knowledge-main">
+                <div id="knowledge-content"></div>
+            </main>
+        </div>
     </div>
+    <script src="src/data/knowledgeBase.js"></script>
+    <script src="src/knowledgePage.js"></script>
 </body>
 </html>

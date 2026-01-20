@@ -7,7 +7,7 @@
     <style>
         body { margin: 0; overflow: hidden; background: #000; }
         #instructions {
-            position: absolute; top: 90px; left: 20px;
+            position: absolute; top: 150px; left: 20px;
             background: rgba(0,0,0,0.8); backdrop-filter: blur(15px);
             padding: 20px; border-radius: 15px; border: 1px solid var(--glass-border);
             z-index: 100; font-size: 13px; color: white;
@@ -19,7 +19,72 @@
             width: 180px; height: 135px; border-radius: 12px; 
             overflow: hidden; border: 2px solid var(--accent); transform: scaleX(-1);
         }
-        #loading { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--accent); z-index: 200; }
+        /* 加载遮罩：全屏、z-index 高于 orbital-selector(250)/category-selector(300) */
+        #loading-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(20px);
+            z-index: 400;
+            color: var(--accent);
+        }
+        #loading-overlay.hidden { display: none; }
+        #loading-text { font-size: 16px; letter-spacing: 3px; margin-bottom: 8px; }
+        #loading-orbital-name { font-size: 28px; font-weight: 200; margin-bottom: 24px; }
+        #loading-progress-wrap {
+            width: 280px;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+        #loading-progress-bar {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 3px;
+            width: 0;
+            transition: width 0.2s ease;
+        }
+        #loading-progress-bar.indeterminate {
+            width: 40%;
+            animation: loadingIndeterminate 1.5s ease-in-out infinite;
+        }
+        @keyframes loadingIndeterminate {
+            0% { transform: translateX(-100%); }
+            50% { transform: translateX(350%); }
+            100% { transform: translateX(-100%); }
+        }
+        #loading-percent { font-size: 13px; color: rgba(255, 255, 255, 0.7); }
+        #loading-percent.hidden { display: none; }
+        #loading-error {
+            margin-top: 12px;
+            font-size: 14px;
+            color: rgba(255, 200, 200, 0.95);
+            max-width: 360px;
+            text-align: center;
+        }
+        #loading-error.hidden { display: none; }
+        #loading-actions { margin-top: 20px; display: flex; gap: 12px; }
+        #loading-actions.hidden { display: none; }
+        #loading-retry, #loading-back {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 10px 20px;
+            color: white;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+        #loading-retry:hover, #loading-back:hover {
+            background: rgba(0, 255, 255, 0.2);
+            border-color: var(--accent);
+        }
         
         /* 分类选择界面 */
         #category-selector {
@@ -29,8 +94,10 @@
             width: 100%;
             height: 100%;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            justify-content: flex-start;
             align-items: center;
+            padding-top: 140px; /* 介绍文字与 SPDFG 整体下移 */
             background: rgba(0, 0, 0, 0.95);
             z-index: 300;
             backdrop-filter: blur(20px);
@@ -44,6 +111,8 @@
             gap: 40px;
             max-width: 1400px;
             width: 90%;
+            margin-top: 28px;
+            justify-content: center;
         }
         @media (min-width: 1200px) {
             .category-grid {
@@ -97,6 +166,31 @@
             color: rgba(255, 255, 255, 0.7);
             margin-top: 10px;
             z-index: 1;
+        }
+        .intro-panel {
+            width: 90%;
+            max-width: 700px;
+            max-height: 22vh;
+            overflow-y: auto;
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 20px 28px;
+            flex-shrink: 0;
+        }
+        .intro-panel h2 {
+            font-size: 20px;
+            font-weight: 300;
+            color: var(--accent);
+            margin: 0 0 12px 0;
+            letter-spacing: 2px;
+        }
+        .intro-panel p {
+            font-size: 14px;
+            line-height: 1.65;
+            color: rgba(255, 255, 255, 0.85);
+            margin: 0;
         }
         
         /* 轨道列表界面 */
@@ -346,6 +440,65 @@
             border-color: var(--accent);
             transform: translateX(-5px);
         }
+        /* 实验控制台（可折叠下拉面板） */
+        .experiment-console {
+            position: fixed;
+            top: 70px;
+            right: 10px;
+            z-index: 1000;
+            min-width: 220px;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(15px);
+            border: 2px solid var(--glass-border);
+            border-radius: 12px;
+        }
+        .experiment-console.hidden { display: none; }
+        .experiment-console-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 14px;
+            cursor: pointer;
+            color: var(--accent);
+            font-size: 14px;
+            user-select: none;
+        }
+        .experiment-console-header:hover { background: rgba(255, 255, 255, 0.05); }
+        .experiment-console-header .arrow { font-size: 10px; transition: transform 0.2s; }
+        .experiment-console:not(.is-open) .experiment-console-body { display: none; }
+        .experiment-console.is-open .experiment-console-header .arrow { transform: rotate(180deg); }
+        .experiment-console-body {
+            padding: 12px 14px 16px;
+            border-top: 1px solid var(--glass-border);
+        }
+        .experiment-console-body label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.9);
+            cursor: pointer;
+        }
+        .experiment-console-body label:last-of-type { margin-bottom: 12px; }
+        .experiment-console-body input[type="checkbox"] { accent-color: var(--accent); cursor: pointer; }
+        .experiment-console-body input[type="range"] {
+            width: 100%;
+            margin: 8px 0;
+            accent-color: var(--accent);
+        }
+        .experiment-console-body select {
+            width: 100%;
+            padding: 6px 8px;
+            margin-top: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--glass-border);
+            border-radius: 6px;
+            color: white;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .experiment-console-body select option { background: #111; color: white; }
         .back-button:hover {
             background: rgba(0, 255, 255, 0.2);
             border-color: var(--accent);
@@ -356,7 +509,7 @@
             top: 90px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 48px;
+            font-size: 60px;
             font-weight: 200;
             color: var(--accent);
             text-shadow: 0 0 20px var(--accent);
@@ -374,6 +527,10 @@
 
     <!-- 分类选择界面 -->
     <div id="category-selector">
+        <div class="intro-panel">
+            <h2>量子轨道探测器</h2>
+            <p>本页提供氢原子轨道的 3D 点云可视化。选择下方 S、P、D、F、G 任一类型即可浏览该族轨道；在模型控制页可用鼠标拖拽旋转、滚轮缩放，或通过摄像头进行单手/双手捏合手势操作。</p>
+        </div>
         <div class="category-grid">
             <div class="category-card" data-type="s">
                 <div class="category-letter">s</div>
@@ -412,12 +569,24 @@
         </div>
     </div>
 
-    <div id="loading" class="hidden">量子态同步中...</div>
+    <!-- 加载遮罩：进度条、错误、重试/返回 -->
+    <div id="loading-overlay" class="hidden">
+        <div id="loading-text">量子态同步中...</div>
+        <div id="loading-orbital-name"></div>
+        <div id="loading-progress-wrap">
+            <div id="loading-progress-bar" class="indeterminate"></div>
+        </div>
+        <div id="loading-percent" class="hidden"></div>
+        <div id="loading-error" class="hidden"></div>
+        <div id="loading-actions" class="hidden">
+            <button id="loading-retry">重试</button>
+            <button id="loading-back">返回列表</button>
+        </div>
+    </div>
     <div id="instructions" class="hidden">
-        <b style="color:var(--accent)">交互方法</b><br><br>
-        • <b>单手捏合</b>: 锁定轨道进行旋转<br>
-        • <b>双手捏合</b>: 动态缩放量子模型<br>
-        • <b>鼠标滚轮</b>: 快速调节观测距离
+        <b style="color:var(--accent)">手势控制方法</b><br><br>
+        <b>单手控制旋转</b>：<br>单手捏紧食指和拇指，<br>通过手的移动控制模型旋转<br><br>
+        <b>双手控制缩放</b>：<br>双手分别捏紧食指和拇指，<br>通过双手之间的距离控制模型缩放
     </div>
 
     <div id="orbital-tag" class="hidden">
@@ -426,6 +595,17 @@
     </div>
 
     <button id="viewer-back-button" class="viewer-back-button hidden">← 返回</button>
+    <div id="experiment-console" class="experiment-console hidden is-open">
+        <div id="experiment-console-header" class="experiment-console-header">实验控制台 <span class="arrow">▼</span></div>
+        <div id="experiment-console-body" class="experiment-console-body">
+            <label><span>自动旋转</span> <input type="checkbox" id="experiment-console-auto-rotate"></label>
+            <label>旋转速度</label>
+            <input type="range" id="experiment-console-rotation-speed" min="0.001" max="0.02" step="0.0005">
+            <label><span>显示坐标轴</span> <input type="checkbox" id="experiment-console-show-axes"></label>
+            <label>当前 block 轨道</label>
+            <select id="experiment-console-orbital-select"></select>
+        </div>
+    </div>
     <div id="video-container" class="hidden"><video id="input_video" playsinline></video></div>
     <div id="container"></div>
 
@@ -435,6 +615,6 @@
     <script type="importmap">
         { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
     </script>
-    <script type="module" src="js/explorer.js"></script>
+    <script type="module" src="src/explorer.js"></script>
 </body>
 </html>

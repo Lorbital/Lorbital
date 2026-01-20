@@ -59,51 +59,54 @@ flowchart TB
 ## 目录结构
 
 ```
-QuantumProject/
-├── public/                    # 静态资源（可直接部署）
-│   └── models/               # 轨道模型数据
-│       ├── 1s/
-│       │   ├── cloud.ply     # 点云几何
-│       │   └── meta.json     # 元数据
-│       ├── 2p/
-│       └── ...
+Lorbital/
+├── index.html                # 主页
+├── explorer.html             # 3D 探测器
+├── knowledge.html            # 知识库
+├── story.html                # 我们的故事
+│
+├── css/
+│   └── shared.css            # 全局样式
 │
 ├── src/                      # 源代码
-│   ├── pages/                # HTML 页面入口
-│   │   ├── index.html       # 主页
-│   │   ├── explorer.html    # 3D 查看器
-│   │   ├── story.html       # 品牌故事
-│   │   └── knowledge.html   # 知识库
-│   │
+│   ├── explorer.js           # 探测器主逻辑（入口脚本）
 │   ├── components/           # UI 组件
 │   │   ├── OrbitalViewer.js      # 核心 3D 查看器
 │   │   ├── GestureController.js  # 手势控制器
 │   │   └── ModelSelector.js      # 模型选择器
-│   │
 │   ├── three/                # Three.js 相关
 │   │   ├── setupScene.js    # 场景初始化
 │   │   ├── loadPly.js       # PLY 加载器
 │   │   └── renderer.js      # 渲染循环
-│   │
 │   ├── gesture/              # 手势控制
 │   │   ├── handTracker.js   # MediaPipe 封装
 │   │   ├── gestureMapping.js # 手势→控制信号映射
 │   │   └── smoothing.js     # 平滑滤波
-│   │
 │   ├── data/                 # 数据层
-│   │   └── modelRegistry.js # 轨道模型注册表
-│   │
-│   └── utils/                # 工具函数
+│   │   ├── modelRegistry.js # 轨道模型注册表
+│   │   └── orbitalKnowledge.js
+│   └── utils/
 │       └── constants.js     # 常量定义
 │
-├── css/                      # 样式
-│   └── shared.css           # 全局样式
+├── models/
+│   ├── model.py             # Python 生成脚本
+│   └── model++/             # PLY 模型数据（按类型分类）
+│       ├── s/{orbitalId}/{orbitalId}.ply   # 如 s/1s/1s.ply
+│       ├── p/{orbitalId}/{orbitalId}.ply
+│       ├── d/, f/, g/       # 同理，可选 meta.json 同目录
 │
-└── docs/                     # 文档
-    ├── AGENTS.md
-    ├── CODING_STANDARDS.md
-    ├── DATA_FORMAT.md
-    └── ORBITALS.md
+├── public/
+│   └── images/
+│       └── story/           # 故事页图片
+│
+├── docs/
+│   ├── AGENTS.md
+│   ├── CODING_STANDARDS.md
+│   ├── DATA_FORMAT.md
+│   └── ORBITALS.md
+├── ARCHITECTURE.md
+├── CONTRIBUTING.md
+└── README.md
 ```
 
 ---
@@ -132,11 +135,14 @@ QuantumProject/
 
 **用途**：存储点云几何数据
 
+**路径**：`models/model++/{type}/{orbitalId}/{orbitalId}.ply`  
+例如：`models/model++/s/1s/1s.ply`、`models/model++/p/2px/2px.ply`、`models/model++/d/3d_dz2/3d_dz2.ply`
+
 **内容**：
 - 点的 x, y, z 坐标
 - 可选：颜色信息
 
-**加载方式**：Three.js `PLYLoader`
+**加载方式**：Three.js `PLYLoader`，或通过 `modelRegistry.getPlyUrl(orbitalId)` 获取 URL
 
 **特点**：
 - 二进制或 ASCII 格式
@@ -146,6 +152,8 @@ QuantumProject/
 #### 2.2 meta.json 格式
 
 **用途**：存储轨道语义信息
+
+**路径**：`models/model++/{type}/{orbitalId}/meta.json`（可选；缺省时 `modelRegistry.loadMetadata` 使用默认值）
 
 **内容**：
 ```json
@@ -334,8 +342,8 @@ QuantumProject/
 ### 添加新轨道
 
 1. 在 Python 层生成 PLY 与 meta.json
-2. 将文件放入 `public/models/{orbital_id}/`
-3. 在 `modelRegistry.js` 中注册
+2. 将文件放入 `models/model++/{type}/{orbital_id}/`（PLY 命名为 `{orbital_id}.ply`，meta.json 可选）
+3. 在 `modelRegistry.js` 的 `MODEL_REGISTRY` 中注册
 
 ### 添加新交互方式
 
@@ -357,7 +365,7 @@ QuantumProject/
 
 ### 注意事项
 
-1. 确保 `public/models/` 目录完整上传
+1. 确保 `models/model++/` 目录完整上传
 2. 确保浏览器支持 ES6 模块
 3. 确保服务器支持 MIME 类型：
    - `.ply` → `application/octet-stream`

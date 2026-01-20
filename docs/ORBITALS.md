@@ -66,24 +66,20 @@
 | `dx2-y2` | dx²-y² | 沿 x, y 轴对称，四瓣形 |
 | `dxy` | dxy | xy 平面四瓣形 |
 
-### 支持的 D 轨道
+### 支持的 D 轨道（新 ID：`{n}_{variant}`，消除 dd）
 
 | ID | n | l | 变体 | 显示名称 | 描述 |
 |----|---|---|------|---------|------|
-| `3d_dz2` | 3 | 2 | dz² | 3d (dz²) | 第一主壳层 d 轨道 (dz²) |
-| `3d_dx2-y2` | 3 | 2 | dx²-y² | 3d (dx²-y²) | 第一主壳层 d 轨道 (dx²-y²) |
-| `3d_dxy` | 3 | 2 | dxy | 3d (dxy) | 第一主壳层 d 轨道 (dxy) |
-| `4d_dz2` | 4 | 2 | dz² | 4d (dz²) | 第二主壳层 d 轨道 (dz²) |
-| `4d_dx2-y2` | 4 | 2 | dx²-y² | 4d (dx²-y²) | 第二主壳层 d 轨道 (dx²-y²) |
-| `4d_dxy` | 4 | 2 | dxy | 4d (dxy) | 第二主壳层 d 轨道 (dxy) |
-| `5d_dz2` | 5 | 2 | dz² | 5d (dz²) | 第三主壳层 d 轨道 (dz²) |
-| `5d_dx2-y2` | 5 | 2 | dx²-y² | 5d (dx²-y²) | 第三主壳层 d 轨道 (dx²-y²) |
-| `5d_dxy` | 5 | 2 | dxy | 5d (dxy) | 第三主壳层 d 轨道 (dxy) |
-| `6d_dz2` | 6 | 2 | dz² | 6d (dz²) | 第四主壳层 d 轨道 (dz²) |
-| `6d_dx2-y2` | 6 | 2 | dx²-y² | 6d (dx²-y²) | 第四主壳层 d 轨道 (dx²-y²) |
-| `6d_dxy` | 6 | 2 | dxy | 6d (dxy) | 第四主壳层 d 轨道 (dxy) |
+| `3d_z2` | 3 | 2 | dz² | 3d (z²) | 第一主壳层 d 轨道 (dz²) |
+| `3d_x2-y2` | 3 | 2 | dx²-y² | 3d (x²-y²) | 第一主壳层 d 轨道 (dx²-y²) |
+| `3d_xy` | 3 | 2 | dxy | 3d (xy) | 第一主壳层 d 轨道 (dxy) |
+| `4d_z2` | 4 | 2 | dz² | 4d (z²) | 第二主壳层 d 轨道 (dz²) |
+| `4d_x2-y2` | 4 | 2 | dx²-y² | 4d (x²-y²) | 第二主壳层 d 轨道 (dx²-y²) |
+| `4d_xy` | 4 | 2 | dxy | 4d (xy) | 第二主壳层 d 轨道 (dxy) |
+| … | … | … | … | … | … |
+| `6d_z2`, `6d_x2-y2`, `6d_xy` | 6 | 2 | … | 6d (…) | 第四主壳层 d 轨道 |
 
-**文件命名**：`{n}d_{variant}.ply` → `public/models/{n}d_{variant}/cloud.ply`
+**文件命名**：`models/model++/d/{n}_{variant}/{n}_{variant}.ply`（含 dxz、dyz 等共 5 变体×4 层）
 
 ---
 
@@ -101,73 +97,55 @@
 | `fx(x2-3y2)` | fx(x²-3y²) | 复杂对称形态 |
 | `fy(x2-z2)` | fy(x²-z²) | 复杂对称形态 |
 
-### 支持的 F 轨道
+### 支持的 F 轨道（新 ID：`{n}_{variant}`，消除 ff）
 
 | ID | n | l | 变体 | 显示名称 | 描述 |
 |----|---|---|------|---------|------|
-| `4f_fz3` | 4 | 3 | fz³ | 4f (fz³) | 第一主壳层 f 轨道 (fz³) |
-| `4f_fxz2` | 4 | 3 | fxz² | 4f (fxz²) | 第一主壳层 f 轨道 (fxz²) |
-| `4f_fxyz` | 4 | 3 | fxyz | 4f (fxyz) | 第一主壳层 f 轨道 (fxyz) |
-| `4f_fx(x2-3y2)` | 4 | 3 | fx(x²-3y²) | 4f (fx(x²-3y²)) | 第一主壳层 f 轨道 (fx(x²-3y²)) |
-| `4f_fy(x2-z2)` | 4 | 3 | fy(x²-z²) | 4f (fy(x²-z²)) | 第一主壳层 f 轨道 (fy(x²-z²)) |
-| `5f_fz3` | 5 | 3 | fz³ | 5f (fz³) | 第二主壳层 f 轨道 (fz³) |
-| `5f_fxz2` | 5 | 3 | fxz² | 5f (fxz²) | 第二主壳层 f 轨道 (fxz²) |
-| `5f_fxyz` | 5 | 3 | fxyz | 5f (fxyz) | 第二主壳层 f 轨道 (fxyz) |
-| `5f_fx(x2-3y2)` | 5 | 3 | fx(x²-3y²) | 5f (fx(x²-3y²)) | 第二主壳层 f 轨道 (fx(x²-3y²)) |
-| `5f_fy(x2-z2)` | 5 | 3 | fy(x²-z²) | 5f (fy(x²-z²)) | 第二主壳层 f 轨道 (fy(x²-z²)) |
+| `4f_z3` | 4 | 3 | fz³ | 4f (z³) | 第一主壳层 f 轨道 (fz³) |
+| `4f_xz2` | 4 | 3 | fxz² | 4f (xz²) | 第一主壳层 f 轨道 (fxz²) |
+| `4f_xyz` | 4 | 3 | fxyz | 4f (xyz) | 第一主壳层 f 轨道 (fxyz) |
+| `4f_x(x2-3y2)` | 4 | 3 | fx(x²-3y²) | 4f (x(x²-3y²)) | 第一主壳层 f 轨道 |
+| `4f_y(x2-z2)` | 4 | 3 | fy(x²-z²) | 4f (y(x²-z²)) | 第一主壳层 f 轨道 |
+| `5f_z3` … `5f_y(x2-z2)` | 5 | 3 | … | 5f (…) | 第二主壳层 f 轨道（7 变体） |
 
-**文件命名**：
-- 文件名：`{n}f_{variant}.ply`（括号替换为 `()`）
-- 路径：`public/models/{n}f_{variant}/cloud.ply`
+**文件命名**：`models/model++/f/{n}_{variant}/{n}_{variant}.ply`
 
-**注意**：文件名中括号必须转义，JSON 中使用原始符号。
+**注意**：括号在文件名与 JSON 中为 `()`，如 `4f_x(x2-3y2).ply`。
 
 ---
 
-## 完整列表（34 个轨道）
+## 完整列表（65+ 个轨道）
 
 ### S 轨道 (7 个)
-1. 1s, 2s, 3s, 4s, 5s, 6s, 7s
+1s, 2s, 3s, 4s, 5s, 6s, 7s
 
-### P 轨道 (5 个)
-2. 2p, 3p, 4p, 5p, 6p
+### P 轨道 (15 个，px/py/pz)
+2px,2py,2pz, 3px,3py,3pz, 4px,4py,4pz, 5px,5py,5pz, 6px,6py,6pz
 
-### D 轨道 (12 个)
-3. 3d_dz2, 3d_dx2-y2, 3d_dxy
-4. 4d_dz2, 4d_dx2-y2, 4d_dxy
-5. 5d_dz2, 5d_dx2-y2, 5d_dxy
-6. 6d_dz2, 6d_dx2-y2, 6d_dxy
+### D 轨道（新 ID：`{n}d_{suffix}`，20 个）
+3d_z2, 3d_xz, 3d_yz, 3d_x2-y2, 3d_xy；4、5、6 层各 5 变体
 
-### F 轨道 (10 个)
-7. 4f_fz3, 4f_fxz2, 4f_fxyz, 4f_fx(x2-3y2), 4f_fy(x2-z2)
-8. 5f_fz3, 5f_fxz2, 5f_fxyz, 5f_fx(x2-3y2), 5f_fy(x2-z2)
+### F 轨道（新 ID：`{n}f_{suffix}`，14 个）
+4f_z3, 4f_xz2, 4f_yz2, 4f_zx2-y2, 4f_xyz, 4f_x(x2-3y2), 4f_y(x2-z2)；5f_* 同理
 
-**总计：34 个轨道**
+### G 轨道（新 ID：`{n}g_{suffix}`，9 个）
+5g_z4, 5g_xz3, 5g_yz3, 5g_z2x2-y2, 5g_xyz2, 5g_xzx2-3y2, 5g_yzy2-3x2, 5g_x4+y4, 5g_xyx2-y2
+
+**总计：65+ 个轨道**
 
 ---
 
 ## 注册表格式
 
-在 `src/data/modelRegistry.js` 中的组织方式：
+在 `src/data/modelRegistry.js` 中按 `s/p/d/f/g` 分 key；d/f/g 使用新 ID `{n}d|f|g_{suffix}`（suffix 去首字母，消除 dd/ff/gg）：
 
 ```javascript
 export const MODEL_REGISTRY = {
-  'S Orbitals (球对称)': [
-    '1s', '2s', '3s', '4s', '5s', '6s', '7s'
-  ],
-  'P Orbitals (哑铃形)': [
-    '2p', '3p', '4p', '5p', '6p'
-  ],
-  'D Orbitals (瓣状分布)': [
-    '3d_dz2', '3d_dx2-y2', '3d_dxy',
-    '4d_dz2', '4d_dx2-y2', '4d_dxy',
-    '5d_dz2', '5d_dx2-y2', '5d_dxy',
-    '6d_dz2', '6d_dx2-y2', '6d_dxy'
-  ],
-  'F Orbitals (高阶对称)': [
-    '4f_fz3', '4f_fxz2', '4f_fxyz', '4f_fx(x2-3y2)', '4f_fy(x2-z2)',
-    '5f_fz3', '5f_fxz2', '5f_fxyz', '5f_fx(x2-3y2)', '5f_fy(x2-z2)'
-  ]
+  's': ['1s', '2s', '3s', '4s', '5s', '6s', '7s'],
+  'p': ['2px','2py','2pz', '3px','3py','3pz', … '6px','6py','6pz'],
+  'd': ['3d_xz','3d_yz','3d_z2','3d_x2-y2','3d_xy', … '6d_x2-y2','6d_xy'],
+  'f': ['4f_z3','4f_xz2','4f_yz2','4f_zx2-y2','4f_xyz','4f_x(x2-3y2)','4f_y(x2-z2)', …],
+  'g': ['5g_z4','5g_xz3','5g_yz3','5g_z2x2-y2','5g_xyz2','5g_xzx2-3y2','5g_yzy2-3x2','5g_x4+y4','5g_xyx2-y2']
 };
 ```
 

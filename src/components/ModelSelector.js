@@ -59,7 +59,7 @@ export class ModelSelector {
         if (this.viewer) this.viewer.setAutoRotate(v);
       });
 
-    motionFolder.add(this.settings, 'rotationSpeed', 0.001, 0.01)
+    motionFolder.add(this.settings, 'rotationSpeed', 0.001, 0.02)
       .name('旋转速度')
       .onChange((v) => {
         if (this.viewer) this.viewer.setRotationSpeed(v);
