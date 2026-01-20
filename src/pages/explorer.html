@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>探测器 | Quantum Orbital Explorer</title>
+    <link rel="stylesheet" href="../../css/shared.css">
+    <style>
+        body { margin: 0; overflow: hidden; background: #000; }
+        #instructions {
+            position: absolute; top: 100px; left: 20px;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(15px);
+            padding: 20px; border-radius: 15px; border: 1px solid var(--glass-border);
+            z-index: 100; font-size: 13px; color: white;
+        }
+        #orbital-tag { position: absolute; bottom: 40px; right: 40px; text-align: right; z-index: 100; }
+        #orbital-name { font-size: 80px; font-weight: 100; margin: 0; text-shadow: 0 0 20px var(--accent); }
+        #video-container { 
+            position: absolute; bottom: 20px; left: 20px; 
+            width: 180px; height: 135px; border-radius: 12px; 
+            overflow: hidden; border: 2px solid var(--accent); transform: scaleX(-1);
+        }
+        #loading { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--accent); z-index: 200; }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/index.html">首页</a>
+        <a href="/story.html">我们的故事</a>
+        <a href="/knowledge.html">知识库</a>
+        <a href="/explorer.html" class="active">探测器</a>
+    </nav>
+
+    <div id="loading">量子态同步中...</div>
+    <div id="instructions">
+        <b style="color:var(--accent)">VISION PRO 交互指令</b><br><br>
+        • <b>单手捏合</b>: 锁定轨道进行旋转<br>
+        • <b>双手捏合</b>: 动态缩放量子模型<br>
+        • <b>鼠标滚轮</b>: 快速调节观测距离
+    </div>
+
+    <div id="orbital-tag">
+        <div style="color:var(--accent); letter-spacing: 5px;">CURRENT ORBITAL</div>
+        <h1 id="orbital-name">1s</h1>
+    </div>
+
+    <div id="video-container"><video id="input_video" playsinline></video></div>
+    <div id="container"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+
+    <script type="importmap">
+        { 
+            "imports": { 
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js", 
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" 
+            } 
+        }
+    </script>
+    <script type="module">
+        import { OrbitalViewer } from '../components/OrbitalViewer.js';
+        import { GestureController } from '../components/GestureController.js';
+        import { ModelSelector } from '../components/ModelSelector.js';
+
+        let viewer, gestureController, modelSelector;
+
+        const settings = {
+            autoRotate: false, // 禁用自动旋转
+            showAxes: true,
+            particleSize: 0.012,
+            rotationSpeed: 0.0025,
+            orbitalColor: '#00ffff'
+        };
+
+        async function init() {
+            try {
+                const container = document.getElementById('container');
+                const loadingEl = document.getElementById('loading');
+                const nameEl = document.getElementById('orbital-name');
+
+                console.log('Initializing OrbitalViewer...');
+                // 初始化查看器
+                viewer = new OrbitalViewer(container, settings);
+                await viewer.init();
+                console.log('OrbitalViewer initialized');
+
+                // 初始化手势控制器（可选，失败不影响主功能）
+                try {
+                    const videoElement = document.getElementById('input_video');
+                    gestureController = new GestureController(videoElement, viewer, { enabled: true });
+                    await gestureController.init();
+                    gestureController.start();
+                    console.log('GestureController initialized');
+                } catch (gestureError) {
+                    console.warn('GestureController initialization failed (non-critical):', gestureError);
+                }
+
+                // 初始化模型选择器
+                modelSelector = new ModelSelector(viewer, settings);
+                modelSelector.init();
+                modelSelector.onModelChangeCallback((progress) => {
+                    if (progress.loading) {
+                        loadingEl.style.display = 'block';
+                        if (progress.orbitalId && nameEl) {
+                            nameEl.innerText = progress.orbitalId.toUpperCase().replace(/_/g, ' ');
+                        }
+                    } else {
+                        loadingEl.style.display = 'none';
+                        if (progress.metadata && nameEl) {
+                            nameEl.innerText = progress.metadata.displayName.toUpperCase();
+                        }
+                        if (progress.error) {
+                            console.error('Model loading error:', progress.error);
+                            loadingEl.innerText = `加载失败: ${progress.error}`;
+                            loadingEl.style.display = 'block';
+                        }
+                    }
+                });
+
+                // 加载默认模型
+                console.log('Loading default model: 1s');
+                await viewer.loadModel('1s', (progress) => {
+                    if (progress.loading) {
+                        loadingEl.style.display = 'block';
+                        console.log('Loading model...');
+                    } else {
+                        loadingEl.style.display = 'none';
+                        if (progress.metadata && nameEl) {
+                            nameEl.innerText = progress.metadata.displayName.toUpperCase();
+                            console.log('Model loaded:', progress.metadata.displayName);
+                        }
+                        if (progress.error) {
+                            console.error('Model loading error:', progress.error);
+                            loadingEl.innerText = `加载失败: ${progress.error}`;
+                            loadingEl.style.display = 'block';
+                        }
+                    }
+                });
+                console.log('Initialization complete');
+            } catch (error) {
+                console.error('Initialization failed:', error);
+                const loadingEl = document.getElementById('loading');
+                if (loadingEl) {
+                    loadingEl.innerText = `初始化失败: ${error.message}`;
+                    loadingEl.style.display = 'block';
+                }
+                throw error;
+            }
+        }
+
+        init().catch(error => {
+            console.error('Fatal initialization error:', error);
+        });
+    </script>
+</body>
+</html>

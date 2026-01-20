@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>探测器 | Quantum Orbital Explorer</title>
+    <link rel="stylesheet" href="css/shared.css">
+    <style>
+        body { margin: 0; overflow: hidden; background: #000; }
+        #instructions {
+            position: absolute; top: 90px; left: 20px;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(15px);
+            padding: 20px; border-radius: 15px; border: 1px solid var(--glass-border);
+            z-index: 100; font-size: 13px; color: white;
+        }
+        #orbital-tag { position: absolute; bottom: 40px; right: 40px; text-align: right; z-index: 100; }
+        #orbital-name { font-size: 80px; font-weight: 100; margin: 0; text-shadow: 0 0 20px var(--accent); }
+        #video-container { 
+            position: absolute; bottom: 20px; left: 20px; 
+            width: 180px; height: 135px; border-radius: 12px; 
+            overflow: hidden; border: 2px solid var(--accent); transform: scaleX(-1);
+        }
+        #loading { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--accent); z-index: 200; }
+        
+        /* 分类选择界面 */
+        #category-selector {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 300;
+            backdrop-filter: blur(20px);
+        }
+        #category-selector.hidden {
+            display: none;
+        }
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            max-width: 1400px;
+            width: 90%;
+        }
+        @media (min-width: 1200px) {
+            .category-grid {
+                grid-template-columns: repeat(5, 1fr);
+            }
+        }
+        .category-card {
+            aspect-ratio: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--glass-border);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+        .category-card:hover {
+            transform: scale(1.1);
+            border-color: var(--accent);
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.5);
+            background: rgba(0, 255, 255, 0.1);
+        }
+        .category-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 255, 255, 0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .category-card:hover::before {
+            opacity: 1;
+        }
+        .category-letter {
+            font-size: 120px;
+            font-weight: 300;
+            color: var(--accent);
+            text-shadow: 0 0 30px var(--accent);
+            z-index: 1;
+        }
+        .category-name {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 10px;
+            z-index: 1;
+        }
+        
+        /* 轨道列表界面 */
+        #orbital-selector {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 250;
+            backdrop-filter: blur(20px);
+        }
+        #orbital-selector.hidden {
+            display: none;
+        }
+        .orbital-list {
+            display: grid;
+            gap: 20px;
+            max-width: 1400px;
+            width: 95%;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 20px;
+            justify-content: center;
+            margin-top: 40px; /* 向下移动，避免挡住SPDFG字母 */
+        }
+        /* S轨道布局：2行，第一行3个，第二行4个 */
+        .orbital-list-s {
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: auto auto;
+        }
+        /* P轨道布局：5行3列 */
+        .orbital-list-p {
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(5, auto);
+        }
+        /* D轨道布局：4行5列 */
+        .orbital-list-d {
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(4, auto);
+        }
+        /* F轨道布局：2行7列 */
+        .orbital-list-f {
+            grid-template-columns: repeat(7, 1fr);
+            grid-template-rows: repeat(2, auto);
+        }
+        /* G轨道布局：3行3列 */
+        .orbital-list-g {
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, auto);
+        }
+        .orbital-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--glass-border);
+            border-radius: 15px;
+            padding: 25px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100px;
+        }
+        .orbital-item:hover:not(.orbital-item-placeholder) {
+            transform: translateY(-5px);
+            border-color: var(--accent);
+            box-shadow: 0 5px 30px rgba(0, 255, 255, 0.4);
+            background: rgba(0, 255, 255, 0.1);
+        }
+        .orbital-item-placeholder {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .orbital-item-placeholder:hover {
+            transform: none;
+            border-color: var(--glass-border);
+            box-shadow: none;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .orbital-item-name {
+            font-size: 24px;
+            font-weight: 300;
+            color: var(--accent);
+            text-shadow: 0 0 15px var(--accent);
+            margin-bottom: 8px;
+        }
+        .knowledge-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--glass-border);
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        .knowledge-button:hover {
+            background: rgba(0, 255, 255, 0.2);
+            border-color: var(--accent);
+            transform: scale(1.1);
+        }
+        
+        /* 轨道列表容器 */
+        .orbital-list-container {
+            display: flex;
+            width: 95%;
+            max-width: 1400px;
+            gap: 20px;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        
+        /* 知识卡片面板 */
+        .knowledge-card {
+            position: relative;
+            width: 350px;
+            max-height: 80vh;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(20px);
+            border: 2px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 25px;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            animation: slideIn 0.3s ease-out;
+        }
+        .knowledge-card.hidden {
+            display: none;
+        }
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        .knowledge-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--glass-border);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            color: white;
+            font-size: 24px;
+            line-height: 1;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .knowledge-close:hover {
+            background: rgba(255, 0, 0, 0.3);
+            border-color: #ff4444;
+            transform: rotate(90deg);
+        }
+        .knowledge-content {
+            color: white;
+        }
+        .knowledge-title {
+            font-size: 28px;
+            font-weight: 300;
+            color: var(--accent);
+            text-shadow: 0 0 15px var(--accent);
+            margin-bottom: 25px;
+            padding-right: 40px;
+        }
+        .knowledge-section {
+            margin-bottom: 25px;
+        }
+        .knowledge-section-title {
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--accent);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .knowledge-item {
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+        .knowledge-item-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+        .knowledge-item-value {
+            color: white;
+            font-size: 15px;
+        }
+        .knowledge-item-value strong {
+            color: var(--accent);
+        }
+        .back-button {
+            position: absolute;
+            top: 90px;
+            left: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 12px 24px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 13px;
+            backdrop-filter: blur(10px);
+            z-index: 150;
+        }
+        .viewer-back-button {
+            position: absolute;
+            top: 90px;
+            left: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 12px 24px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 13px;
+            backdrop-filter: blur(10px);
+            z-index: 150;
+        }
+        .viewer-back-button:hover {
+            background: rgba(0, 255, 255, 0.2);
+            border-color: var(--accent);
+            transform: translateX(-5px);
+        }
+        .back-button:hover {
+            background: rgba(0, 255, 255, 0.2);
+            border-color: var(--accent);
+            transform: translateX(-5px);
+        }
+        .category-title {
+            position: absolute;
+            top: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 48px;
+            font-weight: 200;
+            color: var(--accent);
+            text-shadow: 0 0 20px var(--accent);
+            letter-spacing: 10px;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="index.html">首页</a>
+        <a href="story.html">我们的故事</a>
+        <a href="knowledge.html">知识库</a>
+        <a href="explorer.html" class="active">探测器</a>
+    </nav>
+
+    <!-- 分类选择界面 -->
+    <div id="category-selector">
+        <div class="category-grid">
+            <div class="category-card" data-type="s">
+                <div class="category-letter">s</div>
+                <div class="category-name">球对称轨道</div>
+            </div>
+            <div class="category-card" data-type="p">
+                <div class="category-letter">p</div>
+                <div class="category-name">哑铃形轨道</div>
+            </div>
+            <div class="category-card" data-type="d">
+                <div class="category-letter">d</div>
+                <div class="category-name">瓣状分布轨道</div>
+            </div>
+            <div class="category-card" data-type="f">
+                <div class="category-letter">f</div>
+                <div class="category-name">高阶对称轨道</div>
+            </div>
+            <div class="category-card" data-type="g">
+                <div class="category-letter">g</div>
+                <div class="category-name">超高阶轨道</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 轨道列表界面 -->
+    <div id="orbital-selector" class="hidden">
+        <button class="back-button">← 返回</button>
+        <div class="category-title" id="current-category-title">S</div>
+        <div class="orbital-list-container">
+            <div class="orbital-list" id="orbital-list"></div>
+            <!-- 知识卡片面板 -->
+            <div id="knowledge-card" class="knowledge-card hidden">
+                <button class="knowledge-close" id="knowledge-close">×</button>
+                <div class="knowledge-content" id="knowledge-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loading" class="hidden">量子态同步中...</div>
+    <div id="instructions" class="hidden">
+        <b style="color:var(--accent)">交互方法</b><br><br>
+        • <b>单手捏合</b>: 锁定轨道进行旋转<br>
+        • <b>双手捏合</b>: 动态缩放量子模型<br>
+        • <b>鼠标滚轮</b>: 快速调节观测距离
+    </div>
+
+    <div id="orbital-tag" class="hidden">
+        <div style="color:var(--accent); letter-spacing: 5px;">CURRENT ORBITAL</div>
+        <h1 id="orbital-name">1s</h1>
+    </div>
+
+    <button id="viewer-back-button" class="viewer-back-button hidden">← 返回</button>
+    <div id="video-container" class="hidden"><video id="input_video" playsinline></video></div>
+    <div id="container"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+
+    <script type="importmap">
+        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
+    </script>
+    <script type="module" src="js/explorer.js"></script>
+</body>
+</html>

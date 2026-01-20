@@ -1,0 +1,171 @@
+/* * Quantum Orbital Laboratory - Global Stylesheet v2.0
+ * Design Language: Glassmorphism & Spatial Computing
+ */
+
+ :root {
+    --accent: #00ffff;
+    --accent-glow: rgba(0, 255, 255, 0.5);
+    --glass: rgba(255, 255, 255, 0.05);
+    --glass-heavy: rgba(0, 0, 0, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.15);
+    --bg-dark: #000000;
+    --text-main: #e0e0e0;
+    --font-std: 'Inter', 'Segoe UI', system-ui, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-dark);
+    /* 增加深蓝色径向渐变，提升 3D 空间纵深感 */
+    background: radial-gradient(circle at 50% 50%, #0a192f 0%, #000 100%);
+    color: var(--text-main);
+    font-family: var(--font-std);
+    overflow: hidden; /* 防止探测器页面出现滚动条 */
+}
+
+/* --- 导航系统 --- */
+nav {
+    position: fixed;
+    top: 0; 
+    width: 100%;
+    height: 70px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--glass-border);
+    z-index: 1000;
+}
+
+nav a {
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: none;
+    margin: 0 25px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+nav a:hover, nav a.active {
+    color: var(--accent);
+    text-shadow: 0 0 12px var(--accent-glow);
+}
+
+/* --- 内容容器 (用于主页/故事/知识库) --- */
+.page-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 120px 40px 60px;
+    overflow-y: auto;
+    height: 100vh;
+}
+
+.glass-panel {
+    background: var(--glass);
+    backdrop-filter: blur(15px);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 45px;
+    margin-bottom: 35px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* --- 探测器 UI (Explorer Specific) --- */
+
+/* 核心 3D 画布容器 */
+#container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1; /* 位于最底层 */
+}
+
+/* 手势引导面板 */
+#instructions {
+    position: absolute;
+    top: 100px;
+    left: 30px;
+    background: var(--glass-heavy);
+    backdrop-filter: blur(10px);
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px solid var(--glass-border);
+    color: white;
+    line-height: 1.6;
+    z-index: 100;
+    font-size: 14px;
+    pointer-events: none; /* 允许点击穿透到 3D 场景 */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+/* 轨道名称标签 */
+#orbital-tag {
+    position: absolute;
+    bottom: 40px;
+    right: 40px;
+    text-align: right;
+    pointer-events: none;
+    z-index: 100;
+}
+
+#orbital-name {
+    font-size: 84px;
+    font-weight: 100;
+    color: white;
+    margin: 0;
+    line-height: 1;
+    text-shadow: 0 0 30px var(--accent-glow);
+}
+
+/* 摄像头副屏容器 - 解决显示不全的问题 */
+#video-container {
+    position: absolute;
+    bottom: 30px;
+    left: 30px;
+    width: 220px; /* 适度增大增强观测感 */
+    height: 165px; /* 保持 4:3 比例 */
+    border-radius: 16px;
+    border: 2px solid var(--accent);
+    overflow: hidden;
+    transform: scaleX(-1); /* 镜像翻转，符合镜面直觉 */
+    z-index: 100;
+    background: #000;
+    box-shadow: 0 0 25px rgba(0, 255, 255, 0.2);
+}
+
+#input_video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* 核心优化：确保画面填满窗口不留黑边 */
+}
+
+/* 加载动画状态 */
+#loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    font-weight: 300;
+    z-index: 200;
+}
+
+/* --- 滚动条美化 --- */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
