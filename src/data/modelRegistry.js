@@ -123,15 +123,47 @@ export function getOrbitalType(orbitalId) {
 }
 
 /**
+ * 获取当前页面的基础路径
+ * 处理 GitHub Pages 子路径情况（如 /Lorbital/）
+ * 
+ * @returns {string} 基础路径，例如 ""（根路径）或 "/Lorbital"（子路径）
+ */
+function getBasePath() {
+  const pathname = window.location.pathname;
+  
+  // 如果路径是根路径或 index.html，返回空字符串（表示根路径）
+  if (pathname === '/' || pathname === '/index.html') {
+    return '';
+  }
+  
+  // 提取基础路径
+  // 例如：从 /Lorbital/explorer.html 或 /Lorbital/explorer.html 提取 /Lorbital
+  // 从 /Lorbital/index.html 提取 /Lorbital
+  const pathParts = pathname.split('/').filter(p => p && !p.includes('.html'));
+  
+  // 如果第一个部分是仓库名（通常是字母数字组合），返回它作为基础路径
+  if (pathParts.length > 0) {
+    return `/${pathParts[0]}`;
+  }
+  
+  return '';
+}
+
+/**
  * 构建完整的 URL 路径
- * 使用绝对路径（相对于网站根目录），避免相对路径解析问题
+ * 自动检测并支持 GitHub Pages 子路径环境
+ * 
+ * @param {string} relativePath - 相对于 models/model++/ 的路径
+ * @returns {string} 完整的 URL
  */
 function buildModelUrl(relativePath) {
-  // 确保路径以 / 开头，这是相对于网站根目录的绝对路径
-  // 例如：/models/model++/s/1s/1s.ply
-  const absolutePath = `/models/model++/${relativePath}`;
+  const basePath = getBasePath();
+  // 构建相对于基础路径的完整路径
+  // 例如：根路径 -> /models/model++/s/1s/1s.ply
+  // 例如：子路径 -> /Lorbital/models/model++/s/1s/1s.ply
+  const absolutePath = `${basePath}/models/model++/${relativePath}`;
   
-  // 直接构建完整的 URL，使用 origin 确保路径正确
+  // 构建完整的 URL
   return `${window.location.origin}${absolutePath}`;
 }
 
