@@ -68,6 +68,34 @@
             margin-top: 15px;
             font-style: italic;
         }
+
+        /* 图片三、四并列 */
+        .story-images-row {
+            display: flex;
+            gap: 24px;
+            margin: 50px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .story-images-row .story-image {
+            flex: 1 1 calc(50% - 12px);
+            min-width: 260px;
+            max-width: 100%;
+        }
+        @media (max-width: 600px) {
+            .story-images-row { flex-direction: column; }
+            .story-images-row .story-image { flex: 1 1 100%; }
+        }
+
+        /* 淘宝店预告方框 */
+        .taobao-box {
+            border: 1px solid rgba(0, 255, 255, 0.4);
+            border-radius: 12px;
+            padding: 20px 28px;
+            margin: 24px 0 40px;
+            text-align: center;
+            color: #ccc;
+        }
         
         @media (max-width: 768px) {
             .story-image {
@@ -103,102 +131,43 @@
     <div class="story-section">
         <div class="story-card">
             <h1>我们的故事</h1>
-            <p style="font-size: 1.2rem; letter-spacing: 2px;">从一位剑桥教授的课堂开始</p>
+            <p style="font-size: 1.2rem; letter-spacing: 2px;"><b>这是半年来，两个高中生试图让电子"看得见"的故事：</b></p>
             
-            <p>这个项目的起点，并不来自一间实验室，而是一堂课。</p>
+            <h2>缘起</h2>
+            <p>在剑桥，教授展示了他的<b>收藏</b>。</p>
+            <div class="story-image">
+                <img src="../../public/images/story/图片一.jpg" alt="轨道墙">
+                <div class="story-image-caption">轨道墙图片，摄于剑桥 St Catherine 学院</div>
+            </div>
+            <p>电子被"装进了"玻璃里，原本<b>抽象枯燥</b>的概念，忽然拥有了精确且精美的形状。</p>
+            <div class="story-image">
+                <img src="../../public/images/story/图片二.jpg" alt="电子轨道">
+            </div>
+            <p>那一刻，我们第一次感受到科学的美，在于它能让那些抽象的规律变得清晰、可感。</p>
             
-            <p>在剑桥大学的化学课堂上，教授 <b class="highlight">Peter Wothers</b> 用实体模型向学生讲述原子与电子轨道的结构。这些模型清晰、优雅，也极具启发性——它们让抽象的量子概念第一次"站"在了桌面上。正是这种教学方式，让我们意识到：看不见的世界，并非无法被理解，只是缺少合适的表达方式。</p>
+            <p><b>那为什么</b>，这样的体<b>只</b>属于<b>少部分人呢</b>？对于大多数同学，电子轨道<b>依然</b>停留在课本上的<b>二维图片</b>。于是....</p>
 
-            <!-- 图片插入位置 1: 剑桥课堂/实体模型配图 -->
-            <div class="story-image">
-                <img src="../../public/images/story/上课剪影.jpg" alt="剑桥大学课堂剪影">
-                <div class="story-image-caption">剑桥大学化学课堂</div>
+            <h2>行动</h2>
+            <p>我们从<b>一切本源</b>的理论出发：<b>波函数、薛定谔方程</b>，经过反复地调试与打磨，最终，<b>遵循量子规律</b>的电子云模型，呈现在我们眼前。</p>
+            <div class="story-images-row">
+                <div class="story-image">
+                    <img src="../../public/images/story/图片三.jpg" alt="电子云模型">
+                </div>
+                <div class="story-image">
+                    <img src="../../public/images/story/图片四.jpg" alt="电子云模型">
+                </div>
             </div>
+            <p><b>但，这还不够。</b>为了让"看见"更无界，更身临其境，我们搭建了这个网站。在这里，<b>单一角度</b>的平面图被投放于三维世界，指尖轻移，便可探索每一片电子云。</p>
 
-            <div class="story-image">
-                <img src="../../public/images/story/St Catherine的电子轨道模型墙.jpg" alt="电子轨道模型墙">
-                <div class="story-image-caption">St Catherine's College 的电子轨道模型墙</div>
-            </div>
-
+            <h2>愿景</h2>
+            <p>如果您因为我们，对奇特的量子世界多了一份<b>好奇</b>，那已经足够了。</p>
+            <p>如果您想一起<b>探索</b>，欢迎添加微信号、加入我们的讨论群：Lorbital_official</p>
+            <p>如果您希望把这种<b>科学之美</b>留在身边，亦或是<b>支持我们走得更远</b>，也欢迎您来看看我们的<b>实体模型</b>：</p>
+            <div class="taobao-box">淘宝店上线中，敬请期待。</div>
+            
             <div class="quote-box">
-                然而，当我们进一步深入量子力学时，也逐渐意识到一个长期被忽略的问题。
+                <b>我们相信，理解世界的工具，本身就应该是一种美。而我们，正从让电子"被看见"开始。</b>
             </div>
-
-            <h2>教科书中的"轨道"，并不是真实的电子</h2>
-            
-            <!-- 图片插入位置 2: 教科书示意图对比 -->
-            <!-- 
-            <div class="story-image">
-                <img src="../../public/images/story/textbook-diagram.jpg" alt="教科书中的轨道示意图">
-                <div class="story-image-caption">传统教科书中简化的轨道示意图</div>
-            </div>
-            -->
-            
-            <p>在多数教材中，电子轨道被描绘为规则、静止的几何形状：圆环、哑铃、花瓣。这些图像极大地方便了教学，却也在无意中掩盖了一个关键事实——</p>
-            
-            <p style="font-size: 1.3rem; text-align: center; margin: 40px 0;">"电子并不沿着轨道运动。"</p>
-
-            <p>在量子力学中，真正有物理意义的并非"轨迹"，而是波函数 $\psi$，以及它的模平方 $|\psi|^2$：一种关于"电子可能出现在哪里"的概率分布。换句话说，电子不是一条线，而是一片云。</p>
-
-            <h2>从方程出发，而不是从图形出发</h2>
-            <p>我们希望回到源头。不再从简化后的示意图出发，而是直接从 <span class="highlight">薛定谔方程的解</span> 出发；不再画"轨道"，而是计算、采样并重建真实的 电子概率云。</p>
-
-            <!-- 图片插入位置 3: 计算过程/方程示意图 -->
-            <!-- 
-            <div class="story-image">
-                <img src="../../public/images/story/calculation-process.jpg" alt="数值计算过程">
-                <div class="story-image-caption">从薛定谔方程到点云数据的计算流程</div>
-            </div>
-            -->
-
-            <p>通过高精度数值计算与蒙特卡洛采样，我们将 $|\psi|^2$ 生成数十万到数百万个三维点，真实还原 s、p、d、f 等不同轨道的空间分布结构。每一个点，都是量子概率的一次"显影"。</p>
-            
-            <p class="highlight">这不是艺术想象，而是物理本身。</p>
-
-            <h2>让量子世界真正"可看、可感、可交互"</h2>
-            <p>为了让这些数据走出论文与屏幕，我们进一步将其带入数字空间与现实世界：</p>
-            <ul style="color: #bbb;">
-                <li>使用 WebGL 与高性能点云渲染，实现实时、可交互的三维电子云</li>
-                <li>支持空间旋转、切片与缩放，直观观察节点、对称性与空间结构</li>
-                <li>探索 Vision Pro 风格的空间交互，用手势"触碰"量子概率</li>
-                <li>将点云数据用于实体制造，让电子云真正存在于材料之中</li>
-            </ul>
-
-            <!-- 图片插入位置 4: 交互界面/3D渲染截图 -->
-            <div class="story-image">
-                <img src="../../public/images/story/轨道墙柜子设计.png" alt="轨道墙柜子设计方案">
-                <div class="story-image-caption">轨道墙柜子的设计方案</div>
-            </div>
-
-            <div class="story-image">
-                <img src="../../public/images/story/外包装设计ing.jpg" alt="外包装设计过程">
-                <div class="story-image-caption">产品外包装设计过程</div>
-            </div>
-
-            <p>在这里，量子不再只是公式，而是一种可以被感知的结构。</p>
-
-            <div class="story-image">
-                <img src="../../public/images/story/用户返图1.jpg" alt="用户反馈图片1">
-                <div class="story-image-caption">用户实际使用反馈</div>
-            </div>
-
-            <div class="story-image">
-                <img src="../../public/images/story/用户返图2.jpg" alt="用户反馈图片2">
-                <div class="story-image-caption">用户实际使用反馈</div>
-            </div>
-
-            <h2>我们想做的，不只是一个模型</h2>
-            <p>这个项目不是为了替代教材，而是为了补全它。我们希望，当人们第一次理解电子云时，看到的不是静止的图形，而是一个充满不确定性、对称性与美感的真实量子世界。一个既忠于物理，又足够直观的世界。</p>
-
-            <p>从剑桥课堂的一次启发开始，我们选择了一条更困难、但也更诚实的路径。</p>
-
-            <!-- 图片插入位置 5: 团队照片/项目展示 -->
-            <div class="story-image">
-                <img src="../../public/images/story/和Peter教授的合影.jpg" alt="与Peter Wothers教授的合影">
-                <div class="story-image-caption">与 Peter Wothers 教授的合影</div>
-            </div>
-
-            <p style="text-align: center; font-size: 1.5rem; margin-top: 50px;">让不可见，变得可见。</p>
         </div>
 
         <div class="footer-note">THE QUANTUM ORBITAL PROJECT</div>

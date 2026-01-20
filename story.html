@@ -68,6 +68,34 @@
             margin-top: 15px;
             font-style: italic;
         }
+
+        /* 图片三、四并列 */
+        .story-images-row {
+            display: flex;
+            gap: 24px;
+            margin: 50px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .story-images-row .story-image {
+            flex: 1 1 calc(50% - 12px);
+            min-width: 260px;
+            max-width: 100%;
+        }
+        @media (max-width: 600px) {
+            .story-images-row { flex-direction: column; }
+            .story-images-row .story-image { flex: 1 1 100%; }
+        }
+
+        /* 淘宝店预告方框 */
+        .taobao-box {
+            border: 1px solid rgba(0, 255, 255, 0.4);
+            border-radius: 12px;
+            padding: 20px 28px;
+            margin: 24px 0 40px;
+            text-align: center;
+            color: #ccc;
+        }
         
         @media (max-width: 768px) {
             .story-image {
