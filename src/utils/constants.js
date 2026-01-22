@@ -13,7 +13,7 @@ export const SCALE_OPACITY_THRESHOLD = 0.1;
 export const MIN_OPACITY_AT_MIN_SCALE = 0.05;
 
 // 交互常量
-export const ROTATION_SENSITIVITY = 0.008;
+export const ROTATION_SENSITIVITY = 0.0150; // 提高旋转灵敏度
 export const ZOOM_SENSITIVITY = 0.0015;
 export const MIN_SCALE = 0.005;
 export const MAX_SCALE = 50.0;
@@ -26,7 +26,7 @@ export const TWO_HAND_STABLE_FRAMES = 3; // 双手捏合需要稳定的连续帧
 export const GESTURE_SENSITIVITY = 15; // 提高灵敏度
 export const ZOOM_SENSITIVITY_MULTIPLIER = 2.0; // 提高缩放灵敏度
 export const GESTURE_TIMEOUT = 500; // 手势超时时间（毫秒），超过此时间无手势则重置状态
-export const ROTATION_DEAD_ZONE = 0.003; // 旋转死区阈值，避免抖动
+export const ROTATION_DEAD_ZONE = 0.002; // 旋转死区阈值，降低以提高响应性（从0.003降低到0.002）
 
 // MediaPipe 配置
 export const MEDIAPIPE_CONFIG = {

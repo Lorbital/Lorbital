@@ -162,6 +162,16 @@ function showCategorySelector() {
     const consoleEl = document.getElementById('experiment-console');
     if (consoleEl) consoleEl.classList.add('hidden');
     
+    // 隐藏 viewer 页面信息按钮和知识卡片
+    const viewerKnowledgeButton = document.getElementById('viewer-knowledge-button');
+    if (viewerKnowledgeButton) {
+        viewerKnowledgeButton.classList.add('hidden');
+    }
+    const knowledgeCard = document.getElementById('knowledge-card');
+    if (knowledgeCard) {
+        knowledgeCard.classList.add('hidden');
+    }
+    
     // #region agent log
     fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:showCategorySelector',message:'leave viewer path',data:{hasGesture:!!gestureController,didStop:!!gestureController},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'C'})}).catch(()=>{});
     // #endregion
@@ -237,6 +247,16 @@ function showOrbitalList(categoryType) {
     // 设置网格布局
     setupGridLayout(categoryType, orbitalList);
     
+    // 隐藏 viewer 页面信息按钮和知识卡片
+    const viewerKnowledgeButton = document.getElementById('viewer-knowledge-button');
+    if (viewerKnowledgeButton) {
+        viewerKnowledgeButton.classList.add('hidden');
+    }
+    const knowledgeCard = document.getElementById('knowledge-card');
+    if (knowledgeCard) {
+        knowledgeCard.classList.add('hidden');
+    }
+    
     orbitals.forEach(orbitalId => {
         const item = document.createElement('div');
         const hasModel = hasOrbitalModel(orbitalId);
@@ -255,9 +275,11 @@ function showOrbitalList(categoryType) {
             item.style.cursor = 'not-allowed';
             item.style.opacity = '0.5';
         } else {
-            // 实际存在的轨道：可点击，仅加载轨道（信息 i 已移至模型控制页）
+            // 实际存在的轨道：可点击
             item.className = 'orbital-item';
-            item.innerHTML = `<div class="orbital-item-name">${formatOrbitalName(orbitalId)}</div>`;
+            item.innerHTML = `
+                <div class="orbital-item-name">${formatOrbitalName(orbitalId)}</div>
+            `;
             item.addEventListener('click', () => {
                 loadOrbital(actualModelId || orbitalId);
             });
@@ -406,7 +428,7 @@ async function loadOrbital(orbitalId, opts = {}) {
                     vertexColors: true, // 使用顶点颜色，这是关键
                     transparent: true, 
                     opacity: currentMetadata?.opacity || 0.8, 
-                    blending: THREE.AdditiveBlending, 
+                    blending: THREE.NormalBlending, 
                     depthWrite: false 
                 });
                 material.userData.baseOpacity = currentMetadata?.opacity || 0.8;
@@ -419,7 +441,7 @@ async function loadOrbital(orbitalId, opts = {}) {
                     color: 0xffffff, // 白色作为后备（不应该用到）
                     transparent: true, 
                     opacity: opacity, 
-                    blending: THREE.AdditiveBlending, 
+                    blending: THREE.NormalBlending, 
                     depthWrite: false 
                 });
                 material.userData.baseOpacity = opacity;
@@ -512,8 +534,8 @@ function createAxesHelper(L) {
     const group = new THREE.Group();
     group.userData.isAxesHelper = true;
 
-    const r = 0.04 * L;
-    const h = 0.1 * L;
+    const r = 0.028 * L;  // 缩小30%: 0.04 * 0.7
+    const h = 0.07 * L;    // 缩小30%: 0.1 * 0.7
 
     // 三条粗线：Line2 + LineGeometry + LineMaterial
     const geomX = new LineGeometry().setPositions([0, 0, 0, L, 0, 0]);
@@ -631,9 +653,11 @@ function syncExperimentConsoleControls() {
     const autoRotate = document.getElementById('experiment-console-auto-rotate');
     const rotationSpeed = document.getElementById('experiment-console-rotation-speed');
     const showAxes = document.getElementById('experiment-console-show-axes');
+    const particleSize = document.getElementById('experiment-console-particle-size');
     if (autoRotate) autoRotate.checked = settings.autoRotate;
     if (rotationSpeed) rotationSpeed.value = String(settings.rotationSpeed);
     if (showAxes) showAxes.checked = settings.showAxes;
+    if (particleSize) particleSize.value = String(settings.particleSize);
 }
 
 function initExperimentConsole() {
@@ -661,6 +685,15 @@ function initExperimentConsole() {
             if (axesHelper) {
                 axesHelper.visible = showAxes.checked;
                 setAxesLabelsVisibility(showAxes.checked);
+            }
+        });
+    }
+    const particleSize = document.getElementById('experiment-console-particle-size');
+    if (particleSize) {
+        particleSize.addEventListener('input', () => {
+            settings.particleSize = parseFloat(particleSize.value);
+            if (orbitalPoints && orbitalPoints.material) {
+                orbitalPoints.material.size = settings.particleSize;
             }
         });
     }
@@ -692,6 +725,24 @@ function showViewer() {
     document.getElementById('viewer-back-button').classList.remove('hidden');
     const consoleEl = document.getElementById('experiment-console');
     if (consoleEl) consoleEl.classList.remove('hidden');
+    
+    // 显示并绑定 viewer 页面信息按钮
+    const viewerKnowledgeButton = document.getElementById('viewer-knowledge-button');
+    if (viewerKnowledgeButton) {
+        viewerKnowledgeButton.classList.remove('hidden');
+        // 使用 onclick 确保只有一个事件监听器
+        viewerKnowledgeButton.onclick = () => {
+            if (currentOrbitalId) {
+                showKnowledgeCard(currentOrbitalId);
+            }
+        };
+    }
+    
+    // 确保知识卡片在viewer页面默认隐藏（只有点击按钮时才显示）
+    const knowledgeCard = document.getElementById('knowledge-card');
+    if (knowledgeCard) {
+        knowledgeCard.classList.add('hidden');
+    }
     // #region agent log
     fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:showViewer',message:'before refresh',data:{currentCategory,currentOrbitalId},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H3'})}).catch(()=>{});
     // #endregion
@@ -887,6 +938,14 @@ function showKnowledgeCard(orbitalId) {
     const card = document.getElementById('knowledge-card');
     const content = document.getElementById('knowledge-content');
     const closeBtn = document.getElementById('knowledge-close');
+    
+    // #region agent log
+    if (card && closeBtn) {
+        const cardRect = card.getBoundingClientRect();
+        const closeRect = closeBtn.getBoundingClientRect();
+        fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:showKnowledgeCard',message:'knowledge card position check',data:{orbitalId,cardRect:{top:cardRect.top,left:cardRect.left,width:cardRect.width,height:cardRect.height},closeRect:{top:closeRect.top,left:closeRect.left,width:closeRect.width,height:closeRect.height},closeStyle:{position:getComputedStyle(closeBtn).position,top:getComputedStyle(closeBtn).top,right:getComputedStyle(closeBtn).right,zIndex:getComputedStyle(closeBtn).zIndex}},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B'})}).catch(()=>{});
+    }
+    // #endregion
     
     if (!knowledge) {
         console.warn(`No knowledge data for orbital: ${orbitalId}`);

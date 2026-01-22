@@ -174,7 +174,7 @@ export class OrbitalViewer {
         vertexColors: hasVertexColors,
         transparent: true,
         opacity: this.metadata.opacity || DEFAULT_OPACITY,
-        blending: THREE.AdditiveBlending,
+        blending: THREE.NormalBlending,
         depthWrite: false
       });
       material.userData.baseOpacity = this.metadata?.opacity ?? DEFAULT_OPACITY;

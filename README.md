@@ -657,6 +657,63 @@ models/model++/
 └── g/{orbitalId}/{orbitalId}.ply
 ```
 
+#### 8. 手势控制优化：解决从快速到慢速的卡顿问题
+
+**问题**：单手控制模型旋转时，特别是上下控制时，当手势从快速移动到慢速移动时会出现卡顿。
+
+**根本原因**：
+1. **时间归一化问题**：MediaPipe回调频率不稳定，导致相同手势在不同时间间隔下产生不同的delta值
+2. **平滑因子突变**：直接根据当前速度切换平滑因子，导致从快速到慢速时平滑因子突然变化
+3. **死区过滤过严**：死区阈值过高，过滤掉了一些有效的上下移动
+4. **单次delta限制过小**：限制了快速移动时的响应速度
+
+**解决方案**：
+
+1. **优化时间归一化逻辑**：
+   - 只在合理的时间间隔范围内（8ms-100ms）进行归一化
+   - 限制归一化比例在0.5-2.0之间，避免极端放大或缩小
+   - 时间间隔过大时使用原始值但限制最大值，避免突然跳跃
+
+2. **三层平滑机制**（核心优化）：
+   ```javascript
+   // 第一层：平滑速度值本身
+   smoothedSpeed = smoothedSpeed * (1 - speedSmoothingFactor) + currentSpeed * speedSmoothingFactor;
+   
+   // 第二层：根据平滑后的速度计算目标平滑因子
+   targetSmoothingFactor = mapSpeedToSmoothingFactor(smoothedSpeed);
+   
+   // 第三层：平滑过渡平滑因子
+   currentSmoothingFactor = currentSmoothingFactor * (1 - transitionRate) + 
+                            targetSmoothingFactor * transitionRate;
+   ```
+   
+   **为什么需要三层平滑**：
+   - 直接根据当前速度切换平滑因子会导致突变
+   - 第一层平滑速度值，提供稳定的速度历史
+   - 第二层使用平滑曲线映射（三次贝塞尔曲线近似），避免硬切换
+   - 第三层平滑过渡平滑因子，确保平滑因子变化也是平滑的
+
+3. **速度到平滑因子的映射函数**：
+   - 使用平滑曲线（三次贝塞尔曲线近似：`3t² - 2t³`）进行插值
+   - 速度阈值：
+     - 快速（≥40px/帧）：使用最小平滑因子0.4，提高响应速度
+     - 慢速（≤15px/帧）：使用最大平滑因子0.8，减少抖动
+     - 中等速度：平滑曲线插值
+
+4. **参数调优**：
+   - `speedSmoothingFactor = 0.3`：速度平滑因子，控制速度变化的响应速度
+   - `smoothingFactorTransitionRate = 0.2`：平滑因子过渡速率
+   - `ROTATION_DEAD_ZONE = 0.002`：降低死区阈值，提高响应性
+   - `MAX_DELTA_PX = 100`：提高单次delta限制，允许更快响应
+
+**关键经验**：
+- 不要直接根据当前值切换参数，要使用平滑过渡
+- 多层平滑机制可以解决单层平滑无法解决的问题
+- 参数调优需要平衡响应速度和稳定性
+- 使用平滑曲线（如三次贝塞尔曲线）比线性插值更自然
+
+**代码位置**：`src/components/GestureController.js` 中的 `onGestureDetected()` 和 `mapSpeedToSmoothingFactor()` 方法
+
 ### 开发检查清单
 
 在开发新功能或修复问题时，请检查：

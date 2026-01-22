@@ -288,7 +288,7 @@
         .knowledge-button {
             position: absolute;
             top: 10px;
-            right: 10px;
+            left: 10px;
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid var(--glass-border);
             border-radius: 50%;
@@ -319,7 +319,9 @@
         
         /* 知识卡片面板 */
         .knowledge-card {
-            position: relative;
+            position: fixed;
+            top: 70px;
+            right: 10px;
             width: 350px;
             max-height: 80vh;
             background: rgba(0, 0, 0, 0.9);
@@ -330,6 +332,7 @@
             overflow-y: auto;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
             animation: slideIn 0.3s ease-out;
+            z-index: 1001; /* 高于实验控制台的 z-index: 1000 */
         }
         .knowledge-card.hidden {
             display: none;
@@ -499,6 +502,34 @@
             cursor: pointer;
         }
         .experiment-console-body select option { background: #111; color: white; }
+        /* Viewer 页面信息按钮 */
+        .viewer-knowledge-button {
+            position: fixed;
+            top: 440px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--glass-border);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 18px;
+            color: white;
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+        }
+        .viewer-knowledge-button:hover {
+            background: rgba(0, 255, 255, 0.2);
+            border-color: var(--accent);
+            transform: scale(1.1);
+        }
+        .viewer-knowledge-button.hidden {
+            display: none;
+        }
         .back-button:hover {
             background: rgba(0, 255, 255, 0.2);
             border-color: var(--accent);
@@ -561,12 +592,13 @@
         <div class="category-title" id="current-category-title">S</div>
         <div class="orbital-list-container">
             <div class="orbital-list" id="orbital-list"></div>
-            <!-- 知识卡片面板 -->
-            <div id="knowledge-card" class="knowledge-card hidden">
-                <button class="knowledge-close" id="knowledge-close">×</button>
-                <div class="knowledge-content" id="knowledge-content"></div>
-            </div>
         </div>
+    </div>
+
+    <!-- 知识卡片面板（移到viewer页面区域） -->
+    <div id="knowledge-card" class="knowledge-card hidden">
+        <button class="knowledge-close" id="knowledge-close">×</button>
+        <div class="knowledge-content" id="knowledge-content"></div>
     </div>
 
     <!-- 加载遮罩：进度条、错误、重试/返回 -->
@@ -602,10 +634,13 @@
             <label>旋转速度</label>
             <input type="range" id="experiment-console-rotation-speed" min="0.001" max="0.02" step="0.0005">
             <label><span>显示坐标轴</span> <input type="checkbox" id="experiment-console-show-axes"></label>
+            <label>粒子大小</label>
+            <input type="range" id="experiment-console-particle-size" min="0.005" max="0.05" step="0.001">
             <label>当前 block 轨道</label>
             <select id="experiment-console-orbital-select"></select>
         </div>
     </div>
+    <button id="viewer-knowledge-button" class="viewer-knowledge-button hidden" title="查看轨道信息">ℹ</button>
     <div id="video-container" class="hidden"><video id="input_video" playsinline></video></div>
     <div id="container"></div>
 
