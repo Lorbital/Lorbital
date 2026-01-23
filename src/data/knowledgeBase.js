@@ -243,6 +243,3 @@ window.KNOWLEDGE_BASE = [
     ]
   }
 ];
-// #region agent log
-(function(){fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'knowledgeBase.js:end',message:'assigned',data:{len:(window.KNOWLEDGE_BASE&&window.KNOWLEDGE_BASE.length)||0},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(function(){});})();
-// #endregion

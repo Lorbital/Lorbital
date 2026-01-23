@@ -204,13 +204,14 @@ export async function loadMetadata(orbitalId) {
   try {
     const response = await fetch(url);
     if (!response.ok) {
-      // 如果文件不存在，返回默认值
+      // 如果文件不存在（404），静默返回默认值
+      // meta.json 是可选的，404 是预期行为，不需要警告
       return getDefaultMetadata(orbitalId);
     }
     return await response.json();
   } catch (error) {
-    // 如果加载失败，返回默认值
-    console.warn(`Metadata not found for ${orbitalId}, using defaults`);
+    // 网络错误等其他异常，静默返回默认值
+    // meta.json 是可选的，不需要输出警告
     return getDefaultMetadata(orbitalId);
   }
 }

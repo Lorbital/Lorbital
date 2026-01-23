@@ -546,6 +546,315 @@
             text-shadow: 0 0 20px var(--accent);
             letter-spacing: 10px;
         }
+
+        /* 手势教程覆盖层 */
+        .gesture-tutorial-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: tutorialFadeIn 0.3s ease-out;
+        }
+        .gesture-tutorial-overlay.hidden {
+            display: none;
+        }
+        @keyframes tutorialFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .gesture-tutorial-content {
+            position: relative;
+            width: 90%;
+            max-width: 800px;
+            background: var(--glass-heavy);
+            backdrop-filter: blur(20px);
+            border: 2px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 70px 40px 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .gesture-tutorial-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--glass-border);
+            border-radius: 50%;
+            color: white;
+            font-size: 28px;
+            line-height: 1;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .gesture-tutorial-close:hover {
+            background: rgba(255, 0, 0, 0.3);
+            border-color: #ff4444;
+            transform: rotate(90deg);
+        }
+
+        .gesture-tutorial-steps {
+            position: relative;
+            min-height: 400px;
+            margin-bottom: 20px;
+        }
+
+        .gesture-tutorial-step {
+            position: absolute;
+            width: 100%;
+            opacity: 0;
+            transform: translateX(30px);
+            pointer-events: none;
+            transition: all 0.4s ease;
+        }
+        .gesture-tutorial-step.active {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: auto;
+        }
+
+        .gesture-tutorial-animation {
+            width: 100%;
+            height: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        /* Emoji 演示 */
+        .emoji-demo {
+            font-size: 120px;
+            line-height: 1;
+            animation: emojiPulse 2s ease-in-out infinite;
+        }
+        @keyframes emojiPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .emoji-move {
+            animation: emojiMove 3s ease-in-out infinite;
+        }
+        @keyframes emojiMove {
+            0%, 100% { transform: translateX(-50px) scale(1); }
+            25% { transform: translateX(0) translateY(-30px) scale(1.1); }
+            50% { transform: translateX(50px) scale(1); }
+            75% { transform: translateX(0) translateY(30px) scale(1.1); }
+        }
+
+        /* 步骤 2 的布局：手势和模型并排 */
+        .gesture-tutorial-step[data-step="2"] .gesture-tutorial-animation {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-around;
+            align-items: center;
+            gap: 40px;
+        }
+        .gesture-tutorial-step[data-step="2"] .model-demo-rotate {
+            position: relative;
+        }
+
+        /* 模型演示 */
+        .model-demo {
+            width: 120px;
+            height: 120px;
+            border: 2px solid var(--accent);
+            border-radius: 50%;
+            background: rgba(0, 255, 255, 0.1);
+            box-shadow: 0 0 30px var(--accent-glow);
+        }
+
+        .model-demo-rotate {
+            animation: modelRotate 4s linear infinite;
+        }
+        @keyframes modelRotate {
+            0% { transform: rotateY(0deg) rotateX(0deg); }
+            25% { transform: rotateY(90deg) rotateX(10deg); }
+            50% { transform: rotateY(180deg) rotateX(0deg); }
+            75% { transform: rotateY(270deg) rotateX(-10deg); }
+            100% { transform: rotateY(360deg) rotateX(0deg); }
+        }
+
+        .model-demo-scale {
+            animation: modelScale 3s ease-in-out infinite;
+        }
+        @keyframes modelScale {
+            0%, 100% { transform: scale(0.8); }
+            50% { transform: scale(1.3); }
+        }
+
+        /* 双手 Emoji 演示 */
+        .hands-emoji-demo {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 80px;
+            animation: handsMove 4s ease-in-out infinite;
+        }
+        @keyframes handsMove {
+            0%, 100% { gap: 80px; }
+            50% { gap: 140px; }
+        }
+
+        .distance-indicator {
+            width: 2px;
+            height: 60px;
+            background: var(--accent);
+            opacity: 0.6;
+            animation: distancePulse 2s ease-in-out infinite;
+        }
+        @keyframes distancePulse {
+            0%, 100% { height: 60px; opacity: 0.6; }
+            50% { height: 120px; opacity: 1; }
+        }
+
+        /* 步骤 3 的布局：双手和模型并排 */
+        .gesture-tutorial-step[data-step="3"] .gesture-tutorial-animation {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-around;
+            align-items: center;
+            gap: 40px;
+        }
+        .gesture-tutorial-step[data-step="3"] .hands-emoji-demo {
+            position: relative;
+            gap: 60px;
+            animation: handsMoveStep3 4s ease-in-out infinite;
+        }
+        .gesture-tutorial-step[data-step="3"] .hands-emoji-demo .emoji-demo {
+            font-size: 80px;
+        }
+        @keyframes handsMoveStep3 {
+            0%, 100% { gap: 60px; }
+            50% { gap: 100px; }
+        }
+        .gesture-tutorial-step[data-step="3"] .model-demo-scale {
+            position: relative;
+        }
+
+        .gesture-tutorial-title {
+            font-size: 32px;
+            font-weight: 300;
+            color: var(--accent);
+            text-align: center;
+            margin: 0 0 20px 0;
+            text-shadow: 0 0 15px var(--accent-glow);
+            letter-spacing: 3px;
+        }
+
+        .gesture-tutorial-description {
+            font-size: 16px;
+            line-height: 1.8;
+            color: rgba(255, 255, 255, 0.9);
+            text-align: center;
+            margin: 0;
+        }
+
+        .gesture-tutorial-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 50px;
+            gap: 20px;
+        }
+
+        .gesture-tutorial-nav-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 12px 24px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 100px;
+        }
+        .gesture-tutorial-nav-btn:hover:not(:disabled) {
+            background: rgba(0, 255, 255, 0.2);
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+        .gesture-tutorial-nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .gesture-tutorial-dots {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex: 1;
+        }
+
+        .gesture-tutorial-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .gesture-tutorial-dot.active {
+            background: var(--accent);
+            box-shadow: 0 0 10px var(--accent-glow);
+            transform: scale(1.3);
+        }
+
+        .gesture-tutorial-skip {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: transparent;
+            border: 1px solid var(--glass-border);
+            border-radius: 6px;
+            padding: 8px 16px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .gesture-tutorial-skip:hover {
+            color: white;
+            border-color: var(--accent);
+            background: rgba(0, 255, 255, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .gesture-tutorial-content {
+                width: 95%;
+                padding: 40px 30px 30px;
+            }
+            .gesture-tutorial-animation {
+                height: 250px;
+            }
+            .emoji-demo {
+                font-size: 80px;
+            }
+            .hands-emoji-demo {
+                gap: 60px;
+            }
+            .gesture-tutorial-title {
+                font-size: 24px;
+            }
+            .gesture-tutorial-description {
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -617,8 +926,9 @@
     </div>
     <div id="instructions" class="hidden">
         <b style="color:var(--accent)">手势控制方法</b><br><br>
-        <b>单手控制旋转</b>：<br>单手捏紧食指和拇指，<br>通过手的移动控制模型旋转<br><br>
-        <b>双手控制缩放</b>：<br>双手分别捏紧食指和拇指，<br>通过双手之间的距离控制模型缩放
+        <b>单手控制旋转</b>：<br>单手捏紧食指和拇指（OK的手势），<br>通过手的移动控制模型旋转<br><br>
+        <b>双手控制缩放</b>：<br>双手分别捏紧食指和拇指，<br>通过双手之间的距离控制模型缩放<br><br>
+        注意画面中其他的手会影响识别
     </div>
 
     <div id="orbital-tag" class="hidden">
@@ -643,6 +953,64 @@
     <button id="viewer-knowledge-button" class="viewer-knowledge-button hidden" title="查看轨道信息">ℹ</button>
     <div id="video-container" class="hidden"><video id="input_video" playsinline></video></div>
     <div id="container"></div>
+
+    <!-- 手势教程覆盖层 -->
+    <div id="gesture-tutorial-overlay" class="gesture-tutorial-overlay hidden">
+        <div class="gesture-tutorial-content">
+            <!-- 关闭按钮 -->
+            <button class="gesture-tutorial-close" id="gesture-tutorial-close" title="关闭">×</button>
+            
+            <!-- 教程步骤容器 -->
+            <div class="gesture-tutorial-steps">
+                <!-- 步骤 1: 捏合手势介绍 -->
+                <div class="gesture-tutorial-step" data-step="1">
+                    <div class="gesture-tutorial-animation">
+                        <div class="emoji-demo emoji-ok">👌</div>
+                    </div>
+                    <h2 class="gesture-tutorial-title">捏合手势</h2>
+                    <p class="gesture-tutorial-description">将拇指和食指捏合，形成 OK 手势（👌）。这是所有手势操作的基础。<br><br>停止捏合即可退出手势控制模式。</p>
+                </div>
+
+                <!-- 步骤 2: 单手操作 -->
+                <div class="gesture-tutorial-step" data-step="2">
+                    <div class="gesture-tutorial-animation">
+                        <div class="emoji-demo emoji-ok emoji-move">👌</div>
+                        <div class="model-demo model-demo-rotate"></div>
+                    </div>
+                    <h2 class="gesture-tutorial-title">单手旋转</h2>
+                    <p class="gesture-tutorial-description">单手捏合后，移动手掌来控制模型的旋转。模型会跟随你的手势方向旋转。<br><br>停止捏合即可退出手势控制模式。</p>
+                </div>
+
+                <!-- 步骤 3: 双手操作 -->
+                <div class="gesture-tutorial-step" data-step="3">
+                    <div class="gesture-tutorial-animation">
+                        <div class="hands-emoji-demo">
+                            <div class="emoji-demo emoji-ok">👌</div>
+                            <div class="distance-indicator"></div>
+                            <div class="emoji-demo emoji-ok">👌</div>
+                        </div>
+                        <div class="model-demo model-demo-scale"></div>
+                    </div>
+                    <h2 class="gesture-tutorial-title">双手缩放</h2>
+                    <p class="gesture-tutorial-description">双手分别捏合，通过改变双手之间的距离来控制模型的缩放。双手靠近时缩小，双手远离时放大。<br><br>停止捏合即可退出手势控制模式。</p>
+                </div>
+            </div>
+
+            <!-- 导航按钮 -->
+            <div class="gesture-tutorial-navigation">
+                <button class="gesture-tutorial-nav-btn" id="gesture-tutorial-prev" disabled>上一步</button>
+                <div class="gesture-tutorial-dots">
+                    <span class="gesture-tutorial-dot active" data-step="1"></span>
+                    <span class="gesture-tutorial-dot" data-step="2"></span>
+                    <span class="gesture-tutorial-dot" data-step="3"></span>
+                </div>
+                <button class="gesture-tutorial-nav-btn" id="gesture-tutorial-next">下一步</button>
+            </div>
+
+            <!-- 跳过按钮 -->
+            <button class="gesture-tutorial-skip" id="gesture-tutorial-skip">跳过教程</button>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>

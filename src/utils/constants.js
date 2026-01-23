@@ -5,7 +5,7 @@
  */
 
 // 渲染常量
-export const DEFAULT_PARTICLE_SIZE = 0.012;
+export const DEFAULT_PARTICLE_SIZE = 0.0275;
 export const DEFAULT_COLOR = '#00ffff';
 export const DEFAULT_OPACITY = 0.8;
 // 缩放过小时按比例降低不透明度，避免 AdditiveBlending 叠加发白

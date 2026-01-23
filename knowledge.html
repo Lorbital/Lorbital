@@ -61,35 +61,69 @@
             border-left: 3px solid var(--accent);
             overflow-x: auto; /* 防止长公式溢出 */
         }
+        /* 知识库顶部介绍面板样式 */
+        .page-container > .glass-panel:first-of-type {
+            padding: 1.5rem 2rem;
+            margin-bottom: 1.5rem;
+        }
+        .page-container > .glass-panel:first-of-type h1 {
+            font-size: 1.5rem;
+            margin: 0 0 0.75rem 0;
+            font-weight: 500;
+        }
+        .page-container > .glass-panel:first-of-type p {
+            font-size: 0.9rem;
+            margin: 0;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.7);
+        }
         /* 知识库：左侧目录 + 中间内容 */
         .knowledge-layout {
             display: flex;
             flex-direction: row !important;
             gap: 1.5rem;
             align-items: flex-start;
-            margin-top: 1.5rem;
+            margin-top: 0;
         }
         .knowledge-sidebar {
-            width: 220px;
+            width: 300px;
             flex-shrink: 0;
             position: sticky;
             top: 80px;
             background: var(--glass);
             border: 1px solid var(--glass-border);
             border-radius: 12px;
-            padding: 1rem 0;
+            padding: 5rem 0;
             align-self: flex-start;
             left: 0 !important;
             right: auto !important;
-            max-height: calc(100vh - 100px);
+            height: calc(100vh - 80px);
+            max-height: calc(100vh - 80px);
             overflow-y: auto;
+            overflow-x: visible;
             order: -1;
+        }
+        .knowledge-sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .knowledge-sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .knowledge-sidebar::-webkit-scrollbar-thumb {
+            background: var(--glass-border);
+            border-radius: 10px;
         }
         .knowledge-sidebar nav {
             display: flex;
             flex-direction: column;
             width: 100%;
             position: relative;
+            padding: 0;
+            margin: 0;
+        }
+        .knowledge-sidebar nav > .knowledge-section-item:first-child {
+            margin-top: 0;
+            padding-top: 0;
         }
         .knowledge-sidebar a {
             display: block;
@@ -98,6 +132,9 @@
             text-decoration: none;
             font-size: 14px;
             transition: color 0.2s, background 0.2s;
+            white-space: nowrap;
+            overflow: visible;
+            text-overflow: ellipsis;
         }
         .knowledge-sidebar a:hover {
             color: var(--accent);
@@ -111,13 +148,26 @@
         }
         /* 大模块标题样式 */
         .knowledge-section-item {
-            margin-bottom: 0.5rem;
+            margin-bottom: 0;
+            margin-top: 0;
             width: 100%;
             position: relative;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .knowledge-section-item:first-child {
+            margin-top: 0;
+        }
+        .knowledge-section-header {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            cursor: pointer;
         }
         .knowledge-sidebar .knowledge-section-title {
-            display: block;
-            padding: 0.6rem 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.8rem 1.25rem;
             color: rgba(255, 255, 255, 0.8);
             text-decoration: none;
             font-size: 14px;
@@ -128,6 +178,29 @@
             position: relative !important;
             left: auto !important;
             right: auto !important;
+            white-space: nowrap;
+            overflow: visible;
+            text-overflow: ellipsis;
+            flex: 1;
+        }
+        .knowledge-section-toggle {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            margin-left: 0.5rem;
+            transition: transform 0.3s ease;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+        .knowledge-section-item.expanded .knowledge-section-toggle {
+            transform: rotate(90deg);
+        }
+        .knowledge-section-item.expanded .knowledge-section-toggle::before {
+            content: '▶';
+        }
+        .knowledge-section-item:not(.expanded) .knowledge-section-toggle::before {
+            content: '▶';
         }
         .knowledge-sidebar .knowledge-section-title:hover {
             color: var(--accent);
@@ -141,12 +214,16 @@
         }
         /* 子标题列表样式 */
         .knowledge-children-list {
-            display: flex;
+            display: none;
             flex-direction: column;
             padding-left: 1.5rem;
-            margin-top: 0.25rem;
+            margin-top: 0;
             width: 100%;
             box-sizing: border-box;
+            overflow: hidden;
+        }
+        .knowledge-section-item.expanded .knowledge-children-list {
+            display: flex;
         }
         .knowledge-sidebar .knowledge-child-item {
             display: block;
@@ -161,6 +238,9 @@
             position: relative !important;
             left: auto !important;
             right: auto !important;
+            white-space: nowrap;
+            overflow: visible;
+            text-overflow: ellipsis;
         }
         .knowledge-sidebar .knowledge-child-item:hover {
             color: var(--accent);
@@ -179,7 +259,12 @@
         .knowledge-main .glass-panel {
             padding: 1.5rem 2rem;
         }
-        .knowledge-main h2 { margin-top: 0; }
+        .knowledge-main h2 { 
+            margin-top: 0;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+            font-weight: 500;
+        }
         .knowledge-main h3 { 
             font-size: 1.1rem; 
             margin: 1.25rem 0 0.5rem; 

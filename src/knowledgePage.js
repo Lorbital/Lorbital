@@ -11,9 +11,6 @@ function bold(html) {
 
 // 等待 DOM 加载完成后再执行
 document.addEventListener('DOMContentLoaded', () => {
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'knowledgePage.js:13',message:'DOMContentLoaded fired',data:{timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-  // #endregion
   
   const KNOWLEDGE_BASE = window.KNOWLEDGE_BASE || [];
   
@@ -36,17 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  // #region agent log
-  const layoutEl = document.querySelector('.knowledge-layout');
-  const sidebarEl = document.querySelector('.knowledge-sidebar');
-  if (layoutEl && sidebarEl) {
-    const layoutStyle = window.getComputedStyle(layoutEl);
-    const sidebarStyle = window.getComputedStyle(sidebarEl);
-    const layoutRect = layoutEl.getBoundingClientRect();
-    const sidebarRect = sidebarEl.getBoundingClientRect();
-    fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'knowledgePage.js:35',message:'Layout computed styles and positions',data:{flexDirection:layoutStyle.flexDirection,display:layoutStyle.display,sidebarPosition:sidebarStyle.position,sidebarLeft:sidebarStyle.left,sidebarRight:sidebarStyle.right,sidebarWidth:sidebarStyle.width,layoutLeft:layoutRect.left,layoutRight:layoutRect.right,sidebarLeftPos:sidebarRect.left,sidebarRightPos:sidebarRect.right,windowWidth:window.innerWidth},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,B,C'})}).catch(()=>{});
-  }
-  // #endregion
 
   /** 渲染某一模块到中间区域 */
   function renderSection(sec) {
@@ -162,18 +148,46 @@ document.addEventListener('DOMContentLoaded', () => {
     const sectionItem = document.createElement('div');
     sectionItem.className = 'knowledge-section-item';
     
+    const sectionHeader = document.createElement('div');
+    sectionHeader.className = 'knowledge-section-header';
+    
     const a = document.createElement('a');
     a.href = '#' + sec.id;
     a.setAttribute('data-id', sec.id);
     a.className = 'knowledge-section-title';
     a.textContent = sec.title;
-    a.addEventListener('click', (e) => {
-      e.preventDefault();
-      setActive(sec.id);
-      renderSection(sec);
-      history.replaceState(null, '', '#' + sec.id);
-    });
-    sectionItem.appendChild(a);
+    
+    // 如果有子标题，添加下拉箭头
+    if (sec.children && sec.children.length > 0) {
+      const toggle = document.createElement('span');
+      toggle.className = 'knowledge-section-toggle';
+      a.appendChild(toggle);
+      
+      // 点击标题时切换展开/折叠，并显示该章节内容
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        const wasExpanded = sectionItem.classList.contains('expanded');
+        sectionItem.classList.toggle('expanded');
+        
+        // 如果展开或已经有内容，显示该章节
+        if (!wasExpanded || !sectionItem.classList.contains('expanded')) {
+          setActive(sec.id);
+          renderSection(sec);
+          history.replaceState(null, '', '#' + sec.id);
+        }
+      });
+    } else {
+      // 没有子标题时，点击直接跳转
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        setActive(sec.id);
+        renderSection(sec);
+        history.replaceState(null, '', '#' + sec.id);
+      });
+    }
+    
+    sectionHeader.appendChild(a);
+    sectionItem.appendChild(sectionHeader);
 
     // 子标题列表
     if (sec.children && sec.children.length > 0) {
@@ -201,89 +215,57 @@ document.addEventListener('DOMContentLoaded', () => {
     
     toc.appendChild(sectionItem);
     
-    // #region agent log
-    const sidebarCheck = document.querySelector('.knowledge-sidebar');
-    const tocCheck = document.getElementById('knowledge-toc');
-    if (sidebarCheck && tocCheck && sectionItem.parentElement) {
-      const sidebarRect = sidebarCheck.getBoundingClientRect();
-      const tocRect = tocCheck.getBoundingClientRect();
-      const itemRect = sectionItem.getBoundingClientRect();
-      fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'knowledgePage.js:197',message:'After appending sectionItem - check parent hierarchy',data:{sectionTitle:sec.title,itemParentClass:sectionItem.parentElement.className,itemParentId:sectionItem.parentElement.id,sidebarContainsToc:sidebarCheck.contains(tocCheck),tocContainsItem:tocCheck.contains(sectionItem),sidebarLeft:sidebarRect.left,sidebarRight:sidebarRect.right,itemLeft:itemRect.left,itemRight:itemRect.right},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
-    }
-    // #endregion
   }
 
-  // #region agent log
-  setTimeout(() => {
-    const layoutEl = document.querySelector('.knowledge-layout');
-    const sidebarEl = document.querySelector('.knowledge-sidebar');
-    const mainEl = document.querySelector('.knowledge-main');
-    const navEl = document.querySelector('nav');
-    if (layoutEl && sidebarEl && mainEl) {
-      const layoutStyle = window.getComputedStyle(layoutEl);
-      const sidebarStyle = window.getComputedStyle(sidebarEl);
-      const layoutRect = layoutEl.getBoundingClientRect();
-      const sidebarRect = sidebarEl.getBoundingClientRect();
-      const mainRect = mainEl.getBoundingClientRect();
-      const navRect = navEl ? navEl.getBoundingClientRect() : null;
-      const domOrder = Array.from(layoutEl.children).map(el => el.className);
-      
-      // 检查滚动位置
-      const scrollY = window.scrollY || window.pageYOffset;
-      const scrollX = window.scrollX || window.pageXOffset;
-      
-      // 检查侧边栏内的所有按钮/链接
-      const sidebarLinks = sidebarEl.querySelectorAll('a');
-      const linkPositions = Array.from(sidebarLinks).slice(0, 5).map((link, idx) => {
-        const rect = link.getBoundingClientRect();
-        const style = window.getComputedStyle(link);
-        const isVisible = rect.top >= 0 && rect.top < window.innerHeight && rect.left >= 0 && rect.left < window.innerWidth;
-        return {
-          index: idx,
-          text: link.textContent.substring(0, 20),
-          top: rect.top,
-          left: rect.left,
-          right: rect.right,
-          bottom: rect.bottom,
-          position: style.position,
-          display: style.display,
-          isVisible: isVisible,
-          isAboveViewport: rect.top < 0,
-          isBelowNav: navRect ? rect.top < navRect.bottom : false
-        };
-      });
-      
-      // 检查是否有其他位置的按钮
-      const allButtons = document.querySelectorAll('a.knowledge-section-title, a.knowledge-child-item');
-      const allButtonPositions = Array.from(allButtons).map((btn, idx) => {
-        const rect = btn.getBoundingClientRect();
-        const isInSidebar = sidebarEl.contains(btn);
-        const isVisible = rect.top >= 0 && rect.top < window.innerHeight && rect.left >= 0 && rect.left < window.innerWidth;
-        return {
-          index: idx,
-          text: btn.textContent.substring(0, 20),
-          top: rect.top,
-          left: rect.left,
-          right: rect.right,
-          className: btn.className,
-          parentClass: btn.parentElement ? btn.parentElement.className : 'none',
-          isInSidebar: isInSidebar,
-          isVisible: isVisible
-        };
-      });
-      
-      fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'knowledgePage.js:188',message:'After DOM construction - detailed button positions with visibility',data:{scrollY:scrollY,scrollX:scrollX,flexDirection:layoutStyle.flexDirection,display:layoutStyle.display,justifyContent:layoutStyle.justifyContent,sidebarPosition:sidebarStyle.position,sidebarLeft:sidebarStyle.left,sidebarRight:sidebarStyle.right,sidebarWidth:sidebarStyle.width,sidebarTop:sidebarRect.top,sidebarLeftPos:sidebarRect.left,sidebarRightPos:sidebarRect.right,mainLeftPos:mainRect.left,mainRightPos:mainRect.right,navHeight:navRect?navRect.height:0,navBottom:navRect?navRect.bottom:0,windowHeight:window.innerHeight,domOrder:domOrder,windowWidth:window.innerWidth,linkPositions:linkPositions,allButtonPositions:allButtonPositions},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'A,B,C,D,E'})}).catch(()=>{});
-    }
-  }, 100);
-  // #endregion
-
-  // #region agent log
   // 确保页面滚动到顶部，避免初始滚动位置导致按钮位置错误
   if (window.scrollY > 0 || window.pageYOffset > 0) {
     window.scrollTo(0, 0);
-    fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'knowledgePage.js:190',message:'Reset scroll position to top',data:{initialScrollY:window.scrollY,initialPageYOffset:window.pageYOffset},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'G'})}).catch(()=>{});
   }
-  // #endregion
+  
+  // 确保侧边栏滚动到顶部，显示第一个选项
+  setTimeout(() => {
+    const sidebar = document.querySelector('.knowledge-sidebar');
+    if (sidebar) {
+      sidebar.scrollTop = 0;
+      // 再次确保滚动位置正确（处理可能的延迟渲染）
+      requestAnimationFrame(() => {
+        sidebar.scrollTop = 0;
+      });
+    }
+  }, 100);
+  
+  // 在 DOM 完全加载后再次确保滚动位置
+  window.addEventListener('load', () => {
+    const sidebar = document.querySelector('.knowledge-sidebar');
+    if (sidebar) {
+      sidebar.scrollTop = 0;
+    }
+  });
+
+  /** 展开包含指定ID的章节 */
+  function expandSectionForId(id) {
+    const sectionItem = toc.querySelector(`.knowledge-section-item`);
+    if (!sectionItem) return;
+    
+    // 找到包含该ID的章节项
+    const allSectionItems = toc.querySelectorAll('.knowledge-section-item');
+    for (const item of allSectionItems) {
+      const sectionLink = item.querySelector('.knowledge-section-title');
+      const childLinks = item.querySelectorAll('.knowledge-child-item');
+      
+      if (sectionLink && sectionLink.getAttribute('data-id') === id) {
+        item.classList.add('expanded');
+        break;
+      }
+      
+      for (const childLink of childLinks) {
+        if (childLink.getAttribute('data-id') === id) {
+          item.classList.add('expanded');
+          break;
+        }
+      }
+    }
+  }
 
   // 初始渲染：优先用 URL hash，否则第一个模块；hash 无效时修正为第一模块
   const hashId = location.hash.slice(1);
@@ -291,17 +273,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // 先尝试找子标题
     const childResult = getChildById(hashId);
     if (childResult) {
+      expandSectionForId(hashId);
       setActive(childResult.child.id);
       renderChild(childResult.section, childResult.child);
     } else {
       // 再尝试找大模块
       const initial = getSectionById(hashId);
       if (initial) {
+        expandSectionForId(hashId);
         setActive(initial.id);
         renderSection(initial);
       } else {
         // hash 无效，使用第一个模块
         const first = KNOWLEDGE_BASE[0];
+        expandSectionForId(first.id);
         setActive(first.id);
         renderSection(first);
         history.replaceState(null, '', '#' + first.id);
@@ -310,6 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
   } else {
     // 没有 hash，显示第一个模块
     const first = KNOWLEDGE_BASE[0];
+    expandSectionForId(first.id);
     setActive(first.id);
     renderSection(first);
   }
@@ -318,6 +304,8 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('hashchange', () => {
     const id = location.hash.slice(1);
     if (!id) return;
+    
+    expandSectionForId(id);
     
     // 先尝试找子标题
     const childResult = getChildById(id);

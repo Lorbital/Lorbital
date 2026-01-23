@@ -43,11 +43,6 @@ export class RenderController {
     this.isInteracting = false;
     this.animationFrameId = null;
     
-    // #region agent log
-    // Debug: 跟踪渲染循环时间
-    this.lastFrameTime = 0;
-    this.lastRotationUpdateTime = 0;
-    // #endregion
   }
 
   /**
@@ -70,12 +65,6 @@ export class RenderController {
    * @param {boolean} [fromAutoRotate=false] - 若为 true，不设置 isInteracting，避免阻断下一帧的自动旋转
    */
   setTargetRotation(deltaX, deltaY, fromAutoRotate = false) {
-    // #region agent log
-    const rotationUpdateTime = Date.now();
-    const timeSinceLastRotation = this.lastRotationUpdateTime > 0 ? rotationUpdateTime - this.lastRotationUpdateTime : 0;
-    this.lastRotationUpdateTime = rotationUpdateTime;
-    const quatBefore = this.targetQuaternion.clone();
-    // #endregion
     
     // 屏幕坐标系的固定轴（世界坐标系中的固定轴）
     // 这些轴始终相对于屏幕，不随模型旋转而改变
@@ -101,10 +90,6 @@ export class RenderController {
     // 规范化四元数，避免数值误差
     this.targetQuaternion.normalize();
     
-    // #region agent log
-    const quatAngle = this.currentQuaternion.angleTo(this.targetQuaternion);
-    fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'renderer.js:66',message:'setTargetRotation called',data:{deltaX,deltaY,timeSinceLastRotation,quatAngle,absDeltaX:Math.abs(deltaX),absDeltaY:Math.abs(deltaY)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-    // #endregion
     
     if (!fromAutoRotate) this.isInteracting = true;
   }
@@ -168,23 +153,8 @@ export class RenderController {
   animate() {
     this.animationFrameId = requestAnimationFrame(() => this.animate());
 
-    // #region agent log
-    const frameTime = Date.now();
-    const frameDelta = this.lastFrameTime > 0 ? frameTime - this.lastFrameTime : 0;
-    this.lastFrameTime = frameTime;
-    const quatAngleBefore = this.currentQuaternion.angleTo(this.targetQuaternion);
-    // #endregion
-
     // 平滑插值：旋转（四元数）
     this.currentQuaternion.slerp(this.targetQuaternion, LERP_FACTOR);
-
-    // #region agent log
-    const quatAngleAfter = this.currentQuaternion.angleTo(this.targetQuaternion);
-    const quatAngleReduction = quatAngleBefore - quatAngleAfter;
-    if (this.isInteracting && quatAngleBefore > 0.001) {
-      fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'renderer.js:150',message:'Animation frame slerp',data:{frameDelta,quatAngleBefore,quatAngleAfter,quatAngleReduction,lerpFactor:LERP_FACTOR,isInteracting:this.isInteracting},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-    }
-    // #endregion
 
     // 平滑插值：缩放
     this.currentScale = THREE.MathUtils.lerp(

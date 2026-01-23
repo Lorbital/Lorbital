@@ -48,10 +48,10 @@ export class OrbitalViewer {
 
     // 设置
     this.settings = {
-      autoRotate: options.autoRotate === true, // 默认禁用自动旋转
+      autoRotate: options.autoRotate !== false, // 默认启用自动旋转
       showAxes: options.showAxes !== false,
       particleSize: options.particleSize || DEFAULT_PARTICLE_SIZE,
-      rotationSpeed: options.rotationSpeed || 0.0025,
+      rotationSpeed: options.rotationSpeed || 0.0105,
       orbitalColor: options.orbitalColor || DEFAULT_COLOR
     };
 

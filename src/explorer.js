@@ -41,17 +41,27 @@ let isMouseDown = false;
 let lastMousePos = { x: 0, y: 0 };
 
 const settings = {
-    autoRotate: false,
+    autoRotate: true,
     showAxes: true,
-    particleSize: 0.012,
-    rotationSpeed: 0.0025
+    particleSize: 0.0275,
+    rotationSpeed: 0.0105
     // 不使用默认颜色，完全使用PLY文件中的原始颜色
 };
 const invertRotationY = true;
 
+// --- 手势教程功能常量 ---
+const TUTORIAL_STORAGE_KEY = 'lorbital_tutorial_shown';
+const TUTORIAL_TOTAL_STEPS = 3;
+
 init();
 
 function init() {
+    // 每次页面加载时清除教程标记，确保刷新后能再次显示教程
+    sessionStorage.removeItem(TUTORIAL_STORAGE_KEY);
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/8dcb6af8-5793-4126-9375-8fe5024c7cdb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:init',message:'Cleared tutorial storage on page load',data:{storageKey:TUTORIAL_STORAGE_KEY},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
+    
     // 初始化界面
     initUI();
     
@@ -172,9 +182,6 @@ function showCategorySelector() {
         knowledgeCard.classList.add('hidden');
     }
     
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:showCategorySelector',message:'leave viewer path',data:{hasGesture:!!gestureController,didStop:!!gestureController},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'C'})}).catch(()=>{});
-    // #endregion
     if (gestureController) gestureController.stop();
 }
 
@@ -229,9 +236,6 @@ function showOrbitalList(categoryType) {
     const consoleEl = document.getElementById('experiment-console');
     if (consoleEl) consoleEl.classList.add('hidden');
     
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:showOrbitalList',message:'leave viewer path',data:{hasGesture:!!gestureController,didStop:!!gestureController},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'C'})}).catch(()=>{});
-    // #endregion
     if (gestureController) gestureController.stop();
     
     // 获取该分类下的所有轨道
@@ -401,17 +405,11 @@ async function loadOrbital(orbitalId, opts = {}) {
             
             console.log(`Geometry loaded: ${geometry.attributes.position.count} vertices`);
 
-            // #region agent log
-            var _disposed = 0;
-            // #endregion
             orbitalGroup.children.slice().forEach((child) => {
-                if (child.isPoints && child.geometry) { child.geometry.dispose(); _disposed++; }
+                if (child.isPoints && child.geometry) { child.geometry.dispose(); }
                 if (child.isPoints && child.material) child.material.dispose();
                 if (child.userData?.isAxesHelper) disposeAxesGroup(child);
             });
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:loadOrbital',message:'dispose before clear',data:{childCount:orbitalGroup.children.length,disposedCount:_disposed},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'E'})}).catch(()=>{});
-            // #endregion
             orbitalGroup.clear();
             geometry.center();
             geometry.computeBoundingSphere();
@@ -469,16 +467,10 @@ async function loadOrbital(orbitalId, opts = {}) {
                 currentOrbitalId = orbitalId;
                 if (!opts.isSwitch) {
                     hideLoadingOverlay();
-                    showViewer();
+                    showViewer(opts);
                 }
                 const orbitalSelect = document.getElementById('experiment-console-orbital-select');
-                // #region agent log
-                fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:loadOrbital.success',message:'before set select',data:{currentOrbitalId,isSwitch:!!opts.isSwitch,hasSelect:!!orbitalSelect,selectValueBefore:orbitalSelect?orbitalSelect.value:null},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H4'})}).catch(()=>{});
-                // #endregion
                 if (orbitalSelect) orbitalSelect.value = currentOrbitalId;
-                // #region agent log
-                fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:loadOrbital.success',message:'after set select',data:{selectValueAfter:orbitalSelect?orbitalSelect.value:null},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H5'})}).catch(()=>{});
-                // #endregion
                 
                 // 重置相机位置和旋转
                 if (camera) {
@@ -632,10 +624,6 @@ function refreshExperimentConsoleBlockSelect() {
     const select = document.getElementById('experiment-console-orbital-select');
     if (!select) return;
     const ids = getNavigableOrbitalIds(currentCategory);
-    // #region agent log
-    const inIds = ids.includes(currentOrbitalId);
-    fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:refreshExperimentConsoleBlockSelect',message:'before fill',data:{currentCategory,currentOrbitalId,idsLen:ids.length,ids0:ids[0],currentInIds:inIds},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2'})}).catch(()=>{});
-    // #endregion
     select.innerHTML = '';
     ids.forEach(id => {
         const opt = document.createElement('option');
@@ -644,9 +632,6 @@ function refreshExperimentConsoleBlockSelect() {
         select.appendChild(opt);
     });
     select.value = currentOrbitalId || ids[0] || '';
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:refreshExperimentConsoleBlockSelect',message:'after set value',data:{selectValue:select.value},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H4'})}).catch(()=>{});
-    // #endregion
 }
 
 function syncExperimentConsoleControls() {
@@ -667,9 +652,6 @@ function initExperimentConsole() {
     const rotationSpeed = document.getElementById('experiment-console-rotation-speed');
     const showAxes = document.getElementById('experiment-console-show-axes');
     const orbitalSelect = document.getElementById('experiment-console-orbital-select');
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:initExperimentConsole',message:'entry',data:{hasRoot:!!root,hasHeader:!!header,hasOrbitalSelect:!!orbitalSelect},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
-    // #endregion
     if (!root || !header) return;
 
     header.addEventListener('click', () => root.classList.toggle('is-open'));
@@ -700,16 +682,13 @@ function initExperimentConsole() {
     if (orbitalSelect) {
         orbitalSelect.addEventListener('change', () => {
             const id = orbitalSelect.value;
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:orbitalSelect.change',message:'select change',data:{id,isSwitch:true},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H5'})}).catch(()=>{});
-            // #endregion
             if (id) loadOrbital(id, { isSwitch: true });
         });
     }
 }
 
 // 显示查看器界面
-function showViewer() {
+function showViewer(opts = {}) {
     currentView = 'viewer';
     document.getElementById('category-selector').classList.add('hidden');
     document.getElementById('orbital-selector').classList.add('hidden');
@@ -743,14 +722,8 @@ function showViewer() {
     if (knowledgeCard) {
         knowledgeCard.classList.add('hidden');
     }
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:showViewer',message:'before refresh',data:{currentCategory,currentOrbitalId},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H3'})}).catch(()=>{});
-    // #endregion
     refreshExperimentConsoleBlockSelect();
     syncExperimentConsoleControls();
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:showViewer',message:'after sync',data:{},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H3'})}).catch(()=>{});
-    // #endregion
     
     // 确保加载遮罩隐藏（通常已在 loadOrbital onLoad 中 hideLoadingOverlay）
     hideLoadingOverlay();
@@ -772,11 +745,212 @@ function showViewer() {
     console.log('OrbitalGroup exists:', !!orbitalGroup);
     console.log('OrbitalGroup children:', orbitalGroup ? orbitalGroup.children.length : 0);
 
-    // #region agent log
-    var _hasG = !!gestureController, _en = gestureController?.enabled, _willStart = _hasG && _en;
-    fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:showViewer',message:'viewer enter',data:{hasGesture:_hasG,enabled:_en,willCallStart:_willStart},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
     if (gestureController && gestureController.enabled) gestureController.start();
+    
+    // 检查是否需要显示教程（首次打开模型时）
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/8dcb6af8-5793-4126-9375-8fe5024c7cdb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:showViewer',message:'showViewer end, checking tutorial',data:{isSwitch:!!opts?.isSwitch,optsKeys:opts?Object.keys(opts):[],optsValue:opts},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
+    if (!opts?.isSwitch) {
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/8dcb6af8-5793-4126-9375-8fe5024c7cdb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:showViewer',message:'Calling checkAndShowTutorial',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+        // #endregion
+        checkAndShowTutorial();
+    } else {
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/8dcb6af8-5793-4126-9375-8fe5024c7cdb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:showViewer',message:'Skipping tutorial check (isSwitch)',data:{isSwitchValue:opts?.isSwitch},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+        // #endregion
+    }
+}
+
+// --- 手势教程功能 ---
+let tutorialCurrentStep = 1;
+
+function checkAndShowTutorial() {
+    // #region agent log
+    const tutorialShown = sessionStorage.getItem(TUTORIAL_STORAGE_KEY);
+    const allSessionStorage = {};
+    for (let i = 0; i < sessionStorage.length; i++) {
+        const key = sessionStorage.key(i);
+        allSessionStorage[key] = sessionStorage.getItem(key);
+    }
+    fetch('http://127.0.0.1:7243/ingest/8dcb6af8-5793-4126-9375-8fe5024c7cdb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:checkAndShowTutorial',message:'Tutorial check',data:{tutorialShown,storageKey:TUTORIAL_STORAGE_KEY,allSessionStorage,typeOfTutorialShown:typeof tutorialShown},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
+    if (!tutorialShown) {
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/8dcb6af8-5793-4126-9375-8fe5024c7cdb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:checkAndShowTutorial',message:'Tutorial not shown, scheduling display',data:{delay:500},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+        // #endregion
+        // 延迟显示，确保模型已加载完成
+        setTimeout(() => {
+            // #region agent log
+            fetch('http://127.0.0.1:7243/ingest/8dcb6af8-5793-4126-9375-8fe5024c7cdb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:checkAndShowTutorial',message:'setTimeout callback executing, calling showTutorial',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+            // #endregion
+            showTutorial();
+        }, 500);
+    } else {
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/8dcb6af8-5793-4126-9375-8fe5024c7cdb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:checkAndShowTutorial',message:'Tutorial already shown, skipping',data:{tutorialShownValue:tutorialShown},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+        // #endregion
+    }
+}
+
+// 提供全局函数用于测试：在控制台输入 resetTutorial() 可以重置教程
+window.resetTutorial = function() {
+    sessionStorage.removeItem(TUTORIAL_STORAGE_KEY);
+    console.log('Tutorial reset. Reload the page and open a model to see the tutorial.');
+};
+
+function showTutorial() {
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/8dcb6af8-5793-4126-9375-8fe5024c7cdb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:showTutorial',message:'showTutorial called',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
+    const overlay = document.getElementById('gesture-tutorial-overlay');
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/8dcb6af8-5793-4126-9375-8fe5024c7cdb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:showTutorial',message:'Overlay lookup',data:{overlayExists:!!overlay,overlayId:overlay?.id,overlayClasses:overlay?.className,overlayDisplay:overlay?.style?.display,overlayVisibility:overlay?.style?.visibility},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
+    if (!overlay) {
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/8dcb6af8-5793-4126-9375-8fe5024c7cdb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:showTutorial',message:'Overlay not found',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+        // #endregion
+        console.warn('Tutorial overlay not found');
+        return;
+    }
+    
+    // #region agent log
+    const hasHiddenClass = overlay.classList.contains('hidden');
+    const beforeDisplay = window.getComputedStyle(overlay).display;
+    const beforeVisibility = window.getComputedStyle(overlay).visibility;
+    fetch('http://127.0.0.1:7243/ingest/8dcb6af8-5793-4126-9375-8fe5024c7cdb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:showTutorial',message:'Before removing hidden class',data:{hasHiddenClass,beforeDisplay,beforeVisibility,overlayClasses:overlay.className},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+    // #endregion
+    overlay.classList.remove('hidden');
+    // #region agent log
+    const afterDisplay = window.getComputedStyle(overlay).display;
+    const afterVisibility = window.getComputedStyle(overlay).visibility;
+    const afterHasHidden = overlay.classList.contains('hidden');
+    fetch('http://127.0.0.1:7243/ingest/8dcb6af8-5793-4126-9375-8fe5024c7cdb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:showTutorial',message:'After removing hidden class',data:{afterHasHidden,afterDisplay,afterVisibility,overlayClasses:overlay.className},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+    // #endregion
+    tutorialCurrentStep = 1;
+    updateTutorialStep();
+    initTutorialEvents();
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/8dcb6af8-5793-4126-9375-8fe5024c7cdb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:showTutorial',message:'Tutorial displayed',data:{currentStep:tutorialCurrentStep,finalDisplay:window.getComputedStyle(overlay).display,finalVisibility:window.getComputedStyle(overlay).visibility},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
+    console.log('Tutorial shown');
+}
+
+function hideTutorial() {
+    const overlay = document.getElementById('gesture-tutorial-overlay');
+    if (overlay) {
+        overlay.classList.add('hidden');
+    }
+    sessionStorage.setItem(TUTORIAL_STORAGE_KEY, 'true');
+}
+
+function updateTutorialStep() {
+    // 更新步骤显示
+    const steps = document.querySelectorAll('.gesture-tutorial-step');
+    steps.forEach((step, index) => {
+        if (index + 1 === tutorialCurrentStep) {
+            step.classList.add('active');
+        } else {
+            step.classList.remove('active');
+        }
+    });
+    
+    // 更新导航按钮状态
+    const prevBtn = document.getElementById('gesture-tutorial-prev');
+    const nextBtn = document.getElementById('gesture-tutorial-next');
+    if (prevBtn) {
+        prevBtn.disabled = tutorialCurrentStep === 1;
+    }
+    if (nextBtn) {
+        nextBtn.textContent = tutorialCurrentStep === TUTORIAL_TOTAL_STEPS ? '完成' : '下一步';
+    }
+    
+    // 更新指示点
+    const dots = document.querySelectorAll('.gesture-tutorial-dot');
+    dots.forEach((dot, index) => {
+        if (index + 1 === tutorialCurrentStep) {
+            dot.classList.add('active');
+        } else {
+            dot.classList.remove('active');
+        }
+    });
+}
+
+function nextTutorialStep() {
+    if (tutorialCurrentStep < TUTORIAL_TOTAL_STEPS) {
+        tutorialCurrentStep++;
+        updateTutorialStep();
+    } else {
+        // 完成教程
+        hideTutorial();
+    }
+}
+
+function prevTutorialStep() {
+    if (tutorialCurrentStep > 1) {
+        tutorialCurrentStep--;
+        updateTutorialStep();
+    }
+}
+
+function initTutorialEvents() {
+    // 关闭按钮
+    const closeBtn = document.getElementById('gesture-tutorial-close');
+    if (closeBtn) {
+        closeBtn.onclick = () => {
+            hideTutorial();
+        };
+    }
+    
+    // 跳过按钮
+    const skipBtn = document.getElementById('gesture-tutorial-skip');
+    if (skipBtn) {
+        skipBtn.onclick = () => {
+            hideTutorial();
+        };
+    }
+    
+    // 上一步按钮
+    const prevBtn = document.getElementById('gesture-tutorial-prev');
+    if (prevBtn) {
+        prevBtn.onclick = () => {
+            prevTutorialStep();
+        };
+    }
+    
+    // 下一步按钮
+    const nextBtn = document.getElementById('gesture-tutorial-next');
+    if (nextBtn) {
+        nextBtn.onclick = () => {
+            nextTutorialStep();
+        };
+    }
+    
+    // 指示点点击
+    const dots = document.querySelectorAll('.gesture-tutorial-dot');
+    dots.forEach((dot) => {
+        dot.addEventListener('click', () => {
+            const step = parseInt(dot.dataset.step);
+            if (step >= 1 && step <= TUTORIAL_TOTAL_STEPS) {
+                tutorialCurrentStep = step;
+                updateTutorialStep();
+            }
+        });
+    });
+    
+    // ESC 键关闭教程
+    const escHandler = (e) => {
+        if (e.key === 'Escape') {
+            const overlay = document.getElementById('gesture-tutorial-overlay');
+            if (overlay && !overlay.classList.contains('hidden')) {
+                hideTutorial();
+                window.removeEventListener('keydown', escHandler);
+            }
+        }
+    };
+    window.addEventListener('keydown', escHandler);
 }
 
 // --- 鼠标交互 ---
@@ -830,13 +1004,26 @@ function initMouseEvents() {
         console.log('Wheel zoom, new scale:', clampedScale);
     }, { passive: false });
     
-    // ESC键返回分类选择
+    // ESC键返回分类选择，i键放大50%
     window.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             if (currentView === 'viewer') {
                 showCategorySelector();
             } else if (currentView === 'orbital') {
                 showCategorySelector();
+            }
+        } else if (e.key === 'i' || e.key === 'I') {
+            // i键放大50%
+            if (currentView === 'viewer' && renderController) {
+                const currentScale = renderController.targetScale;
+                const newScale = currentScale * 1.5; // 放大50%
+                const clampedScale = THREE.MathUtils.clamp(newScale, MIN_SCALE, MAX_SCALE);
+                renderController.setTargetScale(clampedScale);
+                renderController.setInteracting(true);
+                setTimeout(() => {
+                    renderController.setInteracting(false);
+                }, 100);
+                console.log('I key pressed, scale increased by 50%, new scale:', clampedScale);
             }
         }
     });
@@ -856,9 +1043,6 @@ async function initGestureController() {
 
     gestureController = new GestureController(videoElement, viewerAdapter, { enabled: true, invertRotationY });
     await gestureController.init();
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:initGestureController',message:'init done',data:{hasGesture:!!gestureController,currentView:typeof currentView!=='undefined'?currentView:'?'},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
 }
 
 function animate() {
@@ -877,9 +1061,6 @@ function animate() {
  * 标签页隐藏时暂停：停止 RenderController、explorer.animate、GestureController，降低后台占用。
  */
 function pauseBackgroundWork() {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:pauseBackgroundWork',message:'pause',data:{hadGesture:!!gestureController},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
     if (renderController) renderController.stop();
     if (animateId != null) {
         cancelAnimationFrame(animateId);
@@ -893,10 +1074,6 @@ function pauseBackgroundWork() {
  * 仅当处于查看器界面时恢复 GestureController（摄像头）。
  */
 function resumeBackgroundWork() {
-    var _cv = currentView, _g = !!gestureController, _en = gestureController?.enabled, _cond = _cv==='viewer'&&_en, _did = _cond;
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:resumeBackgroundWork',message:'resume',data:{currentView:_cv,hasGesture:_g,enabled:_en,conditionViewerAndEnabled:_cond,didStartGesture:_did},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
     if (renderController) renderController.start();
     animate();
     if (currentView === 'viewer' && gestureController?.enabled) gestureController.start();
@@ -906,9 +1083,6 @@ function resumeBackgroundWork() {
  * 页面卸载时完整清理：停止渲染与手势、释放 WebGL、移除监听，避免后台残留。
  */
 function onPageUnload() {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:onPageUnload',message:'unload entry',data:{pageUnloadCleanedBefore:pageUnloadCleaned},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'D'})}).catch(()=>{});
-    // #endregion
     if (pageUnloadCleaned) return;
     pageUnloadCleaned = true;
 
@@ -920,9 +1094,6 @@ function onPageUnload() {
     if (gestureController) gestureController.destroy();
     if (renderer) renderer.dispose();
     window.removeEventListener('resize', onWindowResize);
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/1b9ad90f-ed47-4eb6-817b-33982b8d2edb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:onPageUnload',message:'unload done',data:{rendererDisposed:!!renderer,resizeRemoved:true},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'D'})}).catch(()=>{});
-    // #endregion
 }
 
 function onWindowResize() {
@@ -939,13 +1110,6 @@ function showKnowledgeCard(orbitalId) {
     const content = document.getElementById('knowledge-content');
     const closeBtn = document.getElementById('knowledge-close');
     
-    // #region agent log
-    if (card && closeBtn) {
-        const cardRect = card.getBoundingClientRect();
-        const closeRect = closeBtn.getBoundingClientRect();
-        fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:showKnowledgeCard',message:'knowledge card position check',data:{orbitalId,cardRect:{top:cardRect.top,left:cardRect.left,width:cardRect.width,height:cardRect.height},closeRect:{top:closeRect.top,left:closeRect.left,width:closeRect.width,height:closeRect.height},closeStyle:{position:getComputedStyle(closeBtn).position,top:getComputedStyle(closeBtn).top,right:getComputedStyle(closeBtn).right,zIndex:getComputedStyle(closeBtn).zIndex}},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B'})}).catch(()=>{});
-    }
-    // #endregion
     
     if (!knowledge) {
         console.warn(`No knowledge data for orbital: ${orbitalId}`);

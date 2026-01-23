@@ -43,10 +43,8 @@ export class GestureController {
     this.lastGestureTime = 0;
     this.timeoutTimer = null;
     
-    // #region agent log
     // Debug: 跟踪上次回调时间
     this.lastCallbackTime = 0;
-    // #endregion
     
     // 平滑处理：用于快速移动时的平滑
     this.lastRotationDeltaX = 0;
@@ -219,18 +217,12 @@ export class GestureController {
         const deltaYpx = deltaY * height;
         const deadZonePx = ROTATION_DEAD_ZONE * Math.min(width, height);
         
-        // #region agent log
         const callbackTime = Date.now();
         const timeSinceLastCallback = this.lastCallbackTime > 0 ? callbackTime - this.lastCallbackTime : 0;
         this.lastCallbackTime = callbackTime;
-        fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'GestureController.js:180',message:'Gesture delta calculated',data:{deltaX,deltaY,deltaXpx,deltaYpx,deadZonePx,timeSinceLastCallback,absDeltaXpx:Math.abs(deltaXpx),absDeltaYpx:Math.abs(deltaYpx)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-        // #endregion
         
         if (Math.abs(deltaXpx) < deadZonePx && Math.abs(deltaYpx) < deadZonePx) {
           // 小幅移动不触发旋转，但更新基准位置，避免累积位移
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'GestureController.js:186',message:'Dead zone filtered',data:{deltaXpx,deltaYpx,deadZonePx},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-          // #endregion
           this.lastHandPos = { x: effectiveGesture.data.palm.x, y: effectiveGesture.data.palm.y };
           return;
         }
@@ -322,10 +314,6 @@ export class GestureController {
         // 完全模仿鼠标控制的旋转逻辑
         const rotationDeltaX = -smoothedDeltaXpx * ROTATION_SENSITIVITY;
         const rotationDeltaY = (this.invertRotationY ? smoothedDeltaYpx : -smoothedDeltaYpx) * ROTATION_SENSITIVITY;
-
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'GestureController.js:195',message:'Rotation delta before apply',data:{rotationDeltaX,rotationDeltaY,deltaXpx,deltaYpx,normalizedDeltaXpx,normalizedDeltaYpx,smoothedDeltaXpx,smoothedDeltaYpx,timeSinceLastCallback},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'A'})}).catch(()=>{});
-        // #endregion
 
         if (renderController) {
           renderController.setTargetRotation(rotationDeltaX, rotationDeltaY);
