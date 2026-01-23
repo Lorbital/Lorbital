@@ -2,10 +2,9 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <meta name="theme-color" content="#000000">
     <title>我们的故事 | Quantum Orbital Explorer</title>
     <link rel="stylesheet" href="css/shared.css">
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
         body { background: #000; overflow-y: auto; } /* 故事页允许垂直滚动 */
         
@@ -159,9 +158,36 @@
             opacity: 1;
             transform: translateY(0) scale(1);
         }
+
+        /* 轻量加载反馈 */
+        #page-loader {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000;
+            display: flex; justify-content: center; align-items: center;
+            z-index: 2000;
+            transition: opacity 0.5s ease;
+        }
+        #page-loader.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .loader-text {
+            color: var(--accent);
+            letter-spacing: 5px;
+            font-weight: 200;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
     </style>
 </head>
 <body>
+    <div id="page-loader">
+        <div class="loader-text">加载中...</div>
+    </div>
     <div id="bg-canvas"></div>
 
     <nav>
@@ -179,12 +205,12 @@
             <h2 data-animate="title">缘起</h2>
             <p data-animate>在剑桥，<br>教授展示了他的<b>收藏</b>。</p>
             <div class="story-image story-image--80" data-animate="image">
-                <img src="public/images/story/图片一.jpg" alt="轨道墙">
+                <img src="public/images/story/图片一.jpg" alt="轨道墙" loading="lazy">
                 <div class="story-image-caption">轨道墙图片，摄于剑桥St Catherine学院</div>
             </div>
             <p data-animate>电子被<b>"装进了"</b>玻璃里，<br>原本<b>抽象枯燥</b>的概念，忽然拥有了精确且精美的形状。</p>
             <div class="story-image" data-animate="image">
-                <img src="public/images/story/图片二.jpg" alt="电子轨道">
+                <img src="public/images/story/图片二.jpg" alt="电子轨道" loading="lazy">
             </div>
             <p data-animate>那一刻，<br>我们第一次感受到科学的美，<br>在于它能让那些抽象的规律变得清晰、可感。<br>对于大多数同学，电子轨道依然停留在课本上的二维图片。</p>
             
@@ -194,10 +220,10 @@
             <p data-animate>我们从<b>一切本源</b>的理论出发：<b>波函数、薛定谔方程</b>，<br>经过反复地调试与打磨，<br>最终，<b>遵循量子规律</b>的电子云模型，呈现在我们眼前。</p>
             <div class="story-images-row">
                 <div class="story-image" data-animate="image">
-                    <img src="public/images/story/图片三.jpg" alt="电子云模型">
+                    <img src="public/images/story/图片三.jpg" alt="电子云模型" loading="lazy">
                 </div>
                 <div class="story-image" data-animate="image">
-                    <img src="public/images/story/图片四.jpg" alt="电子云模型">
+                    <img src="public/images/story/图片四.jpg" alt="电子云模型" loading="lazy">
                 </div>
             </div>
             <p data-animate style="font-size: 1.2em;"><b>但，这还不够。</b></p>
@@ -222,60 +248,99 @@
         { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
     </script>
     <script type="module">
-        import * as THREE from 'three';
-        import { PLYLoader } from 'three/addons/loaders/PLYLoader.js';
-
+        // 延迟加载背景轨道，不阻塞首屏渲染
         let scene, camera, renderer, points;
-        const loader = new PLYLoader();
+        let animationId = null;
 
-        init();
+        // 等待 DOM 就绪后再加载 Three.js 和背景轨道
+        function initBackground() {
+            // 使用动态 import 按需加载 Three.js
+            Promise.all([
+                import('three'),
+                import('three/addons/loaders/PLYLoader.js')
+            ]).then(([THREE, { PLYLoader }]) => {
+                const loader = new PLYLoader();
 
-        function init() {
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.z = 8;
+                scene = new THREE.Scene();
+                camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+                camera.position.z = 8;
 
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            document.getElementById('bg-canvas').appendChild(renderer.domElement);
+                renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                document.getElementById('bg-canvas').appendChild(renderer.domElement);
 
-            // 加载 1s 轨道作为背景
-            loader.load('./models/model++/s/1s/1s.ply', (geometry) => {
-                geometry.center();
-                const material = new THREE.PointsMaterial({
-                    size: 0.015,
-                    color: 0x00ffff,
-                    transparent: true,
-                    opacity: 0.32, // 更透明约 20%（原 0.4 → 0.32）
-                    blending: THREE.NormalBlending
+                // 加载轻量版 1s-story.ply 作为背景
+                loader.load('./models/model++/s/1s/1s-story.ply', (geometry) => {
+                    geometry.center();
+                    const material = new THREE.PointsMaterial({
+                        size: 0.015,
+                        color: 0x00ffff,
+                        transparent: true,
+                        opacity: 0.32,
+                        blending: THREE.NormalBlending
+                    });
+                    points = new THREE.Points(geometry, material);
+                    points.scale.set(1.6, 1.6, 1.6);
+                    scene.add(points);
                 });
-                points = new THREE.Points(geometry, material);
-                points.scale.set(1.6, 1.6, 1.6); // 放大 60%
-                scene.add(points);
-            });
 
-            animate();
+                animate();
+            }).catch(err => {
+                console.error('Failed to load background orbital:', err);
+            });
         }
 
         function animate() {
-            requestAnimationFrame(animate);
-            if (points) {
-                points.rotation.y += 0.002; // 缓慢自转
+            animationId = requestAnimationFrame(animate);
+            if (points && renderer && scene && camera) {
+                points.rotation.y += 0.002;
                 points.rotation.x += 0.001;
+                renderer.render(scene, camera);
             }
-            renderer.render(scene, camera);
+        }
+
+        // 在 DOM 就绪后延迟加载，优先让页面内容显示
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                // 使用 requestIdleCallback 或 setTimeout 进一步延迟
+                if ('requestIdleCallback' in window) {
+                    requestIdleCallback(initBackground, { timeout: 2000 });
+                } else {
+                    setTimeout(initBackground, 100);
+                }
+            });
+        } else {
+            // DOM 已就绪
+            if ('requestIdleCallback' in window) {
+                requestIdleCallback(initBackground, { timeout: 2000 });
+            } else {
+                setTimeout(initBackground, 100);
+            }
         }
 
         window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            if (camera && renderer) {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
         });
     </script>
 
     <script>
-        // 弹出动画控制
+        // 弹出动画控制和加载反馈
         document.addEventListener('DOMContentLoaded', () => {
+            // 隐藏加载遮罩（页面主要内容已就绪）
+            const loader = document.getElementById('page-loader');
+            if (loader) {
+                setTimeout(() => {
+                    loader.classList.add('hidden');
+                    setTimeout(() => {
+                        loader.style.display = 'none';
+                    }, 500);
+                }, 300); // 短暂延迟以确保内容已渲染
+            }
+
             const animateElements = document.querySelectorAll('[data-animate]');
             let animationIndex = 0;
             

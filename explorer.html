@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <meta name="theme-color" content="#000000">
     <title>探测器 | Quantum Orbital Explorer</title>
     <link rel="stylesheet" href="css/shared.css">
     <style>
@@ -578,7 +579,7 @@
             backdrop-filter: blur(20px);
             border: 2px solid var(--glass-border);
             border-radius: 24px;
-            padding: 70px 40px 40px;
+            padding: 70px 40px 12px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
         }
 
@@ -661,9 +662,10 @@
         .gesture-tutorial-step[data-step="2"] .gesture-tutorial-animation {
             display: flex;
             flex-direction: row;
-            justify-content: space-around;
+            justify-content: center; /* 改为居中，与步骤3一致 */
             align-items: center;
             gap: 40px;
+            padding-left: 80px; /* 向右偏移80px（50px + 30px） */
         }
         .gesture-tutorial-step[data-step="2"] .model-demo-rotate {
             position: relative;
@@ -677,25 +679,53 @@
             border-radius: 50%;
             background: rgba(0, 255, 255, 0.1);
             box-shadow: 0 0 30px var(--accent-glow);
+            /* 固定圆心：确保缩放时圆心位置不变 */
+            transform-origin: center center;
+            /* 使用margin auto确保居中，避免定位问题 */
+            margin: 0 auto;
         }
 
         .model-demo-rotate {
-            animation: modelRotate 4s linear infinite;
+            /* 跟随左边emoji手势图案的动画移动 */
+            animation: modelRotateFollowEmoji 3s ease-in-out infinite;
         }
-        @keyframes modelRotate {
-            0% { transform: rotateY(0deg) rotateX(0deg); }
-            25% { transform: rotateY(90deg) rotateX(10deg); }
-            50% { transform: rotateY(180deg) rotateX(0deg); }
-            75% { transform: rotateY(270deg) rotateX(-10deg); }
-            100% { transform: rotateY(360deg) rotateX(0deg); }
+        @keyframes modelRotateFollowEmoji {
+            /* 跟随emojiMove动画路径：
+               0%: 左边(-50px) → 25%: 中间向上(0, -30px) → 50%: 右边(50px) → 75%: 中间向下(0, 30px) → 100%: 左边
+               修正：emoji在左边时，圆圈应该往左边转（rotateY为负）
+                     emoji在右边时，圆圈应该往右边转（rotateY为正）
+               向上移动（deltaY < 0）→ 绕X轴逆时针旋转（rotateX为负）
+               向下移动（deltaY > 0）→ 绕X轴顺时针旋转（rotateX为正）
+            */
+            0%, 100% { 
+                /* 左边位置：圆圈往左边转 */
+                transform: rotateY(-45deg) rotateX(0deg); 
+            }
+            25% { 
+                /* 中间向上：从左边移动到中间（+50px），同时向上（-30px） */
+                transform: rotateY(0deg) rotateX(-20deg); 
+            }
+            50% { 
+                /* 右边位置：从中间移动到右边（+50px），圆圈往右边转 */
+                transform: rotateY(45deg) rotateX(0deg); 
+            }
+            75% { 
+                /* 中间向下：从右边移动到中间（-50px），同时向下（+30px） */
+                transform: rotateY(0deg) rotateX(20deg); 
+            }
         }
 
         .model-demo-scale {
-            animation: modelScale 3s ease-in-out infinite;
+            /* 与handsMoveStep3动画同步：4秒，ease-in-out，infinite */
+            animation: modelScale 4s ease-in-out infinite;
         }
         @keyframes modelScale {
-            0%, 100% { transform: scale(0.8); }
-            50% { transform: scale(1.3); }
+            /* 与handsMoveStep3同步：
+               0%, 100%: gap=60px（emoji距离近）→ scale应该小
+               50%: gap=100px（emoji距离远）→ scale应该大
+            */
+            0%, 100% { transform: scale(0.7); }
+            50% { transform: scale(1.2); }
         }
 
         /* 双手 Emoji 演示 */
@@ -743,9 +773,6 @@
             0%, 100% { gap: 60px; }
             50% { gap: 100px; }
         }
-        .gesture-tutorial-step[data-step="3"] .model-demo-scale {
-            position: relative;
-        }
 
         .gesture-tutorial-title {
             font-size: 32px;
@@ -769,7 +796,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 50px;
+            margin-top: 40px;
             gap: 20px;
         }
 
@@ -837,7 +864,7 @@
         @media (max-width: 768px) {
             .gesture-tutorial-content {
                 width: 95%;
-                padding: 40px 30px 30px;
+                padding: 40px 30px 12px;
             }
             .gesture-tutorial-animation {
                 height: 250px;
@@ -869,7 +896,7 @@
     <div id="category-selector">
         <div class="intro-panel">
             <h2>量子轨道探测器</h2>
-            <p>本页提供氢原子轨道的 3D 点云可视化。选择下方 S、P、D、F、G 任一类型即可浏览该族轨道；在模型控制页可用鼠标拖拽旋转、滚轮缩放，或通过摄像头进行单手/双手捏合手势操作。</p>
+            <p>本页提供氢原子轨道的 3D 点云可视化。氢原子是最简单的原子系统，其薛定谔方程可以精确求解，从而得到电子在不同量子态下的轨道波函数。这些模型通过求解氢原子的薛定谔方程计算得出，使用 Python 通过蒙特卡洛拒绝采样法生成，根据波函数的概率密度分布 |ψ|² 进行采样，使得点云的密度准确反映电子在原子核周围不同位置出现的概率。选择下方 S、P、D、F、G 任一类型即可浏览该族轨道。</p>
         </div>
         <div class="category-grid">
             <div class="category-card" data-type="s">
@@ -928,7 +955,8 @@
         <b style="color:var(--accent)">手势控制方法</b><br><br>
         <b>单手控制旋转</b>：<br>单手捏紧食指和拇指（OK的手势），<br>通过手的移动控制模型旋转<br><br>
         <b>双手控制缩放</b>：<br>双手分别捏紧食指和拇指，<br>通过双手之间的距离控制模型缩放<br><br>
-        注意画面中其他的手会影响识别
+        注意画面中其他的手会影响识别<br>
+        也可使用鼠标或触控板控制
     </div>
 
     <div id="orbital-tag" class="hidden">
@@ -968,7 +996,7 @@
                         <div class="emoji-demo emoji-ok">👌</div>
                     </div>
                     <h2 class="gesture-tutorial-title">捏合手势</h2>
-                    <p class="gesture-tutorial-description">将拇指和食指捏合，形成 OK 手势（👌）。这是所有手势操作的基础。<br><br>停止捏合即可退出手势控制模式。</p>
+                    <p class="gesture-tutorial-description">将拇指和食指捏合，形成 OK 手势（👌）。这是所有手势操作的基础。<br>停止捏合即可退出手势控制模式。</p>
                 </div>
 
                 <!-- 步骤 2: 单手操作 -->
@@ -977,8 +1005,8 @@
                         <div class="emoji-demo emoji-ok emoji-move">👌</div>
                         <div class="model-demo model-demo-rotate"></div>
                     </div>
-                    <h2 class="gesture-tutorial-title">单手旋转</h2>
-                    <p class="gesture-tutorial-description">单手捏合后，移动手掌来控制模型的旋转。模型会跟随你的手势方向旋转。<br><br>停止捏合即可退出手势控制模式。</p>
+                    <h2 class="gesture-tutorial-title">单手平移控制旋转</h2>
+                    <p class="gesture-tutorial-description">单手捏合后，移动手掌来控制模型的旋转。模型会跟随你的手势方向旋转。<br>停止捏合即可退出手势控制模式。</p>
                 </div>
 
                 <!-- 步骤 3: 双手操作 -->
@@ -991,8 +1019,8 @@
                         </div>
                         <div class="model-demo model-demo-scale"></div>
                     </div>
-                    <h2 class="gesture-tutorial-title">双手缩放</h2>
-                    <p class="gesture-tutorial-description">双手分别捏合，通过改变双手之间的距离来控制模型的缩放。双手靠近时缩小，双手远离时放大。<br><br>停止捏合即可退出手势控制模式。</p>
+                    <h2 class="gesture-tutorial-title">双手距离控制缩放</h2>
+                    <p class="gesture-tutorial-description">双手分别捏合，通过改变双手之间的距离来控制模型的缩放。双手靠近时缩小，双手远离时放大。<br>停止捏合即可退出手势控制模式。</p>
                 </div>
             </div>
 

@@ -13,6 +13,8 @@ import { MODEL_REGISTRY, getPlyUrl, loadMetadata, hasOrbitalModel, getActualMode
 import { getOrbitalKnowledge } from './data/orbitalKnowledge.js';
 import { RenderController } from './three/renderer.js';
 import { GestureController } from './components/GestureController.js';
+import { HandTracker } from './gesture/handTracker.js';
+import { GestureState } from './gesture/gestureMapping.js';
 import { ROTATION_SENSITIVITY, ZOOM_SENSITIVITY, MIN_SCALE, MAX_SCALE } from './utils/constants.js';
 
 let scene, camera, renderer, orbitalPoints, renderController, axesHelper, css2DRenderer;
@@ -29,6 +31,12 @@ let lastErrorOpts = null;
 
 // --- 手势控制器 ---
 let gestureController = null;
+// --- 教程手势跟踪器 ---
+let tutorialHandTracker = null;
+let tutorialDemoCircle = null;
+let tutorialLastPalmPos = null;
+let tutorialRotationY = 0;
+let tutorialRotationX = 0;
 
 // 动画循环 id，用于 visibility 暂停与页面卸载时取消
 let animateId = null;
@@ -341,7 +349,7 @@ function updateLoadingProgress(progress) {
     const pct = document.getElementById('loading-percent');
     if (progress && progress.total > 0) {
         bar.classList.remove('indeterminate');
-        const ratio = progress.loaded / progress.total;
+        const ratio = Math.min(1, progress.loaded / progress.total);
         bar.style.width = (ratio * 100) + '%';
         pct.textContent = Math.round(ratio * 100) + '%';
         pct.classList.remove('hidden');
@@ -829,6 +837,13 @@ function showTutorial() {
     const afterHasHidden = overlay.classList.contains('hidden');
     fetch('http://127.0.0.1:7243/ingest/8dcb6af8-5793-4126-9375-8fe5024c7cdb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:showTutorial',message:'After removing hidden class',data:{afterHasHidden,afterDisplay,afterVisibility,overlayClasses:overlay.className},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
     // #endregion
+    
+    // 显示视频容器以便手势跟踪
+    const videoContainer = document.getElementById('video-container');
+    if (videoContainer) {
+        videoContainer.classList.remove('hidden');
+    }
+    
     tutorialCurrentStep = 1;
     updateTutorialStep();
     initTutorialEvents();
@@ -843,6 +858,7 @@ function hideTutorial() {
     if (overlay) {
         overlay.classList.add('hidden');
     }
+    stopTutorialGestureTracking();
     sessionStorage.setItem(TUTORIAL_STORAGE_KEY, 'true');
 }
 
@@ -876,6 +892,10 @@ function updateTutorialStep() {
             dot.classList.remove('active');
         }
     });
+    
+    // 步骤2时不需要真实手势跟踪，圆圈跟随emoji动画
+    // 移除真实手势跟踪，让圆圈只跟随emoji图案动画
+    stopTutorialGestureTracking();
 }
 
 function nextTutorialStep() {
@@ -951,6 +971,175 @@ function initTutorialEvents() {
         }
     };
     window.addEventListener('keydown', escHandler);
+}
+
+/**
+ * 初始化教程手势跟踪（用于步骤2的圆圈演示）
+ */
+async function initTutorialGestureTracking() {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:initTutorialGestureTracking',message:'Function entry',data:{hasExistingTracker:!!tutorialHandTracker},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
+    // 如果已经初始化，先停止
+    if (tutorialHandTracker) {
+        stopTutorialGestureTracking();
+    }
+    
+    // 获取圆圈元素
+    tutorialDemoCircle = document.querySelector('.model-demo-rotate');
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:initTutorialGestureTracking',message:'Circle element lookup',data:{circleFound:!!tutorialDemoCircle,selector:'.model-demo-rotate'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
+    if (!tutorialDemoCircle) {
+        return;
+    }
+    
+    // 重置旋转状态
+    tutorialRotationY = 0;
+    tutorialRotationX = 0;
+    tutorialLastPalmPos = null;
+    updateTutorialDemoCircle();
+    
+    // 获取视频元素
+    const videoElement = document.getElementById('input_video');
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:initTutorialGestureTracking',message:'Video element lookup',data:{videoElementFound:!!videoElement,videoElementId:'input_video'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
+    if (!videoElement) {
+        return;
+    }
+    
+    try {
+        // 创建手势跟踪器
+        tutorialHandTracker = new HandTracker(videoElement, (gesture, results) => {
+            handleTutorialGesture(gesture);
+        });
+        
+        await tutorialHandTracker.init();
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:initTutorialGestureTracking',message:'HandTracker initialized',data:{trackerCreated:!!tutorialHandTracker},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+        // #endregion
+        tutorialHandTracker.start();
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:initTutorialGestureTracking',message:'HandTracker started',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+        // #endregion
+    } catch (error) {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:initTutorialGestureTracking',message:'HandTracker init error',data:{errorMessage:error.message,errorStack:error.stack},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+        // #endregion
+        console.warn('Failed to init tutorial gesture tracking:', error);
+    }
+}
+
+/**
+ * 停止教程手势跟踪
+ */
+function stopTutorialGestureTracking() {
+    if (tutorialHandTracker) {
+        tutorialHandTracker.stop();
+        tutorialHandTracker.destroy();
+        tutorialHandTracker = null;
+    }
+    tutorialLastPalmPos = null;
+}
+
+/**
+ * 处理教程手势
+ */
+function handleTutorialGesture(gesture) {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:handleTutorialGesture',message:'Function entry - ALL gestures',data:{hasCircle:!!tutorialDemoCircle,currentStep:tutorialCurrentStep,gestureState:gesture?.state,gestureStateName:gesture?.state === GestureState.SINGLE_HAND_PINCH ? 'SINGLE_HAND_PINCH' : gesture?.state === GestureState.TWO_HAND_PINCH ? 'TWO_HAND_PINCH' : gesture?.state === GestureState.NONE ? 'NONE' : 'UNKNOWN',handCount:gesture?.handCount,hasData:!!gesture?.data,hasPalm:!!gesture?.data?.palm},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
+    if (!tutorialDemoCircle || tutorialCurrentStep !== 2) {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:handleTutorialGesture',message:'Early return',data:{hasCircle:!!tutorialDemoCircle,currentStep:tutorialCurrentStep},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'D'})}).catch(()=>{});
+        // #endregion
+        return;
+    }
+    
+    // 只处理单手指合手势 - 严格检查：必须是 SINGLE_HAND_PINCH 状态
+    // 拒绝所有其他手势状态（TWO_HAND_PINCH, NONE 等）
+    const isSingleHandPinch = gesture.state === GestureState.SINGLE_HAND_PINCH;
+    const hasValidData = gesture.data && gesture.data.palm;
+    
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:handleTutorialGesture',message:'Gesture state check',data:{isSingleHandPinch,hasValidData,gestureState:gesture?.state,gestureStateName:gesture?.state === GestureState.SINGLE_HAND_PINCH ? 'SINGLE_HAND_PINCH' : gesture?.state === GestureState.TWO_HAND_PINCH ? 'TWO_HAND_PINCH' : gesture?.state === GestureState.NONE ? 'NONE' : 'UNKNOWN',expectedState:GestureState.SINGLE_HAND_PINCH},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'D'})}).catch(()=>{});
+    // #endregion
+    
+    // 如果不是单手捏合，立即重置并返回（不处理任何其他手势）
+    if (!isSingleHandPinch) {
+        if (tutorialLastPalmPos) {
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:handleTutorialGesture',message:'Not SINGLE_HAND_PINCH - resetting',data:{gestureState:gesture?.state,gestureStateName:gesture?.state === GestureState.TWO_HAND_PINCH ? 'TWO_HAND_PINCH' : gesture?.state === GestureState.NONE ? 'NONE' : 'UNKNOWN'},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'D'})}).catch(()=>{});
+            // #endregion
+            tutorialLastPalmPos = null;
+        }
+        return;
+    }
+    
+    // 只有单手捏合手势才继续处理
+    if (hasValidData) {
+        const palm = gesture.data.palm;
+        
+        if (!tutorialLastPalmPos) {
+            tutorialLastPalmPos = { x: palm.x, y: palm.y };
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:handleTutorialGesture',message:'Initial palm position set',data:{palmX:palm.x,palmY:palm.y},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+            // #endregion
+            return;
+        }
+        
+        // 计算手掌移动
+        const deltaX = palm.x - tutorialLastPalmPos.x;
+        const deltaY = palm.y - tutorialLastPalmPos.y;
+        
+        // 更新旋转角度
+        // 向右移动（deltaX > 0）→ 绕Y轴逆时针旋转（从上方看，rotateY为负）
+        // 向上移动（deltaY < 0，屏幕Y向下为正）→ 绕X轴逆时针旋转（从右侧看，模型前面向上，rotateX为负）
+        // 向下移动（deltaY > 0）→ 绕X轴顺时针旋转（从右侧看，模型前面向下，rotateX为正）
+        const sensitivity = 200; // 旋转灵敏度
+        const oldRotationY = tutorialRotationY;
+        const oldRotationX = tutorialRotationX;
+        tutorialRotationY -= deltaX * sensitivity;
+        tutorialRotationX += (invertRotationY ? deltaY : -deltaY) * sensitivity;
+        
+        // 限制旋转角度范围
+        tutorialRotationX = Math.max(-90, Math.min(90, tutorialRotationX));
+        
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:handleTutorialGesture',message:'Rotation calculated',data:{deltaX,deltaY,oldRotationY,oldRotationX,newRotationY:tutorialRotationY,newRotationX:tutorialRotationX},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+        // #endregion
+        
+        // 更新圆圈
+        updateTutorialDemoCircle();
+        
+        // 更新上次位置
+        tutorialLastPalmPos = { x: palm.x, y: palm.y };
+    } else {
+        // 手势结束，重置上次位置
+        tutorialLastPalmPos = null;
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:handleTutorialGesture',message:'Gesture not SINGLE_HAND_PINCH',data:{gestureState:gesture?.state,hasData:!!gesture?.data,hasPalm:!!gesture?.data?.palm},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+        // #endregion
+    }
+}
+
+/**
+ * 更新教程演示圆圈旋转
+ */
+function updateTutorialDemoCircle() {
+    if (!tutorialDemoCircle) {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:updateTutorialDemoCircle',message:'Circle element not found',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+        // #endregion
+        return;
+    }
+    
+    const transformValue = `rotateY(${tutorialRotationY}deg) rotateX(${tutorialRotationX}deg)`;
+    tutorialDemoCircle.style.transform = transformValue;
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:updateTutorialDemoCircle',message:'Transform applied',data:{rotationY:tutorialRotationY,rotationX:tutorialRotationX,transformValue,actualTransform:tutorialDemoCircle.style.transform},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+    // #endregion
 }
 
 // --- 鼠标交互 ---
