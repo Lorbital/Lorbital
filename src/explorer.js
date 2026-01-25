@@ -413,105 +413,141 @@ async function loadOrbital(orbitalId, opts = {}) {
             
             console.log(`Geometry loaded: ${geometry.attributes.position.count} vertices`);
 
-            orbitalGroup.children.slice().forEach((child) => {
-                if (child.isPoints && child.geometry) { child.geometry.dispose(); }
-                if (child.isPoints && child.material) child.material.dispose();
-                if (child.userData?.isAxesHelper) disposeAxesGroup(child);
+            // 更新加载文本，提示正在处理模型
+            if (!opts.isSwitch) {
+                const txt = document.getElementById('loading-text');
+                if (txt) txt.textContent = '处理模型数据...';
+                const bar = document.getElementById('loading-progress-bar');
+                const pct = document.getElementById('loading-percent');
+                if (bar) {
+                    bar.classList.remove('indeterminate');
+                    bar.style.width = '100%';
+                }
+                if (pct) {
+                    pct.textContent = '100%';
+                    pct.classList.remove('hidden');
+                }
+            }
+
+            // 使用 requestAnimationFrame 分帧处理，避免阻塞UI
+            requestAnimationFrame(() => {
+                try {
+                    // 清理旧模型
+                    orbitalGroup.children.slice().forEach((child) => {
+                        if (child.isPoints && child.geometry) { child.geometry.dispose(); }
+                        if (child.isPoints && child.material) child.material.dispose();
+                        if (child.userData?.isAxesHelper) disposeAxesGroup(child);
+                    });
+                    orbitalGroup.clear();
+
+                    // 分帧执行耗时操作：几何处理
+                    requestAnimationFrame(() => {
+                        try {
+                            geometry.center();
+                            geometry.computeBoundingSphere();
+                            const L = Math.max(geometry.boundingSphere.radius * 1.2, 0.5);
+
+                            // 检查PLY文件是否包含颜色信息
+                            const hasColors = geometry.attributes.color !== undefined;
+                            
+                            let material;
+                            if (hasColors) {
+                                // 使用PLY文件中的原始颜色（vertexColors会自动使用PLY文件中的颜色）
+                                material = new THREE.PointsMaterial({ 
+                                    size: settings.particleSize, 
+                                    vertexColors: true, // 使用顶点颜色，这是关键
+                                    transparent: true, 
+                                    opacity: currentMetadata?.opacity || 0.8, 
+                                    blending: THREE.NormalBlending, 
+                                    depthWrite: false 
+                                });
+                                material.userData.baseOpacity = currentMetadata?.opacity || 0.8;
+                            } else {
+                                // 如果PLY文件没有颜色信息（应该不会发生，因为模型都有颜色）
+                                // 使用白色作为后备，但这种情况不应该出现
+                                const opacity = currentMetadata?.opacity || 0.8;
+                                material = new THREE.PointsMaterial({ 
+                                    size: settings.particleSize, 
+                                    color: 0xffffff, // 白色作为后备（不应该用到）
+                                    transparent: true, 
+                                    opacity: opacity, 
+                                    blending: THREE.NormalBlending, 
+                                    depthWrite: false 
+                                });
+                                material.userData.baseOpacity = opacity;
+                                console.warn(`PLY file for ${orbitalId} has no color information`);
+                            }
+                            
+                            // 再分一帧创建和添加模型
+                            requestAnimationFrame(() => {
+                                try {
+                                    orbitalPoints = new THREE.Points(geometry, material);
+                                    orbitalGroup.add(orbitalPoints);
+                                    axesHelper = createAxesHelper(L);
+                                    axesHelper.visible = settings.showAxes;
+                                    setAxesLabelsVisibility(settings.showAxes);
+                                    orbitalGroup.add(axesHelper);
+                                    console.log('OrbitalPoints created and added to scene');
+
+                                    // 应用推荐缩放
+                                    if (currentMetadata?.recommendedScale) {
+                                        if (renderController) {
+                                            renderController.targetScale = currentMetadata.recommendedScale;
+                                            renderController.currentScale = currentMetadata.recommendedScale;
+                                        }
+                                        orbitalGroup.scale.setScalar(currentMetadata.recommendedScale);
+                                    }
+                                    
+                                    currentOrbitalId = orbitalId;
+                                    
+                                    // 重置相机位置和旋转
+                                    if (camera) {
+                                        camera.position.set(0, 0, 15);
+                                        camera.lookAt(0, 0, 0);
+                                    }
+                                    const initialScale = currentMetadata?.recommendedScale || 1.0;
+                                    if (renderController) {
+                                        renderController.targetQuaternion.set(0, 0, 0, 1);
+                                        renderController.currentQuaternion.set(0, 0, 0, 1);
+                                        renderController.targetScale = initialScale;
+                                        renderController.currentScale = initialScale;
+                                    }
+                                    if (orbitalGroup) {
+                                        orbitalGroup.quaternion.set(0, 0, 0, 1);
+                                        orbitalGroup.scale.setScalar(initialScale);
+                                        orbitalGroup.position.set(0, 0, 0);
+                                    }
+                                    
+                                    // 强制渲染一次，确保模型显示
+                                    requestAnimationFrame(() => {
+                                        if (renderer && scene && camera) {
+                                            renderer.render(scene, camera);
+                                            console.log('Forced render after model load');
+                                        }
+                                        
+                                        // 所有处理完成，隐藏加载遮罩并显示查看器
+                                        if (!opts.isSwitch) {
+                                            hideLoadingOverlay();
+                                            showViewer(opts);
+                                        }
+                                        const orbitalSelect = document.getElementById('experiment-console-orbital-select');
+                                        if (orbitalSelect) orbitalSelect.value = currentOrbitalId;
+                                    });
+                                } catch (renderError) {
+                                    console.error('Error creating or rendering orbital points:', renderError);
+                                    showLoadingError(`渲染失败: ${renderError.message}`, orbitalId, opts);
+                                }
+                            });
+                        } catch (processError) {
+                            console.error('Error processing geometry:', processError);
+                            showLoadingError(`处理失败: ${processError.message}`, orbitalId, opts);
+                        }
+                    });
+                } catch (cleanupError) {
+                    console.error('Error cleaning up old model:', cleanupError);
+                    showLoadingError(`清理失败: ${cleanupError.message}`, orbitalId, opts);
+                }
             });
-            orbitalGroup.clear();
-            geometry.center();
-            geometry.computeBoundingSphere();
-            const L = Math.max(geometry.boundingSphere.radius * 1.2, 0.5);
-
-            // 检查PLY文件是否包含颜色信息
-            const hasColors = geometry.attributes.color !== undefined;
-            
-            let material;
-            if (hasColors) {
-                // 使用PLY文件中的原始颜色（vertexColors会自动使用PLY文件中的颜色）
-                material = new THREE.PointsMaterial({ 
-                    size: settings.particleSize, 
-                    vertexColors: true, // 使用顶点颜色，这是关键
-                    transparent: true, 
-                    opacity: currentMetadata?.opacity || 0.8, 
-                    blending: THREE.NormalBlending, 
-                    depthWrite: false 
-                });
-                material.userData.baseOpacity = currentMetadata?.opacity || 0.8;
-            } else {
-                // 如果PLY文件没有颜色信息（应该不会发生，因为模型都有颜色）
-                // 使用白色作为后备，但这种情况不应该出现
-                const opacity = currentMetadata?.opacity || 0.8;
-                material = new THREE.PointsMaterial({ 
-                    size: settings.particleSize, 
-                    color: 0xffffff, // 白色作为后备（不应该用到）
-                    transparent: true, 
-                    opacity: opacity, 
-                    blending: THREE.NormalBlending, 
-                    depthWrite: false 
-                });
-                material.userData.baseOpacity = opacity;
-                console.warn(`PLY file for ${orbitalId} has no color information`);
-            }
-            
-            try {
-                orbitalPoints = new THREE.Points(geometry, material);
-                orbitalGroup.add(orbitalPoints);
-                axesHelper = createAxesHelper(L);
-                axesHelper.visible = settings.showAxes;
-                setAxesLabelsVisibility(settings.showAxes);
-                orbitalGroup.add(axesHelper);
-                console.log('OrbitalPoints created and added to scene');
-
-                // 应用推荐缩放
-                if (currentMetadata?.recommendedScale) {
-                    if (renderController) {
-                        renderController.targetScale = currentMetadata.recommendedScale;
-                        renderController.currentScale = currentMetadata.recommendedScale;
-                    }
-                    orbitalGroup.scale.setScalar(currentMetadata.recommendedScale);
-                }
-                
-                currentOrbitalId = orbitalId;
-                if (!opts.isSwitch) {
-                    hideLoadingOverlay();
-                    showViewer(opts);
-                }
-                const orbitalSelect = document.getElementById('experiment-console-orbital-select');
-                if (orbitalSelect) orbitalSelect.value = currentOrbitalId;
-                
-                // 重置相机位置和旋转
-                if (camera) {
-                    camera.position.set(0, 0, 15);
-                    camera.lookAt(0, 0, 0);
-                }
-                const initialScale = currentMetadata?.recommendedScale || 1.0;
-                if (renderController) {
-                    renderController.targetQuaternion.set(0, 0, 0, 1);
-                    renderController.currentQuaternion.set(0, 0, 0, 1);
-                    renderController.targetScale = initialScale;
-                    renderController.currentScale = initialScale;
-                }
-                if (orbitalGroup) {
-                    orbitalGroup.quaternion.set(0, 0, 0, 1);
-                    orbitalGroup.scale.setScalar(initialScale);
-                    orbitalGroup.position.set(0, 0, 0);
-                }
-                
-                // 强制渲染一次，确保模型显示
-                setTimeout(() => {
-                    if (renderer && scene && camera) {
-                        renderer.render(scene, camera);
-                        console.log('Forced render after model load');
-                        console.log('Camera position:', camera.position);
-                        console.log('OrbitalGroup position:', orbitalGroup.position);
-                        console.log('OrbitalGroup scale:', orbitalGroup.scale);
-                    }
-                }, 100);
-            } catch (renderError) {
-                console.error('Error creating or rendering orbital points:', renderError);
-                showLoadingError(`渲染失败: ${renderError.message}`, orbitalId, opts);
-            }
         }, (progress) => {
             if (!opts.isSwitch) updateLoadingProgress(progress);
             if (progress && progress.total > 0) {

@@ -22,10 +22,25 @@
                 pageReady: () => {
                     // 当 MathJax 准备好后，隐藏加载遮罩
                     return MathJax.startup.defaultPageReady().then(() => {
-                        document.getElementById('page-loader').style.opacity = '0';
-                        setTimeout(() => {
-                            document.getElementById('page-loader').style.display = 'none';
-                        }, 500);
+                        if (typeof window.hidePageLoader === 'function') {
+                            window.hidePageLoader();
+                            loaderHidden = true;
+                        } else {
+                            const loader = document.getElementById('page-loader');
+                            if (loader) {
+                                loader.style.opacity = '0';
+                                setTimeout(() => {
+                                    loader.style.display = 'none';
+                                }, 500);
+                            }
+                        }
+                    }).catch((error) => {
+                        // 如果 MathJax 加载失败，也要隐藏遮罩
+                        console.warn('MathJax 加载失败:', error);
+                        if (typeof window.hidePageLoader === 'function') {
+                            window.hidePageLoader();
+                            loaderHidden = true;
+                        }
                     });
                 }
             }
@@ -34,19 +49,29 @@
 
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" defer></script>
     <script>
-        // #region agent log
-        (function() {
-            const themeColorMeta = document.querySelector('meta[name="theme-color"]');
-            const colorSchemeMeta = document.querySelector('meta[name="color-scheme"]');
-            const appleMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
-            const navStyle = window.getComputedStyle(document.querySelector('nav'));
-            const bodyStyle = window.getComputedStyle(document.body);
-            fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'knowledge.html:head',message:'Theme color meta tags check',data:{themeColor:themeColorMeta?themeColorMeta.content:'not found',colorScheme:colorSchemeMeta?colorSchemeMeta.content:'not found',appleMeta:appleMeta?appleMeta.content:'not found',navBackground:navStyle.background,navBackdropFilter:navStyle.backdropFilter,bodyBackground:bodyStyle.background,userAgent:navigator.userAgent},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-        })();
-        // #endregion
+        // 隐藏加载遮罩的辅助函数（暴露到全局作用域）
+        window.hidePageLoader = function() {
+            const loader = document.getElementById('page-loader');
+            if (loader) {
+                loader.style.opacity = '0';
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                }, 500);
+            }
+        };
+        
+        // 备用机制：如果 MathJax 没有在合理时间内加载，强制隐藏遮罩
+        let loaderHidden = false;
+        setTimeout(() => {
+            if (!loaderHidden) {
+                window.hidePageLoader();
+                loaderHidden = true;
+            }
+        }, 3000); // 3秒后强制隐藏
     </script>
 
     <style>
+        /* DEBUG VERSION: v2.0-debug-2025 - 侧边栏调试版本 */
         /* 页面加载遮罩，解决白屏尴尬 */
         #page-loader {
             position: fixed;
@@ -92,6 +117,16 @@
             line-height: 1.6;
             color: rgba(255, 255, 255, 0.7);
         }
+        :root {
+            --nav-height: 70px;
+            --page-padding-top: 80px;
+            --page-padding-bottom: 40px;
+            --sidebar-gap: 5px;
+            --sidebar-width: 380px;
+        }
+        .page-container {
+            padding: var(--page-padding-top) 40px var(--page-padding-bottom);
+        }
         /* 知识库：左侧目录 + 中间内容 */
         .knowledge-layout {
             display: flex;
@@ -99,52 +134,58 @@
             gap: 1.5rem;
             align-items: flex-start;
             margin-top: 0;
-            margin-left: 340px; /* 为fixed侧边栏留出空间 (300px宽度 + 40px左边距) */
+            margin-left: 0;
         }
         .knowledge-sidebar {
-            width: 300px;
+            width: var(--sidebar-width);
             flex-shrink: 0;
-            position: fixed; /* 改为fixed定位，确保始终可见 */
-            top: 100px; /* 从页面顶部100px开始，避开导航栏 */
-            left: 40px; /* 与.page-container的padding-left对齐 */
+            position: sticky;
+            top: 0;
+            align-self: flex-start;
             background: var(--glass);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             border-radius: 12px;
-            padding: 1rem;
-            height: calc(100vh - 120px); /* 留出一些底部空间 */
-            max-height: calc(100vh - 120px);
-            overflow-y: auto;
-            overflow-x: visible;
-            z-index: 1001; /* 高于导航栏 */
+            padding: 0;
+            height: calc(100vh - var(--page-padding-top));
+            max-height: calc(100vh - var(--page-padding-top));
+            overflow: hidden;
+            z-index: 1001;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-        }
-        .knowledge-sidebar::-webkit-scrollbar {
-            width: 6px;
-        }
-        .knowledge-sidebar::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .knowledge-sidebar::-webkit-scrollbar-thumb {
-            background: var(--glass-border);
-            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
         }
         .knowledge-sidebar nav {
+            flex: 1 1 0%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 1.5rem 1rem 0.5rem 1rem;
+            scroll-behavior: smooth;
+            min-height: 0;
+            height: 100%;
             display: flex;
             flex-direction: column;
             width: 100%;
-            position: relative;
-            padding: 1rem 0 0 0; /* 添加顶部padding，让标题整体向下移动 */
-            margin: 0;
-            background: transparent;
-            border: none !important;
-            border-top: none !important;
-            border-bottom: none !important;
-            border-left: none !important;
-            border-right: none !important;
-            outline: none !important;
-            box-shadow: none !important;
+            align-self: stretch;
+            align-items: stretch;
+            justify-content: flex-start;
+            box-sizing: border-box;
+        }
+        .knowledge-sidebar nav::-webkit-scrollbar {
+            width: 8px;
+        }
+        .knowledge-sidebar nav::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        .knowledge-sidebar nav::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 10px;
+            opacity: 0.6;
+        }
+        .knowledge-sidebar nav::-webkit-scrollbar-thumb:hover {
+            opacity: 1;
         }
         .knowledge-sidebar a {
             display: block;
@@ -162,6 +203,7 @@
             border-left: none !important;
             border-right: none !important;
             outline: none !important;
+            width: 100%; /* 确保每个链接独占一行 */
         }
         .knowledge-sidebar a:hover {
             color: var(--accent);
@@ -175,7 +217,8 @@
         }
         /* 大模块标题样式 */
         .knowledge-section-item {
-            margin-bottom: 0;
+            display: block;
+            margin-bottom: 0.5rem;
             margin-top: 0;
             width: 100%;
             position: relative;
@@ -186,6 +229,7 @@
             border-right: none !important;
             outline: none !important;
             background: transparent;
+            z-index: auto;
         }
         .knowledge-section-item::before,
         .knowledge-section-item::after {
@@ -195,6 +239,17 @@
         }
         .knowledge-section-item:first-child {
             margin-top: 0;
+        }
+        .knowledge-sidebar nav > .knowledge-section-item:first-child {
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+        }
+        .knowledge-sidebar nav > .knowledge-section-item:first-child .knowledge-section-header {
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+        }
+        .knowledge-sidebar nav > .knowledge-section-item:first-child .knowledge-section-title {
+            padding-top: 0.4rem !important;
         }
         .knowledge-section-header {
             display: flex;
@@ -208,11 +263,8 @@
             border-left: none !important;
             border-right: none !important;
             outline: none !important;
-            /* 正常定位 */
             position: relative;
-            /* 确保标题始终在最上层，永远不会被子列表覆盖 */
-            z-index: 1000;
-            /* 添加背景确保在滚动时不透明 */
+            z-index: 2;
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
         }
@@ -220,19 +272,19 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 1.2rem 1.25rem 0.8rem 1.25rem; /* 增加顶部padding */
-            color: rgba(255, 255, 255, 0.9); /* 增加对比度 */
+            padding: 0.8rem 1.25rem;
+            color: rgba(255, 255, 255, 0.9);
             text-decoration: none;
             font-size: 14px;
             font-weight: 500;
-            line-height: 1.4; /* 确保行高合适 */
+            line-height: 1.4;
             transition: color 0.2s, background 0.2s;
             width: 100%;
             box-sizing: border-box;
             position: relative !important;
             left: auto !important;
             right: auto !important;
-            white-space: normal; /* 允许换行以确保可见 */
+            white-space: normal;
             overflow: visible;
             flex: 1;
             border: none !important;
@@ -241,7 +293,6 @@
             border-left: none !important;
             border-right: none !important;
             outline: none !important;
-            z-index: 11;
         }
         .knowledge-section-toggle {
             display: inline-block;
@@ -285,9 +336,9 @@
             border: none;
             border-top: none;
             border-bottom: none;
-            position: relative;
-            /* 确保列表在标题下方 */
-            z-index: 1;
+            /* 使用静态定位，确保在正常的文档流中，不会覆盖其他section的header */
+            position: static;
+            /* 移除z-index，让它在正常的文档流中 */
             background: transparent;
         }
         .knowledge-section-item.expanded .knowledge-children-list {
@@ -295,21 +346,20 @@
         }
         .knowledge-sidebar .knowledge-child-item {
             display: block;
-            padding: 0.8rem 1.25rem; /* 增加上下padding，让文字位置更好 */
-            color: rgba(255, 255, 255, 0.7); /* 增加子标题对比度 */
+            padding: 0.8rem 1.25rem;
+            color: rgba(255, 255, 255, 0.7);
             text-decoration: none;
             font-size: 13px;
             transition: color 0.2s, background 0.2s;
             border-left: 2px solid transparent;
             width: 100%;
             box-sizing: border-box;
-            position: relative !important;
+            position: static !important;
             left: auto !important;
             right: auto !important;
             white-space: nowrap;
             overflow: visible;
             text-overflow: ellipsis;
-            z-index: 1;
         }
         .knowledge-sidebar .knowledge-child-item:hover {
             color: var(--accent);
@@ -345,15 +395,14 @@
         @media (max-width: 768px) {
             .knowledge-layout {
                 flex-direction: column;
-                margin-left: 0; /* 移动端取消左边距 */
+                margin-left: 0;
             }
             .knowledge-sidebar {
                 position: static;
                 width: 100%;
                 top: auto;
                 left: auto;
-                height: auto;
-                max-height: none;
+                max-height: 500vh;
                 margin-bottom: 1rem;
             }
         }

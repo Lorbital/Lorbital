@@ -9,86 +9,8 @@ function bold(html) {
   return String(html).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
 }
 
-/** 添加导航按钮 (Previous/Next) */
-function addNavigationButtons(panel, section, child = null) {
-  const navContainer = document.createElement('div');
-  navContainer.className = 'navigation-buttons';
-  navContainer.style.cssText = `
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 2rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--glass-border);
-  `;
-
-  const prevButton = document.createElement('button');
-  prevButton.textContent = '← Previous';
-  prevButton.className = 'nav-button prev-button';
-  prevButton.style.cssText = `
-    background: var(--glass);
-    border: 1px solid var(--glass-border);
-    border-radius: 8px;
-    padding: 0.5rem 1rem;
-    color: var(--accent);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-size: 0.9rem;
-  `;
-
-  const nextButton = document.createElement('button');
-  nextButton.textContent = 'Next →';
-  nextButton.className = 'nav-button next-button';
-  nextButton.style.cssText = `
-    background: var(--glass);
-    border: 1px solid var(--glass-border);
-    border-radius: 8px;
-    padding: 0.5rem 1rem;
-    color: var(--accent);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-size: 0.9rem;
-  `;
-
-  // 查找当前section的索引
-  const currentSectionIndex = KNOWLEDGE_BASE.findIndex(s => s.id === section.id);
-
-  // 设置Previous按钮
-  if (currentSectionIndex > 0) {
-    const prevSection = KNOWLEDGE_BASE[currentSectionIndex - 1];
-    prevButton.onclick = () => {
-      setActive(prevSection.id);
-      renderSection(prevSection);
-      history.replaceState(null, '', '#' + prevSection.id);
-    };
-  } else {
-    prevButton.disabled = true;
-    prevButton.style.opacity = '0.5';
-    prevButton.style.cursor = 'not-allowed';
-  }
-
-  // 设置Next按钮
-  if (currentSectionIndex < KNOWLEDGE_BASE.length - 1) {
-    const nextSection = KNOWLEDGE_BASE[currentSectionIndex + 1];
-    nextButton.onclick = () => {
-      setActive(nextSection.id);
-      renderSection(nextSection);
-      history.replaceState(null, '', '#' + nextSection.id);
-    };
-  } else {
-    nextButton.disabled = true;
-    nextButton.style.opacity = '0.5';
-    nextButton.style.cursor = 'not-allowed';
-  }
-
-  navContainer.appendChild(prevButton);
-  navContainer.appendChild(nextButton);
-  panel.appendChild(navContainer);
-}
-
 // 等待 DOM 加载完成后再执行
 document.addEventListener('DOMContentLoaded', () => {
-  
   const KNOWLEDGE_BASE = window.KNOWLEDGE_BASE || [];
   
   // 数据验证：检查知识库数据是否加载
@@ -109,6 +31,588 @@ document.addEventListener('DOMContentLoaded', () => {
     console.error('知识库页面 DOM 元素未找到：toc 或 contentEl 不存在');
     return;
   }
+
+  // #region agent log - 全局调试函数
+  // 创建全局调试函数，可以在 console 中调用
+  window.debugSidebar = function() {
+    const sidebar = toc.closest('.knowledge-sidebar');
+    if (!sidebar || !toc) {
+      console.error('找不到侧边栏或 nav 元素');
+      return null;
+    }
+    
+    const sidebarRect = sidebar.getBoundingClientRect();
+    const tocRect = toc.getBoundingClientRect();
+    const computedSidebar = window.getComputedStyle(sidebar);
+    const computedToc = window.getComputedStyle(toc);
+    const rootStyles = getComputedStyle(document.documentElement);
+    
+    const debugInfo = {
+      version: 'v2.0-debug',
+      timestamp: new Date().toISOString(),
+      sidebar: {
+        actualHeight: sidebarRect.height,
+        computedHeight: computedSidebar.height,
+        display: computedSidebar.display,
+        flexDirection: computedSidebar.flexDirection,
+        height: computedSidebar.height,
+        maxHeight: computedSidebar.maxHeight,
+        padding: computedSidebar.padding,
+        boxSizing: computedSidebar.boxSizing
+      },
+      nav: {
+        actualHeight: tocRect.height,
+        computedHeight: computedToc.height,
+        offsetHeight: toc.offsetHeight,
+        clientHeight: toc.clientHeight,
+        scrollHeight: toc.scrollHeight,
+        flex: computedToc.flex,
+        flexGrow: computedToc.flexGrow,
+        flexShrink: computedToc.flexShrink,
+        flexBasis: computedToc.flexBasis,
+        minHeight: computedToc.minHeight,
+        maxHeight: computedToc.maxHeight,
+        height: computedToc.height,
+        display: computedToc.display,
+        alignSelf: computedToc.alignSelf,
+        padding: computedToc.padding,
+        boxSizing: computedToc.boxSizing
+      },
+      cssVars: {
+        navHeight: rootStyles.getPropertyValue('--nav-height'),
+        sidebarGap: rootStyles.getPropertyValue('--sidebar-gap'),
+        sidebarWidth: rootStyles.getPropertyValue('--sidebar-width')
+      },
+      viewport: {
+        height: window.innerHeight,
+        width: window.innerWidth
+      },
+      calculated: {
+        expectedSidebarHeight: `calc(100vh - ${rootStyles.getPropertyValue('--nav-height')} - ${rootStyles.getPropertyValue('--sidebar-gap')})`,
+        expectedNavHeight: '应该等于 sidebar 高度（减去 padding）'
+      }
+    };
+    
+    console.log('=== 侧边栏调试信息 ===');
+    console.log('版本:', debugInfo.version);
+    console.log('侧边栏实际高度:', debugInfo.sidebar.actualHeight, 'px');
+    console.log('Nav 实际高度:', debugInfo.nav.actualHeight, 'px');
+    console.log('Nav 内容高度 (scrollHeight):', debugInfo.nav.scrollHeight, 'px');
+    console.log('Nav flex 属性:', debugInfo.nav.flex);
+    console.log('完整信息:', debugInfo);
+    
+    // 在页面上显示调试信息（已隐藏，仅保留 console 输出）
+    // 如果需要显示调试面板，可以取消下面的注释
+    /*
+    let debugPanel = document.getElementById('debug-sidebar-panel');
+    if (!debugPanel) {
+      debugPanel = document.createElement('div');
+      debugPanel.id = 'debug-sidebar-panel';
+      debugPanel.style.cssText = `
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.9);
+        color: #00ffff;
+        padding: 15px;
+        border: 2px solid #00ffff;
+        border-radius: 8px;
+        font-family: monospace;
+        font-size: 12px;
+        z-index: 10000;
+        max-width: 400px;
+        max-height: 500px;
+        overflow-y: auto;
+      `;
+      document.body.appendChild(debugPanel);
+    }
+    
+    debugPanel.innerHTML = `
+      <div style="font-weight: bold; margin-bottom: 10px; color: #00ffff;">
+        🔍 侧边栏调试信息 (${debugInfo.version})
+      </div>
+      <div style="margin-bottom: 5px;"><strong>侧边栏高度:</strong> ${debugInfo.sidebar.actualHeight}px</div>
+      <div style="margin-bottom: 5px;"><strong>Nav 高度:</strong> ${debugInfo.nav.actualHeight}px</div>
+      <div style="margin-bottom: 5px;"><strong>Nav 内容高度:</strong> ${debugInfo.nav.scrollHeight}px</div>
+      <div style="margin-bottom: 5px;"><strong>Nav flex:</strong> ${debugInfo.nav.flex}</div>
+      <div style="margin-bottom: 5px;"><strong>Nav flexGrow:</strong> ${debugInfo.nav.flexGrow}</div>
+      <div style="margin-bottom: 5px;"><strong>Nav flexBasis:</strong> ${debugInfo.nav.flexBasis}</div>
+      <div style="margin-bottom: 5px;"><strong>Nav minHeight:</strong> ${debugInfo.nav.minHeight}</div>
+      <div style="margin-bottom: 5px;"><strong>Nav alignSelf:</strong> ${debugInfo.nav.alignSelf}</div>
+      <div style="margin-bottom: 5px;"><strong>侧边栏 display:</strong> ${debugInfo.sidebar.display}</div>
+      <div style="margin-bottom: 5px;"><strong>侧边栏 flexDirection:</strong> ${debugInfo.sidebar.flexDirection}</div>
+      <div style="margin-top: 10px; font-size: 10px; color: #888;">
+        在 console 输入 debugSidebar() 查看详细信息
+      </div>
+    `;
+    */
+    
+    // 如果已存在调试面板，则隐藏它
+    const existingPanel = document.getElementById('debug-sidebar-panel');
+    if (existingPanel) {
+      existingPanel.style.display = 'none';
+    }
+    
+    return debugInfo;
+  };
+  
+  // 自动运行一次调试函数
+  setTimeout(() => {
+    window.debugSidebar();
+  }, 500);
+  
+  // #region agent log - 强制修复函数
+  // 添加一个函数来强制修复 nav 高度
+  window.fixSidebarNav = function() {
+    const sidebar = toc.closest('.knowledge-sidebar');
+    if (!sidebar || !toc) {
+      console.error('找不到侧边栏或 nav 元素');
+      return false;
+    }
+    
+    const sidebarHeight = sidebar.getBoundingClientRect().height;
+    const sidebarPadding = parseFloat(getComputedStyle(sidebar).paddingTop || '0') + 
+                          parseFloat(getComputedStyle(sidebar).paddingBottom || '0');
+    const navPadding = parseFloat(getComputedStyle(toc).paddingTop || '0') + 
+                      parseFloat(getComputedStyle(toc).paddingBottom || '0');
+    
+    const targetHeight = sidebarHeight - sidebarPadding - navPadding;
+    
+    console.log('尝试强制修复 nav 高度...');
+    console.log('侧边栏高度:', sidebarHeight);
+    console.log('目标 nav 高度:', targetHeight);
+    
+    // 方法1: 直接设置高度
+    toc.style.height = targetHeight + 'px';
+    toc.style.minHeight = targetHeight + 'px';
+    toc.style.maxHeight = 'none';
+    
+    // 方法2: 确保 flex 属性
+    toc.style.flex = '1 1 0%';
+    toc.style.flexGrow = '1';
+    toc.style.flexShrink = '1';
+    toc.style.flexBasis = '0%';
+    toc.style.alignSelf = 'stretch';
+    
+    // 等待一下再检查
+    setTimeout(() => {
+      const newHeight = toc.getBoundingClientRect().height;
+      console.log('修复后 nav 高度:', newHeight);
+      window.debugSidebar();
+      
+      if (Math.abs(newHeight - targetHeight) < 5) {
+        console.log('✅ 修复成功！');
+      } else {
+        console.warn('⚠️ 修复可能未完全生效，当前高度:', newHeight, '期望:', targetHeight);
+      }
+    }, 100);
+    
+    return true;
+  };
+  
+  // 添加版本标记到全局对象
+  window.KNOWLEDGE_PAGE_VERSION = 'v2.0-debug-2025';
+  console.log('📚 Knowledge Page 已加载，版本:', window.KNOWLEDGE_PAGE_VERSION);
+  console.log('💡 调试命令:');
+  console.log('  - debugSidebar() - 查看侧边栏调试信息');
+  console.log('  - fixSidebarNav() - 强制修复 nav 高度');
+  console.log('  - fixNavAlignment() - 强制修复 nav 内容对齐（新）');
+  
+  // #region agent log - 强制修复对齐函数
+  // 创建一个专门修复内容对齐的函数
+  window.fixNavAlignment = function() {
+    const toc = document.getElementById('knowledge-toc');
+    if (!toc) {
+      console.error('找不到 knowledge-toc 元素');
+      return false;
+    }
+    
+    console.log('🔧 开始修复 nav 内容对齐...');
+    
+    // 先检查当前状态
+    const tocRect = toc.getBoundingClientRect();
+    const firstChild = toc.firstElementChild;
+    const lastChild = toc.lastElementChild;
+    
+    console.log('修复前状态:', {
+      tocHeight: tocRect.height,
+      tocScrollHeight: toc.scrollHeight,
+      tocScrollTop: toc.scrollTop,
+      firstChildTop: firstChild ? firstChild.getBoundingClientRect().top - tocRect.top : 'N/A',
+      lastChildBottom: lastChild ? lastChild.getBoundingClientRect().bottom - tocRect.top : 'N/A',
+      computedJustifyContent: getComputedStyle(toc).justifyContent,
+      computedAlignItems: getComputedStyle(toc).alignItems
+    });
+    
+    // 强制设置所有相关样式（使用 !important 的方式）
+    toc.style.setProperty('justify-content', 'flex-start', 'important');
+    toc.style.setProperty('align-items', 'stretch', 'important');
+    toc.style.setProperty('align-content', 'flex-start', 'important');
+    toc.style.setProperty('display', 'flex', 'important');
+    toc.style.setProperty('flex-direction', 'column', 'important');
+    toc.style.setProperty('vertical-align', 'top', 'important');
+    
+    // 确保第一个子元素没有 margin-top 和 padding-top
+    if (firstChild) {
+      firstChild.style.setProperty('margin-top', '0', 'important');
+      firstChild.style.setProperty('padding-top', '0', 'important');
+      firstChild.style.setProperty('margin-bottom', '0.5rem', 'important');
+    }
+    
+    // 强制滚动到顶部
+    toc.scrollTop = 0;
+    toc.scrollTo({ top: 0, behavior: 'instant' });
+    
+    // 检查并修复所有 section-item
+    const sectionItems = toc.querySelectorAll('.knowledge-section-item');
+    sectionItems.forEach((item, index) => {
+      if (index === 0) {
+        item.style.setProperty('margin-top', '0', 'important');
+        item.style.setProperty('padding-top', '0', 'important');
+      }
+      item.style.setProperty('display', 'block', 'important');
+      item.style.setProperty('width', '100%', 'important');
+      item.style.setProperty('vertical-align', 'top', 'important');
+    });
+    
+    // 等待一下再检查
+    setTimeout(() => {
+      const newTocRect = toc.getBoundingClientRect();
+      const newFirstChild = toc.firstElementChild;
+      console.log('修复后状态:', {
+        tocHeight: newTocRect.height,
+        tocScrollHeight: toc.scrollHeight,
+        tocScrollTop: toc.scrollTop,
+        firstChildTop: newFirstChild ? newFirstChild.getBoundingClientRect().top - newTocRect.top : 'N/A',
+        computedJustifyContent: getComputedStyle(toc).justifyContent,
+        computedAlignItems: getComputedStyle(toc).alignItems
+      });
+      
+      // 如果第一个子元素距离顶部太远，尝试直接设置位置
+      if (newFirstChild) {
+        const firstChildTop = newFirstChild.getBoundingClientRect().top - newTocRect.top;
+        if (firstChildTop > 10) {
+          console.warn('⚠️ 第一个子元素距离顶部太远:', firstChildTop, 'px，尝试强制修复...');
+          // 尝试使用 transform 强制移动到顶部
+          const currentTop = firstChildTop;
+          newFirstChild.style.setProperty('margin-top', `-${currentTop}px`, 'important');
+        }
+      }
+    }, 100);
+    
+    console.log('✅ Nav 对齐修复完成');
+    
+    return true;
+  };
+  
+  // 创建一个详细的诊断函数
+  window.diagnoseNavAlignment = function() {
+    const toc = document.getElementById('knowledge-toc');
+    if (!toc) {
+      console.error('找不到 knowledge-toc 元素');
+      return null;
+    }
+    
+    const tocRect = toc.getBoundingClientRect();
+    const computed = getComputedStyle(toc);
+    const firstChild = toc.firstElementChild;
+    const lastChild = toc.lastElementChild;
+    
+    const diagnosis = {
+      toc: {
+        height: tocRect.height,
+        scrollHeight: toc.scrollHeight,
+        clientHeight: toc.clientHeight,
+        scrollTop: toc.scrollTop,
+        paddingTop: computed.paddingTop,
+        paddingBottom: computed.paddingBottom,
+        justifyContent: computed.justifyContent,
+        alignItems: computed.alignItems,
+        alignContent: computed.alignContent,
+        display: computed.display,
+        flexDirection: computed.flexDirection
+      },
+      firstChild: firstChild ? {
+        element: firstChild.tagName + (firstChild.className ? '.' + firstChild.className : ''),
+        top: firstChild.getBoundingClientRect().top - tocRect.top,
+        marginTop: getComputedStyle(firstChild).marginTop,
+        paddingTop: getComputedStyle(firstChild).paddingTop,
+        height: firstChild.getBoundingClientRect().height
+      } : null,
+      lastChild: lastChild ? {
+        element: lastChild.tagName + (lastChild.className ? '.' + lastChild.className : ''),
+        bottom: lastChild.getBoundingClientRect().bottom - tocRect.top,
+        marginBottom: getComputedStyle(lastChild).marginBottom,
+        paddingBottom: getComputedStyle(lastChild).paddingBottom,
+        height: lastChild.getBoundingClientRect().height
+      } : null,
+      contentGap: {
+        top: firstChild ? firstChild.getBoundingClientRect().top - tocRect.top : 0,
+        bottom: lastChild ? tocRect.bottom - lastChild.getBoundingClientRect().bottom : 0
+      }
+    };
+    
+    console.log('=== Nav 对齐诊断信息 ===');
+    console.log('TOC 容器:', diagnosis.toc);
+    console.log('第一个子元素:', diagnosis.firstChild);
+    console.log('最后一个子元素:', diagnosis.lastChild);
+    console.log('内容间隙:', diagnosis.contentGap);
+    console.log('完整诊断:', diagnosis);
+    
+    return diagnosis;
+  };
+  
+  // 创建一个综合修复函数
+  window.fixSidebarComplete = function() {
+    console.log('🔧 执行完整修复...');
+    
+    // 先诊断
+    const diagnosis = window.diagnoseNavAlignment();
+    
+    // 先修复高度
+    if (window.autoFixSidebarNav) {
+      window.autoFixSidebarNav();
+    }
+    
+    // 再修复对齐
+    if (window.fixNavAlignment) {
+      window.fixNavAlignment();
+    }
+    
+    // 如果第一个子元素距离顶部太远，尝试更激进的修复
+    setTimeout(() => {
+      const toc = document.getElementById('knowledge-toc');
+      if (toc && toc.firstElementChild) {
+        const tocRect = toc.getBoundingClientRect();
+        const firstChild = toc.firstElementChild;
+        const firstChildTop = firstChild.getBoundingClientRect().top - tocRect.top;
+        
+        if (firstChildTop > 5) {
+          console.log('⚠️ 检测到第一个子元素距离顶部:', firstChildTop, 'px，执行激进修复...');
+          
+          // 方法1: 使用负 margin
+          const currentMarginTop = parseFloat(getComputedStyle(firstChild).marginTop) || 0;
+          firstChild.style.setProperty('margin-top', `${currentMarginTop - firstChildTop}px`, 'important');
+          
+          // 方法2: 如果还不行，尝试设置 padding-top
+          setTimeout(() => {
+            const newFirstChildTop = firstChild.getBoundingClientRect().top - tocRect.top;
+            if (newFirstChildTop > 5) {
+              const paddingTop = parseFloat(getComputedStyle(toc).paddingTop) || 0;
+              toc.style.setProperty('padding-top', `${Math.max(0, paddingTop - newFirstChildTop)}px`, 'important');
+            }
+          }, 50);
+        }
+      }
+      
+      // 最终诊断
+      window.diagnoseNavAlignment();
+    }, 200);
+    
+    return true;
+  };
+  
+  console.log('💡 新增修复命令:');
+  console.log('  - diagnoseNavAlignment() - 详细诊断对齐问题（先运行这个）');
+  console.log('  - fixNavAlignment() - 修复内容对齐');
+  console.log('  - fixSidebarComplete() - 完整修复（高度+对齐+激进修复）');
+  console.log('  - reduceTopSpacing() - 减小顶部间距（新）');
+  console.log('');
+  console.log('📋 使用建议:');
+  console.log('  1. 点击大标题后，先运行 diagnoseNavAlignment() 查看问题');
+  console.log('  2. 然后运行 fixSidebarComplete() 尝试修复');
+  console.log('  3. 如果顶部间距太大，运行 reduceTopSpacing()');
+  console.log('  4. 如果还不行，告诉我诊断结果，我会进一步调整');
+  
+  // #region agent log - 减小顶部间距函数
+  window.reduceTopSpacing = function() {
+    const toc = document.getElementById('knowledge-toc');
+    if (!toc) {
+      console.error('找不到 knowledge-toc 元素');
+      return false;
+    }
+    
+    console.log('🔧 开始减小顶部间距...');
+    
+    // 检查当前的 padding
+    const computed = getComputedStyle(toc);
+    console.log('当前 nav padding:', {
+      paddingTop: computed.paddingTop,
+      paddingBottom: computed.paddingBottom,
+      paddingLeft: computed.paddingLeft,
+      paddingRight: computed.paddingRight
+    });
+    
+    // 强制减小顶部 padding
+    toc.style.setProperty('padding-top', '0', 'important');
+    
+    // 检查第一个 section-item
+    const firstSectionItem = toc.querySelector('.knowledge-section-item:first-child');
+    if (firstSectionItem) {
+      const firstComputed = getComputedStyle(firstSectionItem);
+      console.log('第一个 section-item 样式:', {
+        marginTop: firstComputed.marginTop,
+        paddingTop: firstComputed.paddingTop,
+        marginBottom: firstComputed.marginBottom
+      });
+      
+      // 确保第一个元素没有 margin-top 和 padding-top
+      firstSectionItem.style.setProperty('margin-top', '0', 'important');
+      firstSectionItem.style.setProperty('padding-top', '0', 'important');
+      
+      // 检查第一个 section-header
+      const firstHeader = firstSectionItem.querySelector('.knowledge-section-header');
+      if (firstHeader) {
+        const headerComputed = getComputedStyle(firstHeader);
+        console.log('第一个 section-header 样式:', {
+          marginTop: headerComputed.marginTop,
+          paddingTop: headerComputed.paddingTop
+        });
+        
+        firstHeader.style.setProperty('margin-top', '0', 'important');
+        firstHeader.style.setProperty('padding-top', '0', 'important');
+      }
+      
+      // 检查第一个 section-title
+      const firstTitle = firstSectionItem.querySelector('.knowledge-section-title');
+      if (firstTitle) {
+        const titleComputed = getComputedStyle(firstTitle);
+        console.log('第一个 section-title 样式:', {
+          marginTop: titleComputed.marginTop,
+          paddingTop: titleComputed.paddingTop,
+          padding: titleComputed.padding
+        });
+        
+        // 减小 padding，但保留左右 padding
+        const currentPadding = titleComputed.padding;
+        const paddingValues = currentPadding.split(' ');
+        if (paddingValues.length >= 2) {
+          // 保持左右 padding，减小顶部 padding
+          firstTitle.style.setProperty('padding', `0 ${paddingValues[1]} ${paddingValues[2] || paddingValues[1]} ${paddingValues[1]}`, 'important');
+        }
+      }
+    }
+    
+    // 强制滚动到顶部
+    toc.scrollTop = 0;
+    
+    console.log('✅ 顶部间距修复完成');
+    
+    // 等待一下再检查
+    setTimeout(() => {
+      const tocRect = toc.getBoundingClientRect();
+      const firstChild = toc.firstElementChild;
+      if (firstChild) {
+        const firstChildTop = firstChild.getBoundingClientRect().top - tocRect.top;
+        console.log('修复后第一个子元素距离顶部:', firstChildTop, 'px');
+      }
+    }, 100);
+    
+    return true;
+  };
+  // #endregion
+  
+  // #region agent log - 自动修复
+  // 自动执行修复，确保 nav 高度正确
+  window.autoFixSidebarNav = function() {
+    const sidebar = toc.closest('.knowledge-sidebar');
+    if (!sidebar || !toc) {
+      return false;
+    }
+    
+    const sidebarHeight = sidebar.getBoundingClientRect().height;
+    const sidebarPadding = parseFloat(getComputedStyle(sidebar).paddingTop || '0') + 
+                          parseFloat(getComputedStyle(sidebar).paddingBottom || '0');
+    const navPadding = parseFloat(getComputedStyle(toc).paddingTop || '0') + 
+                      parseFloat(getComputedStyle(toc).paddingBottom || '0');
+    
+    const targetHeight = sidebarHeight - sidebarPadding - navPadding;
+    const currentHeight = toc.getBoundingClientRect().height;
+    
+    // 如果高度不正确，执行修复
+    if (Math.abs(currentHeight - targetHeight) > 10) {
+      console.log('🔧 自动修复 nav 高度:', currentHeight, '->', targetHeight);
+      
+      // 直接设置高度
+      toc.style.height = targetHeight + 'px';
+      toc.style.minHeight = targetHeight + 'px';
+      toc.style.maxHeight = 'none';
+      
+      // 确保 flex 属性
+      toc.style.flex = '1 1 0%';
+      toc.style.flexGrow = '1';
+      toc.style.flexShrink = '1';
+      toc.style.flexBasis = '0%';
+      toc.style.alignSelf = 'stretch';
+      
+      // 确保内容从顶部开始
+      toc.style.justifyContent = 'flex-start';
+      toc.style.alignItems = 'stretch';
+      
+      return true;
+    }
+    
+    return false;
+  }
+  
+  // 在多个时机尝试修复
+  setTimeout(() => window.autoFixSidebarNav(), 100);
+  setTimeout(() => window.autoFixSidebarNav(), 500);
+  setTimeout(() => window.autoFixSidebarNav(), 1000);
+  
+  // 监听窗口大小变化，自动修复
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      window.autoFixSidebarNav();
+    }, 100);
+  });
+  // #endregion
+
+  // #region agent log
+  // Debug: 检查侧边栏和 nav 元素的尺寸和样式
+  setTimeout(() => {
+    const sidebar = toc.closest('.knowledge-sidebar');
+    if (sidebar && toc) {
+      const sidebarRect = sidebar.getBoundingClientRect();
+      const tocRect = toc.getBoundingClientRect();
+      const computedSidebar = window.getComputedStyle(sidebar);
+      const computedToc = window.getComputedStyle(toc);
+      const rootStyles = getComputedStyle(document.documentElement);
+      
+      fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          location: 'knowledgePage.js:110',
+          message: 'Sidebar and nav dimensions check',
+          data: {
+            sidebarHeight: sidebarRect.height,
+            sidebarComputedHeight: computedSidebar.height,
+            sidebarDisplay: computedSidebar.display,
+            sidebarFlexDirection: computedSidebar.flexDirection,
+            tocHeight: tocRect.height,
+            tocComputedHeight: computedToc.height,
+            tocFlex: computedToc.flex,
+            tocFlexGrow: computedToc.flexGrow,
+            tocFlexShrink: computedToc.flexShrink,
+            tocFlexBasis: computedToc.flexBasis,
+            tocMinHeight: computedToc.minHeight,
+            tocDisplay: computedToc.display,
+            navHeight: rootStyles.getPropertyValue('--nav-height'),
+            sidebarGap: rootStyles.getPropertyValue('--sidebar-gap'),
+            viewportHeight: window.innerHeight
+          },
+          timestamp: Date.now(),
+          sessionId: 'debug-session',
+          runId: 'run1',
+          hypothesisId: 'A,B,C'
+        })
+      }).catch(() => {});
+    }
+  }, 100);
+  // #endregion
 
 
   /** 渲染某一模块到中间区域 */
@@ -149,13 +653,19 @@ document.addEventListener('DOMContentLoaded', () => {
     contentEl.innerHTML = '';
     contentEl.appendChild(panel);
 
-    // 添加导航按钮
-    addNavigationButtons(panel, sec);
-
     // 渲染 MathJax 公式
     if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
       window.MathJax.typesetPromise([panel]).catch(() => {});
     }
+
+    // #region agent log - 修复 nav 高度和内容对齐（renderSection）
+    // 在渲染完成后，确保 nav 高度正确且内容从顶部开始
+    setTimeout(() => {
+      if (window.autoFixSidebarNav) {
+        window.autoFixSidebarNav();
+      }
+    }, 50);
+    // #endregion
   }
 
   /** 渲染单个子标题内容到中间区域 */
@@ -194,13 +704,19 @@ document.addEventListener('DOMContentLoaded', () => {
     contentEl.innerHTML = '';
     contentEl.appendChild(panel);
 
-    // 添加导航按钮
-    addNavigationButtons(panel, sec, child);
-
     // 渲染 MathJax 公式
     if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
       window.MathJax.typesetPromise([panel]).catch(() => {});
     }
+
+    // #region agent log - 修复 nav 高度和内容对齐（renderChild）
+    // 在渲染完成后，确保 nav 高度正确且内容从顶部开始
+    setTimeout(() => {
+      if (window.autoFixSidebarNav) {
+        window.autoFixSidebarNav();
+      }
+    }, 50);
+    // #endregion
   }
 
   /** 设置当前选中的目录项 */
@@ -225,10 +741,49 @@ document.addEventListener('DOMContentLoaded', () => {
     return null;
   }
 
+  const sectionItemById = new Map();
+
+  function collapseOtherSections(activeItem) {
+    toc.querySelectorAll('.knowledge-section-item.expanded').forEach((item) => {
+      if (item !== activeItem) {
+        item.classList.remove('expanded');
+      }
+    });
+  }
+
+  function expandSectionItemById(sectionId) {
+    const sectionItem = sectionItemById.get(sectionId);
+    if (!sectionItem) return;
+    collapseOtherSections(sectionItem);
+    sectionItem.classList.add('expanded');
+    
+    // 滚动到该章节的主标题位置，确保可见
+    const scrollToSection = () => {
+      const nav = toc; // nav 元素就是滚动容器
+      const header = sectionItem.querySelector('.knowledge-section-header');
+      if (nav && header) {
+        const headerTop = header.offsetTop;
+        const navScrollTop = nav.scrollTop;
+        const navHeight = nav.clientHeight;
+        const headerHeight = header.offsetHeight;
+        
+        // 如果标题不在可视区域内，滚动到它
+        if (headerTop < navScrollTop || headerTop + headerHeight > navScrollTop + navHeight) {
+          nav.scrollTo({
+            top: Math.max(0, headerTop - 10), // 留10px顶部间距
+            behavior: 'smooth'
+          });
+        }
+      }
+    };
+    
+    // 使用 requestAnimationFrame 确保 DOM 已更新
+    requestAnimationFrame(() => {
+      requestAnimationFrame(scrollToSection);
+    });
+  }
+
   // 构建左侧目录列表（包含大模块和子标题）
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'knowledgePage.js:146',message:'Starting to build TOC',data:{sectionCount:KNOWLEDGE_BASE.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-  // #endregion
   
   for (const sec of KNOWLEDGE_BASE) {
     // 大模块标题
@@ -249,31 +804,32 @@ document.addEventListener('DOMContentLoaded', () => {
       const toggle = document.createElement('span');
       toggle.className = 'knowledge-section-toggle';
       a.appendChild(toggle);
-      
-      // 点击标题时切换展开/折叠，并显示该章节内容
-      a.addEventListener('click', (e) => {
-        e.preventDefault();
-
-        // 简单切换展开/折叠状态
-        sectionItem.classList.toggle('expanded');
-
-        // 显示该章节内容
-        setActive(sec.id);
-        renderSection(sec);
-        history.replaceState(null, '', '#' + sec.id);
-      });
-    } else {
-      // 没有子标题时，点击直接跳转
-      a.addEventListener('click', (e) => {
-        e.preventDefault();
-        setActive(sec.id);
-        renderSection(sec);
-        history.replaceState(null, '', '#' + sec.id);
-      });
     }
+
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      
+      // 检查当前 section 是否已经展开
+      const isCurrentlyExpanded = sectionItem.classList.contains('expanded');
+      const isCurrentlyActive = a.classList.contains('active');
+      
+      // 如果已经展开且是当前激活的 section，则收缩它
+      if (isCurrentlyExpanded && isCurrentlyActive) {
+        sectionItem.classList.remove('expanded');
+        // 不改变 active 状态，也不重新渲染内容
+        return;
+      }
+      
+      // 否则，展开这个 section
+      expandSectionItemById(sec.id);
+      setActive(sec.id);
+      renderSection(sec);
+      history.replaceState(null, '', '#' + sec.id);
+    });
     
     sectionHeader.appendChild(a);
     sectionItem.appendChild(sectionHeader);
+    sectionItemById.set(sec.id, sectionItem);
 
     // 子标题列表
     if (sec.children && sec.children.length > 0) {
@@ -290,24 +846,7 @@ document.addEventListener('DOMContentLoaded', () => {
           e.preventDefault();
           e.stopPropagation();
           
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'knowledgePage.js:229',message:'Child item clicked',data:{childId:ch.id,sectionId:sec.id,parentExpanded:sectionItem.classList.contains('expanded')},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-          // #endregion
-          
-          // 手风琴效果：关闭其他所有已展开的section
-          toc.querySelectorAll('.knowledge-section-item.expanded').forEach((item) => {
-            if (item !== sectionItem) {
-              item.classList.remove('expanded');
-            }
-          });
-          
-          // 确保父section展开
-          sectionItem.classList.add('expanded');
-          
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'knowledgePage.js:243',message:'After ensuring parent expanded',data:{headerTop:sectionHeader.getBoundingClientRect().top,childrenListHeight:sectionItem.querySelector('.knowledge-children-list')?.offsetHeight||0},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-          // #endregion
-          
+          expandSectionItemById(sec.id);
           setActive(ch.id);
           renderChild(sec, ch);
           history.replaceState(null, '', '#' + ch.id);
@@ -322,149 +861,83 @@ document.addEventListener('DOMContentLoaded', () => {
 
   }
 
-  // 默认展开所有章节，提供更好的浏览体验
-  toc.querySelectorAll('.knowledge-section-item').forEach((item) => {
-    item.classList.add('expanded');
-  });
-  
-  // #region agent log
-  setTimeout(() => {
-    const sidebar = document.querySelector('.knowledge-sidebar');
-    const sidebarRect = sidebar?.getBoundingClientRect();
-    const nav = document.querySelector('nav');
-    const navRect = nav?.getBoundingClientRect();
-    const allSections = toc.querySelectorAll('.knowledge-section-item');
-    const initialPositions = Array.from(allSections).map((item, idx) => {
-      const header = item.querySelector('.knowledge-section-header');
-      const headerRect = header?.getBoundingClientRect();
-      return {
-        index: idx,
-        id: item.querySelector('.knowledge-section-title')?.getAttribute('data-id') || '',
-        top: headerRect?.top || 0,
-        bottom: headerRect?.bottom || 0,
-        offsetTop: header?.offsetTop || 0,
-        inSidebarViewport: headerRect && sidebarRect ? headerRect.top >= sidebarRect.top && headerRect.bottom <= sidebarRect.bottom : false,
-        aboveSidebar: headerRect && sidebarRect ? headerRect.top < sidebarRect.top : false
-      };
-    });
-    fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'knowledgePage.js:268',message:'Initial section positions recorded',data:{positions:initialPositions,sidebarTop:sidebarRect?.top,sidebarBottom:sidebarRect?.bottom,sidebarScrollTop:sidebar?.scrollTop,navBottom:navRect?.bottom},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'G'})}).catch(()=>{});
-  }, 100);
-  // #endregion
-
-
-  // 确保页面滚动到顶部，避免初始滚动位置导致按钮位置错误
-  if (window.scrollY > 0 || window.pageYOffset > 0) {
-    window.scrollTo(0, 0);
-  }
-  
-  // 确保侧边栏滚动到顶部，显示第一个选项
-  setTimeout(() => {
-    const sidebar = document.querySelector('.knowledge-sidebar');
-    if (sidebar) {
-      sidebar.scrollTop = 0;
-      // 再次确保滚动位置正确（处理可能的延迟渲染）
-      requestAnimationFrame(() => {
-        sidebar.scrollTop = 0;
-      });
+  function activateById(id) {
+    if (!id) return false;
+    const childResult = getChildById(id);
+    if (childResult) {
+      expandSectionItemById(childResult.section.id);
+      setActive(childResult.child.id);
+      renderChild(childResult.section, childResult.child);
+      return true;
     }
-  }, 100);
-  
-  // 在 DOM 完全加载后再次确保滚动位置
-  window.addEventListener('load', () => {
-    const sidebar = document.querySelector('.knowledge-sidebar');
-    if (sidebar) {
-      sidebar.scrollTop = 0;
-    }
-  });
 
-  /** 展开包含指定ID的章节 */
-  function expandSectionForId(id) {
-    const sectionItem = toc.querySelector(`.knowledge-section-item`);
-    if (!sectionItem) return;
-    
-    // 手风琴效果：先关闭所有已展开的section
-    toc.querySelectorAll('.knowledge-section-item.expanded').forEach((item) => {
-      item.classList.remove('expanded');
-    });
-    
-    // 找到包含该ID的章节项并展开
-    const allSectionItems = toc.querySelectorAll('.knowledge-section-item');
-    let targetItem = null;
-    for (const item of allSectionItems) {
-      const sectionLink = item.querySelector('.knowledge-section-title');
-      const childLinks = item.querySelectorAll('.knowledge-child-item');
-      
-      if (sectionLink && sectionLink.getAttribute('data-id') === id) {
-        item.classList.add('expanded');
-        targetItem = item;
-        break;
-      }
-      
-      for (const childLink of childLinks) {
-        if (childLink.getAttribute('data-id') === id) {
-          item.classList.add('expanded');
-          targetItem = item;
-          break;
-        }
-      }
+    const sec = getSectionById(id);
+    if (sec) {
+      expandSectionItemById(sec.id);
+      setActive(sec.id);
+      renderSection(sec);
+      return true;
     }
-    
-    // 不再滚动标题，保持标题在初始位置
+
+    return false;
   }
 
 
   // 初始渲染：优先用 URL hash，否则第一个模块；hash 无效时修正为第一模块
   const hashId = location.hash.slice(1);
-  if (hashId) {
-    // 先尝试找子标题
-    const childResult = getChildById(hashId);
-    if (childResult) {
-      expandSectionForId(hashId);
-      setActive(childResult.child.id);
-      renderChild(childResult.section, childResult.child);
-    } else {
-      // 再尝试找大模块
-      const initial = getSectionById(hashId);
-      if (initial) {
-        expandSectionForId(hashId);
-        setActive(initial.id);
-        renderSection(initial);
-      } else {
-        // hash 无效，使用第一个模块，但不展开
-        const first = KNOWLEDGE_BASE[0];
-        setActive(first.id);
-        renderSection(first);
-        history.replaceState(null, '', '#' + first.id);
-        // 不调用 expandSectionForId，保持初始折叠状态
-      }
-    }
-  } else {
-    // 没有 hash，显示第一个模块，但不展开（保持所有section折叠状态）
+  if (!activateById(hashId)) {
     const first = KNOWLEDGE_BASE[0];
-    setActive(first.id);
-    renderSection(first);
-    // 不调用 expandSectionForId，保持初始折叠状态
+    if (first) {
+      expandSectionItemById(first.id);
+      setActive(first.id);
+      renderSection(first);
+      history.replaceState(null, '', '#' + first.id);
+    }
   }
+
+  // #region agent log
+  // Debug: 检查初始渲染后的尺寸
+  setTimeout(() => {
+    const sidebar = toc.closest('.knowledge-sidebar');
+    if (sidebar && toc) {
+      const sidebarRect = sidebar.getBoundingClientRect();
+      const tocRect = toc.getBoundingClientRect();
+      const computedSidebar = window.getComputedStyle(sidebar);
+      const computedToc = window.getComputedStyle(toc);
+      
+      fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          location: 'knowledgePage.js:410',
+          message: 'After initial render dimensions check',
+          data: {
+            sidebarHeight: sidebarRect.height,
+            sidebarComputedHeight: computedSidebar.height,
+            tocHeight: tocRect.height,
+            tocComputedHeight: computedToc.height,
+            tocOffsetHeight: toc.offsetHeight,
+            tocScrollHeight: toc.scrollHeight,
+            tocClientHeight: toc.clientHeight,
+            tocFlex: computedToc.flex,
+            tocAlignSelf: computedToc.alignSelf,
+            tocParentDisplay: computedSidebar.display,
+            tocParentFlexDirection: computedSidebar.flexDirection
+          },
+          timestamp: Date.now(),
+          sessionId: 'debug-session',
+          runId: 'run1',
+          hypothesisId: 'A,B,D'
+        })
+      }).catch(() => {});
+    }
+  }, 500);
+  // #endregion
 
   // 浏览器前进/后退或手动改 hash 时同步
   window.addEventListener('hashchange', () => {
     const id = location.hash.slice(1);
     if (!id) return;
-    
-    expandSectionForId(id);
-    
-    // 先尝试找子标题
-    const childResult = getChildById(id);
-    if (childResult) {
-      setActive(childResult.child.id);
-      renderChild(childResult.section, childResult.child);
-    } else {
-      // 再尝试找大模块
-      const sec = getSectionById(id);
-      if (sec) {
-        setActive(sec.id);
-        renderSection(sec);
-      }
-    }
+    activateById(id);
   });
 });
