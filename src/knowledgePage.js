@@ -171,12 +171,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     const sidebarHeight = sidebar.getBoundingClientRect().height;
-    const sidebarPadding = parseFloat(getComputedStyle(sidebar).paddingTop || '0') + 
-                          parseFloat(getComputedStyle(sidebar).paddingBottom || '0');
-    const navPadding = parseFloat(getComputedStyle(toc).paddingTop || '0') + 
-                      parseFloat(getComputedStyle(toc).paddingBottom || '0');
-    
-    const targetHeight = sidebarHeight - sidebarPadding - navPadding;
+    // 直接让 nav 的高度等于 sidebar 的高度
+    const targetHeight = sidebarHeight;
     
     console.log('尝试强制修复 nav 高度...');
     console.log('侧边栏高度:', sidebarHeight);
@@ -185,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 方法1: 直接设置高度
     toc.style.height = targetHeight + 'px';
     toc.style.minHeight = targetHeight + 'px';
-    toc.style.maxHeight = 'none';
+    toc.style.maxHeight = targetHeight + 'px';
     
     // 方法2: 确保 flex 属性
     toc.style.flex = '1 1 0%';
@@ -521,22 +517,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     const sidebarHeight = sidebar.getBoundingClientRect().height;
-    const sidebarPadding = parseFloat(getComputedStyle(sidebar).paddingTop || '0') + 
-                          parseFloat(getComputedStyle(sidebar).paddingBottom || '0');
-    const navPadding = parseFloat(getComputedStyle(toc).paddingTop || '0') + 
-                      parseFloat(getComputedStyle(toc).paddingBottom || '0');
-    
-    const targetHeight = sidebarHeight - sidebarPadding - navPadding;
     const currentHeight = toc.getBoundingClientRect().height;
     
+    // 直接让 nav 的高度等于 sidebar 的高度（因为 box-sizing: border-box，padding 会自动计算在内）
+    const targetHeight = sidebarHeight;
+    
     // 如果高度不正确，执行修复
-    if (Math.abs(currentHeight - targetHeight) > 10) {
+    if (Math.abs(currentHeight - targetHeight) > 5) {
       console.log('🔧 自动修复 nav 高度:', currentHeight, '->', targetHeight);
       
-      // 直接设置高度
+      // 直接设置高度等于 sidebar 高度
       toc.style.height = targetHeight + 'px';
       toc.style.minHeight = targetHeight + 'px';
-      toc.style.maxHeight = 'none';
+      toc.style.maxHeight = targetHeight + 'px';
       
       // 确保 flex 属性
       toc.style.flex = '1 1 0%';

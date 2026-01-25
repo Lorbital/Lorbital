@@ -58,6 +58,11 @@ export class OrbitalViewer {
     // 鼠标交互状态
     this.isMouseDown = false;
     this.lastMousePos = { x: 0, y: 0 };
+
+    // 触屏交互状态
+    this.touchStartPos = null;
+    this.lastTouchPos = null;
+    this.initialDistance = null;
   }
 
   /**
@@ -86,6 +91,9 @@ export class OrbitalViewer {
 
     // 初始化鼠标交互
     this.initMouseEvents();
+
+    // 初始化触屏交互
+    this.initTouchEvents();
 
     // 窗口大小变化处理
     window.addEventListener('resize', () => {
@@ -138,6 +146,92 @@ export class OrbitalViewer {
       setTimeout(() => {
         this.renderController.setInteracting(false);
       }, 100);
+    }, { passive: false });
+  }
+
+  /**
+   * 初始化触屏交互
+   */
+  initTouchEvents() {
+    this.container.addEventListener('touchstart', (e) => {
+      if (e.target.tagName !== 'CANVAS') return;
+      
+      // 单指触摸 - 旋转
+      if (e.touches.length === 1) {
+        const touch = e.touches[0];
+        this.touchStartPos = { x: touch.clientX, y: touch.clientY };
+        this.lastTouchPos = { x: touch.clientX, y: touch.clientY };
+        this.renderController.setInteracting(true);
+        e.preventDefault();
+      }
+      // 双指触摸 - 缩放
+      else if (e.touches.length === 2) {
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        this.initialDistance = Math.hypot(
+          touch2.clientX - touch1.clientX,
+          touch2.clientY - touch1.clientY
+        );
+        this.renderController.setInteracting(true);
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    this.container.addEventListener('touchmove', (e) => {
+      if (!this.renderController) return;
+      
+      // 单指拖动 - 旋转
+      if (e.touches.length === 1 && this.lastTouchPos) {
+        const touch = e.touches[0];
+        const deltaX = (touch.clientX - this.lastTouchPos.x) * ROTATION_SENSITIVITY;
+        const deltaY = -(touch.clientY - this.lastTouchPos.y) * ROTATION_SENSITIVITY;
+        
+        this.renderController.setTargetRotation(deltaX, deltaY);
+        this.lastTouchPos = { x: touch.clientX, y: touch.clientY };
+        e.preventDefault();
+      }
+      // 双指缩放
+      else if (e.touches.length === 2 && this.initialDistance) {
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        const currentDistance = Math.hypot(
+          touch2.clientX - touch1.clientX,
+          touch2.clientY - touch1.clientY
+        );
+        
+        const scaleFactor = currentDistance / this.initialDistance;
+        const currentScale = this.renderController.targetScale;
+        const newScale = currentScale * scaleFactor;
+        const clampedScale = THREE.MathUtils.clamp(newScale, MIN_SCALE, MAX_SCALE);
+        
+        this.renderController.setTargetScale(clampedScale);
+        this.initialDistance = currentDistance; // 更新初始距离，实现连续缩放
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    this.container.addEventListener('touchend', (e) => {
+      if (e.touches.length === 0) {
+        // 所有手指都抬起
+        this.touchStartPos = null;
+        this.lastTouchPos = null;
+        this.initialDistance = null;
+        this.renderController.setInteracting(false);
+      } else if (e.touches.length === 1) {
+        // 从双指变为单指，重置单指状态
+        const touch = e.touches[0];
+        this.lastTouchPos = { x: touch.clientX, y: touch.clientY };
+        this.initialDistance = null;
+      }
+      e.preventDefault();
+    }, { passive: false });
+
+    this.container.addEventListener('touchcancel', (e) => {
+      this.touchStartPos = null;
+      this.lastTouchPos = null;
+      this.initialDistance = null;
+      this.renderController.setInteracting(false);
+      e.preventDefault();
     }, { passive: false });
   }
 
