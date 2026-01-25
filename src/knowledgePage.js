@@ -9,6 +9,106 @@ function bold(html) {
   return String(html).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
 }
 
+/** 将文字中的数学表达式包裹在 $...$ 中，以便 MathJax 渲染 */
+function wrapMathExpressions(text) {
+  // 如果已经包含 $，说明已经被处理过，直接返回
+  if (text.includes('$')) {
+    return text;
+  }
+  
+  let result = text;
+  
+  // 收集所有需要包裹的数学表达式及其位置
+  const mathExpressions = [];
+  const processedRanges = [];
+  
+  // 辅助函数：检查位置是否已被处理
+  function isProcessed(start, end) {
+    return processedRanges.some(range => 
+      start < range.end && end > range.start
+    );
+  }
+  
+  // 辅助函数：添加表达式到列表
+  function addExpression(match) {
+    if (!isProcessed(match.index, match.index + match[0].length)) {
+      mathExpressions.push({
+        text: match[0],
+        start: match.index,
+        end: match.index + match[0].length
+      });
+      processedRanges.push({ 
+        start: match.index, 
+        end: match.index + match[0].length 
+      });
+    }
+  }
+  
+  // 模式1: 包含花括号的复杂表达式（如 ψ_{nlm}, R_{nl}(r), Y_l^m(θ,φ), e^{-ρ/2}, e^{-iEt/ℏ}, e^{imφ}, L_{n−l−1}^{2l+1}(ρ)）
+  const complexPattern = /[α-ωΑ-Ωa-zA-Z][_^]?[^{}\s]*\{[^}]+\}[_^]?[^{}\s]*(?:\{[^}]+\})?\([^)]*\)?|[α-ωΑ-Ωa-zA-Z][_^][^{}\s]*\{[^}]+\}[_^]?[^{}\s]*\([^)]*\)?|[α-ωΑ-Ωa-zA-Z][_^][^{}\s]*\{[^}]+\}/g;
+  let match;
+  while ((match = complexPattern.exec(text)) !== null) {
+    addExpression(match);
+  }
+  
+  // 模式2: 包含等号的表达式（如 ψ_{nlm}=R_{nl}(r) Y_l^m(θ,φ), E_n=−13.6/n², λ=h/p, ψ=0, ρ=2r/(na_0)）
+  const equationPattern = /[α-ωΑ-Ωa-zA-Z_^²³⁻¹⁻²{}\s]+\s*[=∝≤≥≠≈]\s*[−-]?[\d/α-ωΑ-Ωa-zA-Z²³⁻¹⁻²_^(){}·\s]+/g;
+  while ((match = equationPattern.exec(text)) !== null) {
+    addExpression(match);
+  }
+  
+  // 模式3: 简单的下标/上标（如 Y_l^m, ρ^l, n², dz², dx²−y²）
+  const subscriptPattern = /[α-ωΑ-Ωa-zA-Z][_^][\w\s²³⁻¹⁻²−]+|[α-ωΑ-Ωa-zA-Z][²³⁻¹⁻²]/g;
+  while ((match = subscriptPattern.exec(text)) !== null) {
+    addExpression(match);
+  }
+  
+  // 模式4: 绝对值表达式（如 |ψ|²）
+  const absPattern = /\|[α-ωΑ-Ωa-zA-Z]+\|[²³⁻¹⁻²]?/g;
+  while ((match = absPattern.exec(text)) !== null) {
+    addExpression(match);
+  }
+  
+  // 模式5: 简单的数学表达式（如 n−l−1, n−1, l=0, m=−l）
+  // 注意：不包含 …, 等标点符号
+  const simpleMathPattern = /[α-ωΑ-Ωa-zA-Z][−=][\dα-ωΑ-Ωa-zA-Z−+]+/g;
+  while ((match = simpleMathPattern.exec(text)) !== null) {
+    // 检查后面是否有 …，如果有，不包含它
+    const afterMatch = text.substring(match.index + match[0].length, match.index + match[0].length + 1);
+    if (afterMatch !== '…') {
+      addExpression(match);
+    }
+  }
+  
+  // 模式6: 科学计数法（如 9.1×10⁻³¹）
+  const scientificPattern = /\d+\.?\d*\s*×\s*10[⁻¹²³⁴⁵⁶⁷⁸⁹⁰]+/g;
+  while ((match = scientificPattern.exec(text)) !== null) {
+    addExpression(match);
+  }
+  
+  // 按位置从后往前排序，避免索引偏移
+  mathExpressions.sort((a, b) => b.start - a.start);
+  
+  // 从后往前替换
+  for (const expr of mathExpressions) {
+    const before = result.substring(0, expr.start);
+    const after = result.substring(expr.end);
+    const mathText = expr.text.trim();
+    
+    // 检查前后字符，确保在合适的边界
+    const beforeChar = before[before.length - 1] || ' ';
+    const afterChar = after[0] || ' ';
+    const isBoundary = /[\s，。、；：！？（）【】《》：，]/.test(beforeChar) || /[\s，。、；：！？（）【】《》，。]/.test(afterChar);
+    
+    // 如果不在 $ 内，则包裹
+    if (isBoundary && !before.endsWith('$') && !after.startsWith('$')) {
+      result = before + '$' + mathText + '$' + after;
+    }
+  }
+  
+  return result;
+}
+
 // 等待 DOM 加载完成后再执行
 document.addEventListener('DOMContentLoaded', () => {
   const KNOWLEDGE_BASE = window.KNOWLEDGE_BASE || [];
@@ -631,7 +731,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       for (const text of ch.content || []) {
         const p = document.createElement('p');
-        p.innerHTML = bold(text);
+        // 先处理数学表达式，再处理加粗
+        const processedText = wrapMathExpressions(text);
+        p.innerHTML = bold(processedText);
         panel.appendChild(p);
       }
 
@@ -683,7 +785,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     for (const text of child.content || []) {
       const p = document.createElement('p');
-      p.innerHTML = bold(text);
+      // 先处理数学表达式，再处理加粗
+      const processedText = wrapMathExpressions(text);
+      p.innerHTML = bold(processedText);
       panel.appendChild(p);
     }
 
