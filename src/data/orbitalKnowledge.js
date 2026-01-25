@@ -102,7 +102,7 @@ export const ORBITAL_KNOWLEDGE = {
   
   // P轨道
   '2px': {
-    title: '2px轨道',
+    title: '2p<sub>x</sub>轨道',
     basicInfo: {
       quantumNumbers: { n: 2, l: 1, m: 1 },
       description: '第二主壳层p轨道，沿x轴方向',
@@ -115,7 +115,7 @@ export const ORBITAL_KNOWLEDGE = {
     }
   },
   '2py': {
-    title: '2py轨道',
+    title: '2p<sub>y</sub>轨道',
     basicInfo: {
       quantumNumbers: { n: 2, l: 1, m: -1 },
       description: '第二主壳层p轨道，沿y轴方向',
@@ -128,7 +128,7 @@ export const ORBITAL_KNOWLEDGE = {
     }
   },
   '2pz': {
-    title: '2pz轨道',
+    title: '2p<sub>z</sub>轨道',
     basicInfo: {
       quantumNumbers: { n: 2, l: 1, m: 0 },
       description: '第二主壳层p轨道，沿z轴方向',
@@ -299,7 +299,7 @@ export const ORBITAL_KNOWLEDGE = {
   
   // D轨道（新 ID：{n}d_{suffix}，suffix 去首字母 d）
   '3d_xz': {
-    title: '3d (dxz)轨道',
+    title: '3d<sub>xz</sub>轨道',
     basicInfo: {
       quantumNumbers: { n: 3, l: 2, m: 1 },
       description: '第三主壳层d轨道，xz平面对称',
@@ -312,7 +312,7 @@ export const ORBITAL_KNOWLEDGE = {
     }
   },
   '3d_yz': {
-    title: '3d (dyz)轨道',
+    title: '3d<sub>yz</sub>轨道',
     basicInfo: {
       quantumNumbers: { n: 3, l: 2, m: -1 },
       description: '第三主壳层d轨道，yz平面对称',
@@ -325,7 +325,7 @@ export const ORBITAL_KNOWLEDGE = {
     }
   },
   '3d_z2': {
-    title: '3d (dz²)轨道',
+    title: '3d<sub>z²</sub>轨道',
     basicInfo: {
       quantumNumbers: { n: 3, l: 2, m: 0 },
       description: '第三主壳层d轨道，沿z轴对称',
@@ -338,7 +338,7 @@ export const ORBITAL_KNOWLEDGE = {
     }
   },
   '3d_x2-y2': {
-    title: '3d (dx²-y²)轨道',
+    title: '3d<sub>x²-y²</sub>轨道',
     basicInfo: {
       quantumNumbers: { n: 3, l: 2, m: 2 },
       description: '第三主壳层d轨道，沿x和y轴对称',
@@ -351,7 +351,7 @@ export const ORBITAL_KNOWLEDGE = {
     }
   },
   '3d_xy': {
-    title: '3d (dxy)轨道',
+    title: '3d<sub>xy</sub>轨道',
     basicInfo: {
       quantumNumbers: { n: 3, l: 2, m: -2 },
       description: '第三主壳层d轨道，xy平面对称',
@@ -365,28 +365,28 @@ export const ORBITAL_KNOWLEDGE = {
   },
   
   // 为4d、5d、6d轨道添加数据（使用相同的形状特征，但描述不同）
-  '4d_xz': { title: '4d (dxz)轨道', basicInfo: { quantumNumbers: { n: 4, l: 2, m: 1 }, description: '第四主壳层d轨道，xz平面对称', orbitalType: 'd轨道（瓣状分布轨道）' }, shapeFeatures: { shape: '四个瓣，位于xz平面，带有一个径向节点', symmetry: '关于y轴对称', nodes: '径向节点数：1，角节点数：2' } },
-  '4d_yz': { title: '4d (dyz)轨道', basicInfo: { quantumNumbers: { n: 4, l: 2, m: -1 }, description: '第四主壳层d轨道，yz平面对称', orbitalType: 'd轨道（瓣状分布轨道）' }, shapeFeatures: { shape: '四个瓣，位于yz平面，带有一个径向节点', symmetry: '关于x轴对称', nodes: '径向节点数：1，角节点数：2' } },
-  '4d_z2': { title: '4d (dz²)轨道', basicInfo: { quantumNumbers: { n: 4, l: 2, m: 0 }, description: '第四主壳层d轨道，沿z轴对称', orbitalType: 'd轨道（瓣状分布轨道）' }, shapeFeatures: { shape: '双瓣形，沿z轴延伸，带有一个径向节点', symmetry: '关于z轴对称', nodes: '径向节点数：1，角节点数：2' } },
-  '4d_x2-y2': { title: '4d (dx²-y²)轨道', basicInfo: { quantumNumbers: { n: 4, l: 2, m: 2 }, description: '第四主壳层d轨道，沿x和y轴对称', orbitalType: 'd轨道（瓣状分布轨道）' }, shapeFeatures: { shape: '四个瓣，位于xy平面，带有一个径向节点', symmetry: '关于x、y轴对称', nodes: '径向节点数：1，角节点数：2' } },
-  '4d_xy': { title: '4d (dxy)轨道', basicInfo: { quantumNumbers: { n: 4, l: 2, m: -2 }, description: '第四主壳层d轨道，xy平面对称', orbitalType: 'd轨道（瓣状分布轨道）' }, shapeFeatures: { shape: '四个瓣，位于xy平面，带有一个径向节点', symmetry: '关于x、y轴对称', nodes: '径向节点数：1，角节点数：2' } },
+  '4d_xz': { title: '4d<sub>xz</sub>轨道', basicInfo: { quantumNumbers: { n: 4, l: 2, m: 1 }, description: '第四主壳层d轨道，xz平面对称', orbitalType: 'd轨道（瓣状分布轨道）' }, shapeFeatures: { shape: '四个瓣，位于xz平面，带有一个径向节点', symmetry: '关于y轴对称', nodes: '径向节点数：1，角节点数：2' } },
+  '4d_yz': { title: '4d<sub>yz</sub>轨道', basicInfo: { quantumNumbers: { n: 4, l: 2, m: -1 }, description: '第四主壳层d轨道，yz平面对称', orbitalType: 'd轨道（瓣状分布轨道）' }, shapeFeatures: { shape: '四个瓣，位于yz平面，带有一个径向节点', symmetry: '关于x轴对称', nodes: '径向节点数：1，角节点数：2' } },
+  '4d_z2': { title: '4d<sub>z²</sub>轨道', basicInfo: { quantumNumbers: { n: 4, l: 2, m: 0 }, description: '第四主壳层d轨道，沿z轴对称', orbitalType: 'd轨道（瓣状分布轨道）' }, shapeFeatures: { shape: '双瓣形，沿z轴延伸，带有一个径向节点', symmetry: '关于z轴对称', nodes: '径向节点数：1，角节点数：2' } },
+  '4d_x2-y2': { title: '4d<sub>x²-y²</sub>轨道', basicInfo: { quantumNumbers: { n: 4, l: 2, m: 2 }, description: '第四主壳层d轨道，沿x和y轴对称', orbitalType: 'd轨道（瓣状分布轨道）' }, shapeFeatures: { shape: '四个瓣，位于xy平面，带有一个径向节点', symmetry: '关于x、y轴对称', nodes: '径向节点数：1，角节点数：2' } },
+  '4d_xy': { title: '4d<sub>xy</sub>轨道', basicInfo: { quantumNumbers: { n: 4, l: 2, m: -2 }, description: '第四主壳层d轨道，xy平面对称', orbitalType: 'd轨道（瓣状分布轨道）' }, shapeFeatures: { shape: '四个瓣，位于xy平面，带有一个径向节点', symmetry: '关于x、y轴对称', nodes: '径向节点数：1，角节点数：2' } },
   
-  '5d_xz': { title: '5d (dxz)轨道', basicInfo: { quantumNumbers: { n: 5, l: 2, m: 1 }, description: '第五主壳层d轨道，xz平面对称', orbitalType: 'd轨道（瓣状分布轨道）' }, shapeFeatures: { shape: '四个瓣，位于xz平面，带有两个径向节点', symmetry: '关于y轴对称', nodes: '径向节点数：2，角节点数：2' } },
-  '5d_yz': { title: '5d (dyz)轨道', basicInfo: { quantumNumbers: { n: 5, l: 2, m: -1 }, description: '第五主壳层d轨道，yz平面对称', orbitalType: 'd轨道（瓣状分布轨道）' }, shapeFeatures: { shape: '四个瓣，位于yz平面，带有两个径向节点', symmetry: '关于x轴对称', nodes: '径向节点数：2，角节点数：2' } },
-  '5d_z2': { title: '5d (dz²)轨道', basicInfo: { quantumNumbers: { n: 5, l: 2, m: 0 }, description: '第五主壳层d轨道，沿z轴对称', orbitalType: 'd轨道（瓣状分布轨道）' }, shapeFeatures: { shape: '双瓣形，沿z轴延伸，带有两个径向节点', symmetry: '关于z轴对称', nodes: '径向节点数：2，角节点数：2' } },
-  '5d_x2-y2': { title: '5d (dx²-y²)轨道', basicInfo: { quantumNumbers: { n: 5, l: 2, m: 2 }, description: '第五主壳层d轨道，沿x和y轴对称', orbitalType: 'd轨道（瓣状分布轨道）' }, shapeFeatures: { shape: '四个瓣，位于xy平面，带有两个径向节点', symmetry: '关于x、y轴对称', nodes: '径向节点数：2，角节点数：2' } },
-  '5d_xy': { title: '5d (dxy)轨道', basicInfo: { quantumNumbers: { n: 5, l: 2, m: -2 }, description: '第五主壳层d轨道，xy平面对称', orbitalType: 'd轨道（瓣状分布轨道）' }, shapeFeatures: { shape: '四个瓣，位于xy平面，带有两个径向节点', symmetry: '关于x、y轴对称', nodes: '径向节点数：2，角节点数：2' } },
+  '5d_xz': { title: '5d<sub>xz</sub>轨道', basicInfo: { quantumNumbers: { n: 5, l: 2, m: 1 }, description: '第五主壳层d轨道，xz平面对称', orbitalType: 'd轨道（瓣状分布轨道）' }, shapeFeatures: { shape: '四个瓣，位于xz平面，带有两个径向节点', symmetry: '关于y轴对称', nodes: '径向节点数：2，角节点数：2' } },
+  '5d_yz': { title: '5d<sub>yz</sub>轨道', basicInfo: { quantumNumbers: { n: 5, l: 2, m: -1 }, description: '第五主壳层d轨道，yz平面对称', orbitalType: 'd轨道（瓣状分布轨道）' }, shapeFeatures: { shape: '四个瓣，位于yz平面，带有两个径向节点', symmetry: '关于x轴对称', nodes: '径向节点数：2，角节点数：2' } },
+  '5d_z2': { title: '5d<sub>z²</sub>轨道', basicInfo: { quantumNumbers: { n: 5, l: 2, m: 0 }, description: '第五主壳层d轨道，沿z轴对称', orbitalType: 'd轨道（瓣状分布轨道）' }, shapeFeatures: { shape: '双瓣形，沿z轴延伸，带有两个径向节点', symmetry: '关于z轴对称', nodes: '径向节点数：2，角节点数：2' } },
+  '5d_x2-y2': { title: '5d<sub>x²-y²</sub>轨道', basicInfo: { quantumNumbers: { n: 5, l: 2, m: 2 }, description: '第五主壳层d轨道，沿x和y轴对称', orbitalType: 'd轨道（瓣状分布轨道）' }, shapeFeatures: { shape: '四个瓣，位于xy平面，带有两个径向节点', symmetry: '关于x、y轴对称', nodes: '径向节点数：2，角节点数：2' } },
+  '5d_xy': { title: '5d<sub>xy</sub>轨道', basicInfo: { quantumNumbers: { n: 5, l: 2, m: -2 }, description: '第五主壳层d轨道，xy平面对称', orbitalType: 'd轨道（瓣状分布轨道）' }, shapeFeatures: { shape: '四个瓣，位于xy平面，带有两个径向节点', symmetry: '关于x、y轴对称', nodes: '径向节点数：2，角节点数：2' } },
   
-  '6d_xz': { title: '6d (dxz)轨道', basicInfo: { quantumNumbers: { n: 6, l: 2, m: 1 }, description: '第六主壳层d轨道，xz平面对称', orbitalType: 'd轨道（瓣状分布轨道）' }, shapeFeatures: { shape: '四个瓣，位于xz平面，带有三个径向节点', symmetry: '关于y轴对称', nodes: '径向节点数：3，角节点数：2' } },
-  '6d_yz': { title: '6d (dyz)轨道', basicInfo: { quantumNumbers: { n: 6, l: 2, m: -1 }, description: '第六主壳层d轨道，yz平面对称', orbitalType: 'd轨道（瓣状分布轨道）' }, shapeFeatures: { shape: '四个瓣，位于yz平面，带有三个径向节点', symmetry: '关于x轴对称', nodes: '径向节点数：3，角节点数：2' } },
-  '6d_z2': { title: '6d (dz²)轨道', basicInfo: { quantumNumbers: { n: 6, l: 2, m: 0 }, description: '第六主壳层d轨道，沿z轴对称', orbitalType: 'd轨道（瓣状分布轨道）' }, shapeFeatures: { shape: '双瓣形，沿z轴延伸，带有三个径向节点', symmetry: '关于z轴对称', nodes: '径向节点数：3，角节点数：2' } },
-  '6d_x2-y2': { title: '6d (dx²-y²)轨道', basicInfo: { quantumNumbers: { n: 6, l: 2, m: 2 }, description: '第六主壳层d轨道，沿x和y轴对称', orbitalType: 'd轨道（瓣状分布轨道）' }, shapeFeatures: { shape: '四个瓣，位于xy平面，带有三个径向节点', symmetry: '关于x、y轴对称', nodes: '径向节点数：3，角节点数：2' } },
-  '6d_xy': { title: '6d (dxy)轨道', basicInfo: { quantumNumbers: { n: 6, l: 2, m: -2 }, description: '第六主壳层d轨道，xy平面对称', orbitalType: 'd轨道（瓣状分布轨道）' }, shapeFeatures: { shape: '四个瓣，位于xy平面，带有三个径向节点', symmetry: '关于x、y轴对称', nodes: '径向节点数：3，角节点数：2' } },
+  '6d_xz': { title: '6d<sub>xz</sub>轨道', basicInfo: { quantumNumbers: { n: 6, l: 2, m: 1 }, description: '第六主壳层d轨道，xz平面对称', orbitalType: 'd轨道（瓣状分布轨道）' }, shapeFeatures: { shape: '四个瓣，位于xz平面，带有三个径向节点', symmetry: '关于y轴对称', nodes: '径向节点数：3，角节点数：2' } },
+  '6d_yz': { title: '6d<sub>yz</sub>轨道', basicInfo: { quantumNumbers: { n: 6, l: 2, m: -1 }, description: '第六主壳层d轨道，yz平面对称', orbitalType: 'd轨道（瓣状分布轨道）' }, shapeFeatures: { shape: '四个瓣，位于yz平面，带有三个径向节点', symmetry: '关于x轴对称', nodes: '径向节点数：3，角节点数：2' } },
+  '6d_z2': { title: '6d<sub>z²</sub>轨道', basicInfo: { quantumNumbers: { n: 6, l: 2, m: 0 }, description: '第六主壳层d轨道，沿z轴对称', orbitalType: 'd轨道（瓣状分布轨道）' }, shapeFeatures: { shape: '双瓣形，沿z轴延伸，带有三个径向节点', symmetry: '关于z轴对称', nodes: '径向节点数：3，角节点数：2' } },
+  '6d_x2-y2': { title: '6d<sub>x²-y²</sub>轨道', basicInfo: { quantumNumbers: { n: 6, l: 2, m: 2 }, description: '第六主壳层d轨道，沿x和y轴对称', orbitalType: 'd轨道（瓣状分布轨道）' }, shapeFeatures: { shape: '四个瓣，位于xy平面，带有三个径向节点', symmetry: '关于x、y轴对称', nodes: '径向节点数：3，角节点数：2' } },
+  '6d_xy': { title: '6d<sub>xy</sub>轨道', basicInfo: { quantumNumbers: { n: 6, l: 2, m: -2 }, description: '第六主壳层d轨道，xy平面对称', orbitalType: 'd轨道（瓣状分布轨道）' }, shapeFeatures: { shape: '四个瓣，位于xy平面，带有三个径向节点', symmetry: '关于x、y轴对称', nodes: '径向节点数：3，角节点数：2' } },
   
   // F轨道（新 ID：{n}f_{suffix}，suffix 去首字母 f，fxx2-3y2→x(x2-3y2)、fyy2-3x2→y(x2-z2)）
-  '4f_z3': { title: '4f (fz³)轨道', basicInfo: { quantumNumbers: { n: 4, l: 3, m: 0 }, description: '第四主壳层f轨道，沿z轴高阶对称', orbitalType: 'f轨道（高阶对称轨道）' }, shapeFeatures: { shape: '复杂的瓣状分布，沿z轴对称', symmetry: '关于z轴对称', nodes: '径向节点数：0，角节点数：3' } },
-  '4f_xz2': { title: '4f (fxz²)轨道', basicInfo: { quantumNumbers: { n: 4, l: 3, m: 1 }, description: '第四主壳层f轨道，xz平面对称', orbitalType: 'f轨道（高阶对称轨道）' }, shapeFeatures: { shape: '六个瓣，xz平面对称', symmetry: '关于y轴对称', nodes: '径向节点数：0，角节点数：3' } },
-  '4f_yz2': { title: '4f (fyz²)轨道', basicInfo: { quantumNumbers: { n: 4, l: 3, m: -1 }, description: '第四主壳层f轨道，yz平面对称', orbitalType: 'f轨道（高阶对称轨道）' }, shapeFeatures: { shape: '六个瓣，yz平面对称', symmetry: '关于x轴对称', nodes: '径向节点数：0，角节点数：3' } },
+  '4f_z3': { title: '4f<sub>z³</sub>轨道', basicInfo: { quantumNumbers: { n: 4, l: 3, m: 0 }, description: '第四主壳层f轨道，沿z轴高阶对称', orbitalType: 'f轨道（高阶对称轨道）' }, shapeFeatures: { shape: '复杂的瓣状分布，沿z轴对称', symmetry: '关于z轴对称', nodes: '径向节点数：0，角节点数：3' } },
+  '4f_xz2': { title: '4f<sub>xz²</sub>轨道', basicInfo: { quantumNumbers: { n: 4, l: 3, m: 1 }, description: '第四主壳层f轨道，xz平面对称', orbitalType: 'f轨道（高阶对称轨道）' }, shapeFeatures: { shape: '六个瓣，xz平面对称', symmetry: '关于y轴对称', nodes: '径向节点数：0，角节点数：3' } },
+  '4f_yz2': { title: '4f<sub>yz²</sub>轨道', basicInfo: { quantumNumbers: { n: 4, l: 3, m: -1 }, description: '第四主壳层f轨道，yz平面对称', orbitalType: 'f轨道（高阶对称轨道）' }, shapeFeatures: { shape: '六个瓣，yz平面对称', symmetry: '关于x轴对称', nodes: '径向节点数：0，角节点数：3' } },
   '4f_xyz': { title: '4f (fxyz)轨道', basicInfo: { quantumNumbers: { n: 4, l: 3, m: 2 }, description: '第四主壳层f轨道，xyz空间对称', orbitalType: 'f轨道（高阶对称轨道）' }, shapeFeatures: { shape: '八个瓣，空间对称分布', symmetry: '关于三个坐标轴对称', nodes: '径向节点数：0，角节点数：3' } },
   '4f_x(x2-3y2)': { title: '4f (fx(x²-3y²))轨道', basicInfo: { quantumNumbers: { n: 4, l: 3, m: 3 }, description: '第四主壳层f轨道，复杂对称形态', orbitalType: 'f轨道（高阶对称轨道）' }, shapeFeatures: { shape: '八个瓣，复杂对称分布', symmetry: '关于x轴对称', nodes: '径向节点数：0，角节点数：3' } },
   '4f_y(x2-z2)': { title: '4f (fy(x²-z²))轨道', basicInfo: { quantumNumbers: { n: 4, l: 3, m: -3 }, description: '第四主壳层f轨道，复杂对称形态', orbitalType: 'f轨道（高阶对称轨道）' }, shapeFeatures: { shape: '八个瓣，复杂对称分布', symmetry: '关于y轴对称', nodes: '径向节点数：0，角节点数：3' } },

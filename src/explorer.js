@@ -301,11 +301,29 @@ function showOrbitalList(categoryType) {
     });
 }
 
-// 格式化轨道名称显示。新 ID：d/f/g 为 {n}d|f|g_{suffix}，如 3d_z2 → 3d (z²)、4f_x(x2-3y2) → 4f (x(x²-3y²))
-function formatOrbitalName(orbitalId) {
+// 格式化轨道名称显示。新 ID：d/f/g 为 {n}d|f|g_{suffix}，如 3d_z2 → 3d<sub>z²</sub>
+function formatOrbitalName(orbitalId, asHtml = true) {
     function toSub(s) { return s.replace(/2/g, '²').replace(/3/g, '³').replace(/4/g, '⁴'); }
-    const m = orbitalId.match(/^(\d+)(d|f|g)_(.+)$/);
-    if (m) return m[1] + m[2] + ' (' + toSub(m[3]) + ')';
+    
+    // 处理 d/f/g 轨道: {n}{type}_{suffix}
+    const m = orbitalId.match(/^(\d+)([dfg])_(.+)$/);
+    if (m) {
+        const n = m[1];
+        const type = m[2];
+        const suffix = toSub(m[3]);
+        if (asHtml) return `${n}${type}<sub>${suffix}</sub>`;
+        // 对于非 HTML 环境（如 <select> 选项），移除括号以使其看起来更紧凑，并使用 Unicode 上标
+        return `${n}${type}${suffix}`;
+    }
+    
+    // 处理 p 轨道: {n}p{x|y|z}
+    const pMatch = orbitalId.match(/^(\d+p)([xyz])$/);
+    if (pMatch) {
+        if (asHtml) return `${pMatch[1]}<sub>${pMatch[2]}</sub>`;
+        return `${pMatch[1]}${pMatch[2]}`;
+    }
+    
+    // 处理 s 轨道或其他
     return orbitalId;
 }
 
@@ -333,7 +351,7 @@ function showLoadingOverlay(orbitalId) {
     const act = document.getElementById('loading-actions');
     const wrap = document.getElementById('loading-progress-wrap');
     txt.textContent = '量子态同步中...';
-    name.textContent = formatOrbitalName(orbitalId);
+    name.innerHTML = formatOrbitalName(orbitalId);
     name.style.display = '';
     bar.classList.add('indeterminate');
     bar.style.width = '';
@@ -366,7 +384,7 @@ function showLoadingError(msg, orbitalId, opts) {
     const act = document.getElementById('loading-actions');
     const bar = document.getElementById('loading-progress-bar');
     txt.textContent = '加载失败';
-    name.textContent = formatOrbitalName(orbitalId);
+    name.innerHTML = formatOrbitalName(orbitalId);
     name.style.display = '';
     bar.classList.remove('indeterminate');
     wrap.style.display = 'none';
@@ -392,7 +410,7 @@ async function loadOrbital(orbitalId, opts = {}) {
         const nameEl = document.getElementById('orbital-name');
         if (nameEl) {
             // 使用格式化函数，保持科学命名法的正确大小写
-            nameEl.textContent = formatOrbitalName(orbitalId);
+            nameEl.innerHTML = formatOrbitalName(orbitalId);
         }
 
         // 加载PLY文件
@@ -672,7 +690,7 @@ function refreshExperimentConsoleBlockSelect() {
     ids.forEach(id => {
         const opt = document.createElement('option');
         opt.value = id;
-        opt.textContent = formatOrbitalName(id);
+        opt.textContent = formatOrbitalName(id, false);
         select.appendChild(opt);
     });
     select.value = currentOrbitalId || ids[0] || '';
@@ -1275,8 +1293,10 @@ function animate() {
 
     // 始终渲染，但只在viewer模式下更新模型
     if (currentView === 'viewer') {
-        // 自动旋转：仅排除鼠标拖拽（isMouseDown）；不依赖 isInteracting，避免被手势等长期占用阻断
-        if (renderController && !isMouseDown && settings.autoRotate) {
+        // 自动旋转：排除鼠标拖拽（isMouseDown）和手势交互（isInteracting）
+        // 当单手或双手捏合时，isInteracting 为 true，自动旋转停止
+        // 当松开时，isInteracting 为 false，自动旋转恢复
+        if (renderController && !isMouseDown && !renderController.isInteracting && settings.autoRotate) {
             renderController.setTargetRotation(settings.rotationSpeed, 0, true);
         }
     }

@@ -141,6 +141,12 @@ export class GestureController {
           renderController.targetScale = renderController.currentScale;
           renderController.setInteracting(false);
         }
+      } else if (this.pinchState !== GestureState.NONE) {
+        // 如果之前有手势状态（但不是拖拽状态，比如双手捏合），立即重置交互状态
+        // 这样松开时自动旋转会立即恢复
+        if (renderController) {
+          renderController.setInteracting(false);
+        }
       }
       // 如果之前有手势状态
       if (this.pinchState !== GestureState.NONE) {
@@ -324,6 +330,11 @@ export class GestureController {
       }
     } else if (effectiveGesture.state === GestureState.TWO_HAND_PINCH) {
       // 双手捏合：缩放
+      // 立即设置交互状态，停止自动旋转
+      if (renderController) {
+        renderController.setInteracting(true);
+      }
+      
       const currentDist = effectiveGesture.data.distance;
 
       // 如果 lastTwoHandDist 未初始化，初始化它（跳过第一次计算，避免突然缩放）
