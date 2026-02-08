@@ -46,6 +46,13 @@ nav {
     z-index: 1002;
 }
 
+.nav-links {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+}
+
 nav a {
     color: rgba(255, 255, 255, 0.6);
     text-decoration: none;
@@ -60,6 +67,29 @@ nav a {
 nav a:hover, nav a.active {
     color: var(--accent);
     text-shadow: 0 0 12px var(--accent-glow);
+}
+
+/* Language toggle button */
+.lang-toggle {
+    position: absolute;
+    right: 30px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--glass-border);
+    border-radius: 6px;
+    padding: 6px 14px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 1003;
+}
+.lang-toggle:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: rgba(0, 255, 255, 0.1);
+    text-shadow: 0 0 8px var(--accent-glow);
 }
 
 /* --- 内容容器 (用于主页/故事/知识库) --- */

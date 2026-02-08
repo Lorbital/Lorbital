@@ -69,22 +69,30 @@
     </script>
 </head>
 <body>
+    <script src="src/i18n/i18n.js"></script>
+    <script src="src/i18n/zh.js"></script>
+    <script src="src/i18n/en.js"></script>
+    <script>window.I18N && window.I18N.init();</script>
+
     <nav>
-        <a href="index.html" class="active">首页</a>
-        <a href="story.html">我们的故事</a>
-        <a href="knowledge.html">知识库</a>
-        <a href="explorer.html">探测器</a>
+        <div class="nav-links">
+            <a href="index.html" class="active" data-i18n="nav.home">首页</a>
+            <a href="story.html" data-i18n="nav.story">我们的故事</a>
+            <a href="knowledge.html" data-i18n="nav.knowledge">知识库</a>
+            <a href="explorer.html" data-i18n="nav.explorer">探测器</a>
+        </div>
+        <button class="lang-toggle" id="lang-toggle">EN</button>
     </nav>
     <div class="page-container hero">
-        <h1 style="font-size: 4rem; margin-bottom: 20px;">Lorbital电子轨道</h1>
+        <h1 style="font-size: 4rem; margin-bottom: 20px;" data-i18n="index.title">Lorbital电子轨道</h1>
         
         <div class="quantum-poem">
-            <div class="poem-line line-1">如今</div>
-            <div class="poem-line line-2">电子轨道以最精确的形态呈现于眼前</div>
-            <div class="poem-line line-3">等待你赋予它独特的意义</div>
+            <div class="poem-line line-1" data-i18n="index.poem1">如今</div>
+            <div class="poem-line line-2" data-i18n="index.poem2">电子轨道以最精确的形态呈现于眼前</div>
+            <div class="poem-line line-3" data-i18n="index.poem3">等待你赋予它独特的意义</div>
         </div>
 
-        <a href="explorer.html" class="btn-enter">启动量子实验室</a>
+        <a href="explorer.html" class="btn-enter" data-i18n="index.cta">启动量子实验室</a>
     </div>
 </body>
 </html>

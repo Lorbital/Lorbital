@@ -28,6 +28,7 @@ let currentMetadata = null;
 let currentOrbitalId = null; // 当前查看的轨道 id，用于同分类切换与信息按钮
 let lastErrorOrbitalId = null;
 let lastErrorOpts = null;
+let cameraVisible = true; // 摄像头显示状态
 
 // --- 手势控制器 ---
 let gestureController = null;
@@ -66,9 +67,6 @@ init();
 function init() {
     // 每次页面加载时清除教程标记，确保刷新后能再次显示教程
     sessionStorage.removeItem(TUTORIAL_STORAGE_KEY);
-    // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/8dcb6af8-5793-4126-9375-8fe5024c7cdb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:init',message:'Cleared tutorial storage on page load',data:{storageKey:TUTORIAL_STORAGE_KEY},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
     
     // 初始化界面
     initUI();
@@ -118,6 +116,29 @@ function init() {
     window.addEventListener('beforeunload', onPageUnload);
 
     if (document.hidden) pauseBackgroundWork();
+
+    // i18n: re-apply translations when language changes
+    if (window.I18N && window.I18N.onLangChange) {
+        window.I18N.onLangChange(() => {
+            window.I18N.applyI18n();
+            // Re-render orbital list if visible
+            if (currentView === 'orbital' && currentCategory) {
+                showOrbitalList(currentCategory);
+            }
+            // Re-render knowledge card if visible
+            if (currentView === 'viewer' && currentOrbitalId) {
+                const knowledgeCard = document.getElementById('knowledge-card');
+                if (knowledgeCard && !knowledgeCard.classList.contains('hidden')) {
+                    showKnowledgeCard(currentOrbitalId);
+                }
+            }
+            // Update tutorial button text if visible
+            const nextBtn = document.getElementById('gesture-tutorial-next');
+            if (nextBtn) {
+                nextBtn.textContent = tutorialCurrentStep === TUTORIAL_TOTAL_STEPS ? t('explorer.tutorialDone') : t('explorer.tutorialNext');
+            }
+        });
+    }
 }
 
 // 初始化UI界面
@@ -151,6 +172,16 @@ function initUI() {
         });
     }
 
+    // 摄像头关闭/开启按钮
+    const videoCloseBtn = document.getElementById('video-close-btn');
+    if (videoCloseBtn) {
+        videoCloseBtn.addEventListener('click', () => toggleCamera(false));
+    }
+    const cameraToggleCard = document.getElementById('camera-toggle-card');
+    if (cameraToggleCard) {
+        cameraToggleCard.addEventListener('click', () => toggleCamera(true));
+    }
+
     // 加载遮罩：重试、返回
     const retryBtn = document.getElementById('loading-retry');
     const backBtn = document.getElementById('loading-back');
@@ -178,6 +209,8 @@ function showCategorySelector() {
     document.getElementById('orbital-tag').classList.add('hidden');
     document.getElementById('video-container').classList.add('hidden');
     document.getElementById('viewer-back-button').classList.add('hidden');
+    const cameraCard = document.getElementById('camera-toggle-card');
+    if (cameraCard) cameraCard.classList.add('hidden');
     const consoleEl = document.getElementById('experiment-console');
     if (consoleEl) consoleEl.classList.add('hidden');
     
@@ -253,7 +286,7 @@ function showOrbitalList(categoryType) {
     orbitalList.innerHTML = '';
     
     if (orbitals.length === 0) {
-        orbitalList.innerHTML = '<div style="color: rgba(255,255,255,0.5); text-align: center; padding: 40px;">该分类下暂无可用模型</div>';
+        orbitalList.innerHTML = '<div style="color: rgba(255,255,255,0.5); text-align: center; padding: 40px;">' + t('explorer.noModels') + '</div>';
         return;
     }
     
@@ -283,7 +316,7 @@ function showOrbitalList(categoryType) {
             item.className = 'orbital-item orbital-item-placeholder';
             item.innerHTML = `
                 <div class="orbital-item-name" style="opacity: 0.5;">${formatOrbitalName(orbitalId)}</div>
-                <div style="font-size: 12px; color: rgba(255,255,255,0.3); margin-top: 8px;">即将推出</div>
+                <div style="font-size: 12px; color: rgba(255,255,255,0.3); margin-top: 8px;">${t('explorer.comingSoon')}</div>
             `;
             item.style.cursor = 'not-allowed';
             item.style.opacity = '0.5';
@@ -351,7 +384,7 @@ function showLoadingOverlay(orbitalId) {
     const err = document.getElementById('loading-error');
     const act = document.getElementById('loading-actions');
     const wrap = document.getElementById('loading-progress-wrap');
-    txt.textContent = '量子态同步中...';
+    txt.textContent = t('explorer.loadingSync');
     name.innerHTML = formatOrbitalName(orbitalId);
     name.style.display = '';
     bar.classList.add('indeterminate');
@@ -384,7 +417,7 @@ function showLoadingError(msg, orbitalId, opts) {
     const err = document.getElementById('loading-error');
     const act = document.getElementById('loading-actions');
     const bar = document.getElementById('loading-progress-bar');
-    txt.textContent = '加载失败';
+    txt.textContent = t('explorer.loadFailed');
     name.innerHTML = formatOrbitalName(orbitalId);
     name.style.display = '';
     bar.classList.remove('indeterminate');
@@ -426,7 +459,7 @@ async function loadOrbital(orbitalId, opts = {}) {
             // 确保geometry存在
             if (!geometry) {
                 console.error('Geometry is null or undefined');
-                showLoadingError('模型文件格式错误', orbitalId, opts);
+                showLoadingError(t('explorer.modelFormatError'), orbitalId, opts);
                 return;
             }
             
@@ -435,7 +468,7 @@ async function loadOrbital(orbitalId, opts = {}) {
             // 更新加载文本，提示正在处理模型
             if (!opts.isSwitch) {
                 const txt = document.getElementById('loading-text');
-                if (txt) txt.textContent = '处理模型数据...';
+                if (txt) txt.textContent = t('explorer.loadingProcess');
                 const bar = document.getElementById('loading-progress-bar');
                 const pct = document.getElementById('loading-percent');
                 if (bar) {
@@ -554,17 +587,17 @@ async function loadOrbital(orbitalId, opts = {}) {
                                     });
                                 } catch (renderError) {
                                     console.error('Error creating or rendering orbital points:', renderError);
-                                    showLoadingError(`渲染失败: ${renderError.message}`, orbitalId, opts);
+                                    showLoadingError(`${t('explorer.renderFailed')}: ${renderError.message}`, orbitalId, opts);
                                 }
                             });
                         } catch (processError) {
                             console.error('Error processing geometry:', processError);
-                            showLoadingError(`处理失败: ${processError.message}`, orbitalId, opts);
+                            showLoadingError(`${t('explorer.processFailed')}: ${processError.message}`, orbitalId, opts);
                         }
                     });
                 } catch (cleanupError) {
                     console.error('Error cleaning up old model:', cleanupError);
-                    showLoadingError(`清理失败: ${cleanupError.message}`, orbitalId, opts);
+                    showLoadingError(`${t('explorer.cleanupFailed')}: ${cleanupError.message}`, orbitalId, opts);
                 }
             });
         }, (progress) => {
@@ -576,7 +609,7 @@ async function loadOrbital(orbitalId, opts = {}) {
             console.error('Failed to load model:', error);
             console.error('Failed URL:', plyUrl);
             console.error('Error details:', error.message || error);
-            showLoadingError(error?.message || '请检查模型文件', orbitalId, opts);
+            showLoadingError(error?.message || t('explorer.checkModel'), orbitalId, opts);
         });
         
     } catch (error) {
@@ -763,7 +796,14 @@ function showViewer(opts = {}) {
     
     document.getElementById('instructions').classList.remove('hidden');
     document.getElementById('orbital-tag').classList.remove('hidden');
-    document.getElementById('video-container').classList.remove('hidden');
+    // 根据摄像头状态显示视频容器或折叠卡片
+    if (cameraVisible) {
+        document.getElementById('video-container').classList.remove('hidden');
+        document.getElementById('camera-toggle-card').classList.add('hidden');
+    } else {
+        document.getElementById('video-container').classList.add('hidden');
+        document.getElementById('camera-toggle-card').classList.remove('hidden');
+    }
     document.getElementById('viewer-back-button').classList.remove('hidden');
     const consoleEl = document.getElementById('experiment-console');
     if (consoleEl) consoleEl.classList.remove('hidden');
@@ -808,21 +848,12 @@ function showViewer(opts = {}) {
     console.log('OrbitalGroup exists:', !!orbitalGroup);
     console.log('OrbitalGroup children:', orbitalGroup ? orbitalGroup.children.length : 0);
 
-    if (gestureController && gestureController.enabled) gestureController.start();
+    if (cameraVisible && gestureController && gestureController.enabled) gestureController.start();
     
     // 检查是否需要显示教程（首次打开模型时）
-    // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/8dcb6af8-5793-4126-9375-8fe5024c7cdb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:showViewer',message:'showViewer end, checking tutorial',data:{isSwitch:!!opts?.isSwitch,optsKeys:opts?Object.keys(opts):[],optsValue:opts},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
     if (!opts?.isSwitch) {
-        // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/8dcb6af8-5793-4126-9375-8fe5024c7cdb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:showViewer',message:'Calling checkAndShowTutorial',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-        // #endregion
         checkAndShowTutorial();
     } else {
-        // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/8dcb6af8-5793-4126-9375-8fe5024c7cdb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:showViewer',message:'Skipping tutorial check (isSwitch)',data:{isSwitchValue:opts?.isSwitch},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-        // #endregion
     }
 }
 
@@ -830,30 +861,12 @@ function showViewer(opts = {}) {
 let tutorialCurrentStep = 1;
 
 function checkAndShowTutorial() {
-    // #region agent log
     const tutorialShown = sessionStorage.getItem(TUTORIAL_STORAGE_KEY);
-    const allSessionStorage = {};
-    for (let i = 0; i < sessionStorage.length; i++) {
-        const key = sessionStorage.key(i);
-        allSessionStorage[key] = sessionStorage.getItem(key);
-    }
-    fetch('http://127.0.0.1:7243/ingest/8dcb6af8-5793-4126-9375-8fe5024c7cdb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:checkAndShowTutorial',message:'Tutorial check',data:{tutorialShown,storageKey:TUTORIAL_STORAGE_KEY,allSessionStorage,typeOfTutorialShown:typeof tutorialShown},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
     if (!tutorialShown) {
-        // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/8dcb6af8-5793-4126-9375-8fe5024c7cdb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:checkAndShowTutorial',message:'Tutorial not shown, scheduling display',data:{delay:500},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-        // #endregion
         // 延迟显示，确保模型已加载完成
         setTimeout(() => {
-            // #region agent log
-            fetch('http://127.0.0.1:7243/ingest/8dcb6af8-5793-4126-9375-8fe5024c7cdb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:checkAndShowTutorial',message:'setTimeout callback executing, calling showTutorial',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-            // #endregion
             showTutorial();
         }, 500);
-    } else {
-        // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/8dcb6af8-5793-4126-9375-8fe5024c7cdb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:checkAndShowTutorial',message:'Tutorial already shown, skipping',data:{tutorialShownValue:tutorialShown},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-        // #endregion
     }
 }
 
@@ -864,34 +877,13 @@ window.resetTutorial = function() {
 };
 
 function showTutorial() {
-    // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/8dcb6af8-5793-4126-9375-8fe5024c7cdb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:showTutorial',message:'showTutorial called',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
     const overlay = document.getElementById('gesture-tutorial-overlay');
-    // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/8dcb6af8-5793-4126-9375-8fe5024c7cdb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:showTutorial',message:'Overlay lookup',data:{overlayExists:!!overlay,overlayId:overlay?.id,overlayClasses:overlay?.className,overlayDisplay:overlay?.style?.display,overlayVisibility:overlay?.style?.visibility},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-    // #endregion
     if (!overlay) {
-        // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/8dcb6af8-5793-4126-9375-8fe5024c7cdb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:showTutorial',message:'Overlay not found',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-        // #endregion
         console.warn('Tutorial overlay not found');
         return;
     }
     
-    // #region agent log
-    const hasHiddenClass = overlay.classList.contains('hidden');
-    const beforeDisplay = window.getComputedStyle(overlay).display;
-    const beforeVisibility = window.getComputedStyle(overlay).visibility;
-    fetch('http://127.0.0.1:7243/ingest/8dcb6af8-5793-4126-9375-8fe5024c7cdb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:showTutorial',message:'Before removing hidden class',data:{hasHiddenClass,beforeDisplay,beforeVisibility,overlayClasses:overlay.className},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-    // #endregion
     overlay.classList.remove('hidden');
-    // #region agent log
-    const afterDisplay = window.getComputedStyle(overlay).display;
-    const afterVisibility = window.getComputedStyle(overlay).visibility;
-    const afterHasHidden = overlay.classList.contains('hidden');
-    fetch('http://127.0.0.1:7243/ingest/8dcb6af8-5793-4126-9375-8fe5024c7cdb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:showTutorial',message:'After removing hidden class',data:{afterHasHidden,afterDisplay,afterVisibility,overlayClasses:overlay.className},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-    // #endregion
     
     // 显示视频容器以便手势跟踪
     const videoContainer = document.getElementById('video-container');
@@ -902,9 +894,6 @@ function showTutorial() {
     tutorialCurrentStep = 1;
     updateTutorialStep();
     initTutorialEvents();
-    // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/8dcb6af8-5793-4126-9375-8fe5024c7cdb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:showTutorial',message:'Tutorial displayed',data:{currentStep:tutorialCurrentStep,finalDisplay:window.getComputedStyle(overlay).display,finalVisibility:window.getComputedStyle(overlay).visibility},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
     console.log('Tutorial shown');
 }
 
@@ -935,7 +924,7 @@ function updateTutorialStep() {
         prevBtn.disabled = tutorialCurrentStep === 1;
     }
     if (nextBtn) {
-        nextBtn.textContent = tutorialCurrentStep === TUTORIAL_TOTAL_STEPS ? '完成' : '下一步';
+        nextBtn.textContent = tutorialCurrentStep === TUTORIAL_TOTAL_STEPS ? t('explorer.tutorialDone') : t('explorer.tutorialNext');
     }
     
     // 更新指示点
@@ -1032,9 +1021,6 @@ function initTutorialEvents() {
  * 初始化教程手势跟踪（用于步骤2的圆圈演示）
  */
 async function initTutorialGestureTracking() {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:initTutorialGestureTracking',message:'Function entry',data:{hasExistingTracker:!!tutorialHandTracker},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
     // 如果已经初始化，先停止
     if (tutorialHandTracker) {
         stopTutorialGestureTracking();
@@ -1042,9 +1028,6 @@ async function initTutorialGestureTracking() {
     
     // 获取圆圈元素
     tutorialDemoCircle = document.querySelector('.model-demo-rotate');
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:initTutorialGestureTracking',message:'Circle element lookup',data:{circleFound:!!tutorialDemoCircle,selector:'.model-demo-rotate'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-    // #endregion
     if (!tutorialDemoCircle) {
         return;
     }
@@ -1057,9 +1040,6 @@ async function initTutorialGestureTracking() {
     
     // 获取视频元素
     const videoElement = document.getElementById('input_video');
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:initTutorialGestureTracking',message:'Video element lookup',data:{videoElementFound:!!videoElement,videoElementId:'input_video'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
     if (!videoElement) {
         return;
     }
@@ -1071,17 +1051,8 @@ async function initTutorialGestureTracking() {
         });
         
         await tutorialHandTracker.init();
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:initTutorialGestureTracking',message:'HandTracker initialized',data:{trackerCreated:!!tutorialHandTracker},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-        // #endregion
         tutorialHandTracker.start();
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:initTutorialGestureTracking',message:'HandTracker started',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-        // #endregion
     } catch (error) {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:initTutorialGestureTracking',message:'HandTracker init error',data:{errorMessage:error.message,errorStack:error.stack},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-        // #endregion
         console.warn('Failed to init tutorial gesture tracking:', error);
     }
 }
@@ -1102,13 +1073,7 @@ function stopTutorialGestureTracking() {
  * 处理教程手势
  */
 function handleTutorialGesture(gesture) {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:handleTutorialGesture',message:'Function entry - ALL gestures',data:{hasCircle:!!tutorialDemoCircle,currentStep:tutorialCurrentStep,gestureState:gesture?.state,gestureStateName:gesture?.state === GestureState.SINGLE_HAND_PINCH ? 'SINGLE_HAND_PINCH' : gesture?.state === GestureState.TWO_HAND_PINCH ? 'TWO_HAND_PINCH' : gesture?.state === GestureState.NONE ? 'NONE' : 'UNKNOWN',handCount:gesture?.handCount,hasData:!!gesture?.data,hasPalm:!!gesture?.data?.palm},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
     if (!tutorialDemoCircle || tutorialCurrentStep !== 2) {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:handleTutorialGesture',message:'Early return',data:{hasCircle:!!tutorialDemoCircle,currentStep:tutorialCurrentStep},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'D'})}).catch(()=>{});
-        // #endregion
         return;
     }
     
@@ -1117,16 +1082,10 @@ function handleTutorialGesture(gesture) {
     const isSingleHandPinch = gesture.state === GestureState.SINGLE_HAND_PINCH;
     const hasValidData = gesture.data && gesture.data.palm;
     
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:handleTutorialGesture',message:'Gesture state check',data:{isSingleHandPinch,hasValidData,gestureState:gesture?.state,gestureStateName:gesture?.state === GestureState.SINGLE_HAND_PINCH ? 'SINGLE_HAND_PINCH' : gesture?.state === GestureState.TWO_HAND_PINCH ? 'TWO_HAND_PINCH' : gesture?.state === GestureState.NONE ? 'NONE' : 'UNKNOWN',expectedState:GestureState.SINGLE_HAND_PINCH},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'D'})}).catch(()=>{});
-    // #endregion
     
     // 如果不是单手捏合，立即重置并返回（不处理任何其他手势）
     if (!isSingleHandPinch) {
         if (tutorialLastPalmPos) {
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:handleTutorialGesture',message:'Not SINGLE_HAND_PINCH - resetting',data:{gestureState:gesture?.state,gestureStateName:gesture?.state === GestureState.TWO_HAND_PINCH ? 'TWO_HAND_PINCH' : gesture?.state === GestureState.NONE ? 'NONE' : 'UNKNOWN'},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'D'})}).catch(()=>{});
-            // #endregion
             tutorialLastPalmPos = null;
         }
         return;
@@ -1138,9 +1097,6 @@ function handleTutorialGesture(gesture) {
         
         if (!tutorialLastPalmPos) {
             tutorialLastPalmPos = { x: palm.x, y: palm.y };
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:handleTutorialGesture',message:'Initial palm position set',data:{palmX:palm.x,palmY:palm.y},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-            // #endregion
             return;
         }
         
@@ -1161,9 +1117,6 @@ function handleTutorialGesture(gesture) {
         // 限制旋转角度范围
         tutorialRotationX = Math.max(-90, Math.min(90, tutorialRotationX));
         
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:handleTutorialGesture',message:'Rotation calculated',data:{deltaX,deltaY,oldRotationY,oldRotationX,newRotationY:tutorialRotationY,newRotationX:tutorialRotationX},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-        // #endregion
         
         // 更新圆圈
         updateTutorialDemoCircle();
@@ -1173,9 +1126,6 @@ function handleTutorialGesture(gesture) {
     } else {
         // 手势结束，重置上次位置
         tutorialLastPalmPos = null;
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:handleTutorialGesture',message:'Gesture not SINGLE_HAND_PINCH',data:{gestureState:gesture?.state,hasData:!!gesture?.data,hasPalm:!!gesture?.data?.palm},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-        // #endregion
     }
 }
 
@@ -1184,17 +1134,11 @@ function handleTutorialGesture(gesture) {
  */
 function updateTutorialDemoCircle() {
     if (!tutorialDemoCircle) {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:updateTutorialDemoCircle',message:'Circle element not found',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-        // #endregion
         return;
     }
     
     const transformValue = `rotateY(${tutorialRotationY}deg) rotateX(${tutorialRotationX}deg)`;
     tutorialDemoCircle.style.transform = transformValue;
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'explorer.js:updateTutorialDemoCircle',message:'Transform applied',data:{rotationY:tutorialRotationY,rotationX:tutorialRotationX,transformValue,actualTransform:tutorialDemoCircle.style.transform},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-    // #endregion
 }
 
 // --- 鼠标交互 ---
@@ -1417,7 +1361,7 @@ function pauseBackgroundWork() {
 function resumeBackgroundWork() {
     if (renderController) renderController.start();
     animate();
-    if (currentView === 'viewer' && gestureController?.enabled) gestureController.start();
+    if (currentView === 'viewer' && cameraVisible && gestureController?.enabled) gestureController.start();
 }
 
 /**
@@ -1444,6 +1388,22 @@ function onWindowResize() {
     if (css2DRenderer) css2DRenderer.setSize(window.innerWidth, window.innerHeight);
 }
 
+// 摄像头显示/隐藏切换
+function toggleCamera(show) {
+    cameraVisible = show;
+    const videoContainer = document.getElementById('video-container');
+    const cameraCard = document.getElementById('camera-toggle-card');
+    if (show) {
+        if (videoContainer) videoContainer.classList.remove('hidden');
+        if (cameraCard) cameraCard.classList.add('hidden');
+        if (gestureController && gestureController.enabled) gestureController.start();
+    } else {
+        if (videoContainer) videoContainer.classList.add('hidden');
+        if (cameraCard) cameraCard.classList.remove('hidden');
+        if (gestureController) gestureController.stop();
+    }
+}
+
 // 显示知识卡片
 function showKnowledgeCard(orbitalId) {
     const knowledge = getOrbitalKnowledge(orbitalId);
@@ -1458,13 +1418,21 @@ function showKnowledgeCard(orbitalId) {
     }
     
     // 构建知识卡片内容
-    let html = `<div class="knowledge-title">${knowledge.title}</div>`;
+    const lang = (window.I18N && window.I18N.getLang) ? window.I18N.getLang() : 'zh';
+    const kTitle = (typeof knowledge.title === 'object') ? (knowledge.title[lang] || knowledge.title.zh) : knowledge.title;
+    const kOrbitalType = (typeof knowledge.basicInfo.orbitalType === 'object') ? (knowledge.basicInfo.orbitalType[lang] || knowledge.basicInfo.orbitalType.zh) : knowledge.basicInfo.orbitalType;
+    const kDescription = (typeof knowledge.basicInfo.description === 'object') ? (knowledge.basicInfo.description[lang] || knowledge.basicInfo.description.zh) : knowledge.basicInfo.description;
+    const kShape = (typeof knowledge.shapeFeatures.shape === 'object') ? (knowledge.shapeFeatures.shape[lang] || knowledge.shapeFeatures.shape.zh) : knowledge.shapeFeatures.shape;
+    const kSymmetry = (typeof knowledge.shapeFeatures.symmetry === 'object') ? (knowledge.shapeFeatures.symmetry[lang] || knowledge.shapeFeatures.symmetry.zh) : knowledge.shapeFeatures.symmetry;
+    const kNodes = (typeof knowledge.shapeFeatures.nodes === 'object') ? (knowledge.shapeFeatures.nodes[lang] || knowledge.shapeFeatures.nodes.zh) : knowledge.shapeFeatures.nodes;
+    
+    let html = `<div class="knowledge-title">${kTitle}</div>`;
     
     // 基本信息部分
     html += '<div class="knowledge-section">';
-    html += '<div class="knowledge-section-title">基本信息</div>';
+    html += `<div class="knowledge-section-title">${t('explorer.basicInfo')}</div>`;
     html += `<div class="knowledge-item">
-        <div class="knowledge-item-label">量子数</div>
+        <div class="knowledge-item-label">${t('explorer.quantumNumbers')}</div>
         <div class="knowledge-item-value">
             n = <strong>${knowledge.basicInfo.quantumNumbers.n}</strong>, 
             l = <strong>${knowledge.basicInfo.quantumNumbers.l}</strong>, 
@@ -1472,29 +1440,29 @@ function showKnowledgeCard(orbitalId) {
         </div>
     </div>`;
     html += `<div class="knowledge-item">
-        <div class="knowledge-item-label">轨道类型</div>
-        <div class="knowledge-item-value">${knowledge.basicInfo.orbitalType}</div>
+        <div class="knowledge-item-label">${t('explorer.orbitalType')}</div>
+        <div class="knowledge-item-value">${kOrbitalType}</div>
     </div>`;
     html += `<div class="knowledge-item">
-        <div class="knowledge-item-label">描述</div>
-        <div class="knowledge-item-value">${knowledge.basicInfo.description}</div>
+        <div class="knowledge-item-label">${t('explorer.description')}</div>
+        <div class="knowledge-item-value">${kDescription}</div>
     </div>`;
     html += '</div>';
     
     // 形状特征部分
     html += '<div class="knowledge-section">';
-    html += '<div class="knowledge-section-title">形状特征</div>';
+    html += `<div class="knowledge-section-title">${t('explorer.shapeFeatures')}</div>`;
     html += `<div class="knowledge-item">
-        <div class="knowledge-item-label">形状</div>
-        <div class="knowledge-item-value">${knowledge.shapeFeatures.shape}</div>
+        <div class="knowledge-item-label">${t('explorer.shape')}</div>
+        <div class="knowledge-item-value">${kShape}</div>
     </div>`;
     html += `<div class="knowledge-item">
-        <div class="knowledge-item-label">对称性</div>
-        <div class="knowledge-item-value">${knowledge.shapeFeatures.symmetry}</div>
+        <div class="knowledge-item-label">${t('explorer.symmetry')}</div>
+        <div class="knowledge-item-value">${kSymmetry}</div>
     </div>`;
     html += `<div class="knowledge-item">
-        <div class="knowledge-item-label">节点数</div>
-        <div class="knowledge-item-value">${knowledge.shapeFeatures.nodes}</div>
+        <div class="knowledge-item-label">${t('explorer.nodes')}</div>
+        <div class="knowledge-item-value">${kNodes}</div>
     </div>`;
     html += '</div>';
     

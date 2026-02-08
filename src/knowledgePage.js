@@ -9,6 +9,15 @@ function bold(html) {
   return String(html).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
 }
 
+/** Extract current-language string from a bilingual {zh, en} object, or return as-is if plain string */
+function L(val) {
+  if (val && typeof val === 'object' && (val.zh || val.en)) {
+    var lang = (window.I18N && window.I18N.getLang) ? window.I18N.getLang() : 'zh';
+    return val[lang] || val.zh || val.en || '';
+  }
+  return val || '';
+}
+
 /** 将文字中的数学表达式包裹在 $...$ 中，以便 MathJax 渲染 */
 function wrapMathExpressions(text) {
   // 如果已经包含 $，说明已经被处理过，直接返回
@@ -117,7 +126,10 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!KNOWLEDGE_BASE || KNOWLEDGE_BASE.length === 0) {
     const contentEl = document.getElementById('knowledge-content');
     if (contentEl) {
-      contentEl.innerHTML = '<div class="glass-panel"><p style="color: rgba(255, 255, 255, 0.7);">知识库数据加载失败，请刷新页面重试。</p></div>';
+      var errMsg = (window.I18N && window.I18N.getLang() === 'en')
+        ? 'Knowledge base failed to load. Please refresh the page.'
+        : '知识库数据加载失败，请刷新页面重试。';
+      contentEl.innerHTML = '<div class="glass-panel"><p style="color: rgba(255, 255, 255, 0.7);">' + errMsg + '</p></div>';
     }
     console.error('知识库数据未加载：KNOWLEDGE_BASE 为空或未定义');
     return;
@@ -720,19 +732,19 @@ document.addEventListener('DOMContentLoaded', () => {
     panel.id = sec.id;
 
     const h2 = document.createElement('h2');
-    h2.textContent = sec.title;
+    h2.textContent = L(sec.title);
     panel.appendChild(h2);
 
     for (const ch of sec.children || []) {
       const h3 = document.createElement('h3');
       h3.id = ch.id;
-      h3.textContent = ch.title;
+      h3.textContent = L(ch.title);
       panel.appendChild(h3);
 
       for (const text of ch.content || []) {
         const p = document.createElement('p');
         // 先处理数学表达式，再处理加粗
-        const processedText = wrapMathExpressions(text);
+        const processedText = wrapMathExpressions(L(text));
         p.innerHTML = bold(processedText);
         panel.appendChild(p);
       }
@@ -775,18 +787,18 @@ document.addEventListener('DOMContentLoaded', () => {
     panel.id = child.id;
 
     const h2 = document.createElement('h2');
-    h2.textContent = sec.title;
+    h2.textContent = L(sec.title);
     panel.appendChild(h2);
 
     const h3 = document.createElement('h3');
     h3.id = child.id;
-    h3.textContent = child.title;
+    h3.textContent = L(child.title);
     panel.appendChild(h3);
 
     for (const text of child.content || []) {
       const p = document.createElement('p');
       // 先处理数学表达式，再处理加粗
-      const processedText = wrapMathExpressions(text);
+      const processedText = wrapMathExpressions(L(text));
       p.innerHTML = bold(processedText);
       panel.appendChild(p);
     }
@@ -894,7 +906,7 @@ document.addEventListener('DOMContentLoaded', () => {
     a.href = '#' + sec.id;
     a.setAttribute('data-id', sec.id);
     a.className = 'knowledge-section-title';
-    a.textContent = sec.title;
+    a.textContent = L(sec.title);
     
     // 如果有子标题，添加下拉箭头
     if (sec.children && sec.children.length > 0) {
@@ -938,7 +950,7 @@ document.addEventListener('DOMContentLoaded', () => {
         childLink.href = '#' + ch.id;
         childLink.setAttribute('data-id', ch.id);
         childLink.className = 'knowledge-child-item';
-        childLink.textContent = ch.title;
+        childLink.textContent = L(ch.title);
         childLink.addEventListener('click', (e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -1030,6 +1042,46 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }, 500);
   // #endregion
+
+  // ---- i18n: re-render TOC titles and current content on language change ----
+  if (window.I18N && window.I18N.onLangChange) {
+    window.I18N.onLangChange(function () {
+      // 1. Update all TOC titles in the sidebar
+      for (const sec of KNOWLEDGE_BASE) {
+        const sectionItem = sectionItemById.get(sec.id);
+        if (!sectionItem) continue;
+        const titleEl = sectionItem.querySelector('.knowledge-section-title');
+        if (titleEl) {
+          // Preserve the toggle arrow span if present
+          const toggle = titleEl.querySelector('.knowledge-section-toggle');
+          titleEl.textContent = L(sec.title);
+          if (toggle) titleEl.appendChild(toggle);
+        }
+        // Update child links
+        const childLinks = sectionItem.querySelectorAll('.knowledge-child-item');
+        if (sec.children) {
+          sec.children.forEach(function (ch, idx) {
+            if (childLinks[idx]) childLinks[idx].textContent = L(ch.title);
+          });
+        }
+      }
+      // 2. Re-render currently active content
+      var activeLink = toc.querySelector('a.active');
+      if (activeLink) {
+        var activeId = activeLink.getAttribute('data-id');
+        if (activeId) {
+          // Check if it's a child or a section
+          var childResult = getChildById(activeId);
+          if (childResult) {
+            renderChild(childResult.section, childResult.child);
+          } else {
+            var sec = getSectionById(activeId);
+            if (sec) renderSection(sec);
+          }
+        }
+      }
+    });
+  }
 
   // 浏览器前进/后退或手动改 hash 时同步
   window.addEventListener('hashchange', () => {

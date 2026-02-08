@@ -409,15 +409,23 @@
     </style>
 </head>
 <body>
+    <script src="src/i18n/i18n.js"></script>
+    <script src="src/i18n/zh.js"></script>
+    <script src="src/i18n/en.js"></script>
+    <script>window.I18N && window.I18N.init();</script>
+
     <div id="page-loader">
-        <div class="loader-text">正在校准量子公式...</div>
+        <div class="loader-text" data-i18n="knowledge.loader">正在校准量子公式...</div>
     </div>
 
     <nav>
-        <a href="index.html">首页</a>
-        <a href="story.html">我们的故事</a>
-        <a href="knowledge.html" class="active">知识库</a>
-        <a href="explorer.html">探测器</a>
+        <div class="nav-links">
+            <a href="index.html" data-i18n="nav.home">首页</a>
+            <a href="story.html" data-i18n="nav.story">我们的故事</a>
+            <a href="knowledge.html" class="active" data-i18n="nav.knowledge">知识库</a>
+            <a href="explorer.html" data-i18n="nav.explorer">探测器</a>
+        </div>
+        <button class="lang-toggle" id="lang-toggle">EN</button>
     </nav>
 
     <div class="page-container">

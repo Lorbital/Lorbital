@@ -187,39 +187,47 @@
     </style>
 </head>
 <body>
+    <script src="src/i18n/i18n.js"></script>
+    <script src="src/i18n/zh.js"></script>
+    <script src="src/i18n/en.js"></script>
+    <script>window.I18N && window.I18N.init();</script>
+
     <div id="page-loader">
-        <div class="loader-text">加载中...</div>
+        <div class="loader-text" data-i18n="story.loader">加载中...</div>
     </div>
     <div id="bg-canvas"></div>
 
     <nav>
-        <a href="index.html">首页</a>
-        <a href="story.html" class="active">我们的故事</a>
-        <a href="knowledge.html">知识库</a>
-        <a href="explorer.html">探测器</a>
+        <div class="nav-links">
+            <a href="index.html" data-i18n="nav.home">首页</a>
+            <a href="story.html" class="active" data-i18n="nav.story">我们的故事</a>
+            <a href="knowledge.html" data-i18n="nav.knowledge">知识库</a>
+            <a href="explorer.html" data-i18n="nav.explorer">探测器</a>
+        </div>
+        <button class="lang-toggle" id="lang-toggle">EN</button>
     </nav>
 
     <div class="story-section">
         <div class="story-card" data-animate>
-            <h1 data-animate="title">我们的故事</h1>
-            <p data-animate style="font-size: 1.2rem; letter-spacing: 2px;"><b>这是半年来，两个高中生试图让电子"看得见"的故事：</b></p>
+            <h1 data-animate="title" data-i18n="story.mainTitle">我们的故事</h1>
+            <p data-animate style="font-size: 1.2rem; letter-spacing: 2px;" data-i18n-html="story.subtitle"><b>这是半年来，两个高中生试图让电子"看得见"的故事：</b></p>
             
-            <h2 data-animate="title">缘起</h2>
-            <p data-animate>在剑桥，<br>教授展示了他的<b>收藏</b>。</p>
+            <h2 data-animate="title" data-i18n="story.origin">缘起</h2>
+            <p data-animate data-i18n-html="story.p1">在剑桥，<br>教授展示了他的<b>收藏</b>。</p>
             <div class="story-image story-image--80" data-animate="image">
                 <img src="public/images/story/图片一.jpg" alt="轨道墙" loading="lazy">
-                <div class="story-image-caption">轨道墙图片，摄于剑桥St Catherine学院</div>
+                <div class="story-image-caption" data-i18n="story.caption1">轨道墙图片，摄于剑桥St Catherine学院</div>
             </div>
-            <p data-animate>电子被<b>"装进了"</b>玻璃里，<br>原本<b>抽象枯燥</b>的概念，忽然拥有了精确且精美的形状。</p>
+            <p data-animate data-i18n-html="story.p2">电子被<b>"装进了"</b>玻璃里，<br>原本<b>抽象枯燥</b>的概念，忽然拥有了精确且精美的形状。</p>
             <div class="story-image" data-animate="image">
                 <img src="public/images/story/图片二.jpg" alt="电子轨道" loading="lazy">
             </div>
-            <p data-animate>那一刻，<br>我们第一次感受到科学的美，<br>在于它能让那些抽象的规律变得清晰、可感。<br>对于大多数同学，电子轨道依然停留在课本上的二维图片。</p>
+            <p data-animate data-i18n-html="story.p3">那一刻，<br>我们第一次感受到科学的美，<br>在于它能让那些抽象的规律变得清晰、可感。<br>对于大多数同学，电子轨道依然停留在课本上的二维图片。</p>
             
-            <p data-animate>那为什么，这样的体验只属于少部分人呢？<br>于是....</p>
+            <p data-animate data-i18n-html="story.p4">那为什么，这样的体验只属于少部分人呢？<br>于是....</p>
 
-            <h2 data-animate="title">行动</h2>
-            <p data-animate>我们从<b>一切本源</b>的理论出发：<b>波函数、薛定谔方程</b>，<br>经过反复地调试与打磨，<br>最终，<b>遵循量子规律</b>的电子云模型，呈现在我们眼前。</p>
+            <h2 data-animate="title" data-i18n="story.action">行动</h2>
+            <p data-animate data-i18n-html="story.p5">我们从<b>一切本源</b>的理论出发：<b>波函数、薛定谔方程</b>，<br>经过反复地调试与打磨，<br>最终，<b>遵循量子规律</b>的电子云模型，呈现在我们眼前。</p>
             <div class="story-images-row">
                 <div class="story-image" data-animate="image">
                     <img src="public/images/story/图片三.jpg" alt="电子云模型" loading="lazy">
@@ -228,19 +236,19 @@
                     <img src="public/images/story/图片四.jpg" alt="电子云模型" loading="lazy">
                 </div>
             </div>
-            <p data-animate style="font-size: 1.2em;"><b>但，这还不够。</b></p>
-            <p data-animate>为了让"看见"更<b>无界，更身临其境</b>，<br>我们搭建了这个网站。<br>在这里，<b>单一角度</b>的平面图被投放于<b>三维世界</b>，<br><b>指尖轻移</b>，便可<b>探索</b>每一片电子云。</p>
+            <p data-animate style="font-size: 1.2em;" data-i18n-html="story.p6"><b>但，这还不够。</b></p>
+            <p data-animate data-i18n-html="story.p7">为了让"看见"更<b>无界，更身临其境</b>，<br>我们搭建了这个网站。<br>在这里，<b>单一角度</b>的平面图被投放于<b>三维世界</b>，<br><b>指尖轻移</b>，便可<b>探索</b>每一片电子云。</p>
 
-            <h2 data-animate="title">愿景</h2>
-            <p data-animate><b>我们相信，理解世界的工具，本身就应该是一种美。<br>而我们，正从让电子"被看见"开始。</b></p>
+            <h2 data-animate="title" data-i18n="story.vision">愿景</h2>
+            <p data-animate data-i18n-html="story.p8"><b>我们相信，理解世界的工具，本身就应该是一种美。<br>而我们，正从让电子"被看见"开始。</b></p>
             
-            <p data-animate>未来，我们希望这里能成为一个<b>共同</b>的<b>"科学之家"</b>----<br>一个不止于讨论，更能让<b>灵魂碰撞</b>，让<b>好奇生根</b>的地方。</p>
+            <p data-animate data-i18n-html="story.p9">未来，我们希望这里能成为一个<b>共同</b>的<b>"科学之家"</b>----<br>一个不止于讨论，更能让<b>灵魂碰撞</b>，让<b>好奇生根</b>的地方。</p>
             
-            <p data-animate>推开这扇门，加入<b>探索者</b>的行列：<br>Lorbital_official（微信号）</p>
+            <p data-animate data-i18n-html="story.p10">推开这扇门，加入<b>探索者</b>的行列：<br>Lorbital_official（微信号）</p>
             
-            <p data-animate>将<b>科学之美</b>留在身边：<br><a href="#" style="color: var(--accent); text-decoration: underline;">online shop link</a></p>
+            <p data-animate data-i18n-html="story.p11">将<b>科学之美</b>留在身边：<br><a href="#" style="color: var(--accent); text-decoration: underline;">online shop link</a></p>
             
-            <p data-animate style="margin-top: 40px;"><b>我们期待与你一起，从"看见"电子，到理解万物，直至真正热爱上科学本身。</b></p>
+            <p data-animate style="margin-top: 40px;" data-i18n-html="story.p12"><b>我们期待与你一起，从"看见"电子，到理解万物，直至真正热爱上科学本身。</b></p>
         </div>
 
         <div class="footer-note" data-animate>THE QUANTUM ORBITAL PROJECT</div>
