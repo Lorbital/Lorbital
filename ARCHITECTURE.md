@@ -36,7 +36,7 @@
 
 ---
 
-## 数据流图
+## 数据流程图
 
 ```mermaid
 flowchart TB
