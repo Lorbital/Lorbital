@@ -1,4 +1,4 @@
-# Lorbital — Quantum Electron Orbital Glass Sculpture System
+# Lorbital — Quantum Electron Orbital Visual System
 
 **量子电子云玻璃内雕系统**
 
