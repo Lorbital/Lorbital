@@ -55,18 +55,6 @@
             box-shadow: 0 0 40px var(--accent-glow); 
         }
     </style>
-    <script>
-        // #region agent log
-        (function() {
-            const themeColorMeta = document.querySelector('meta[name="theme-color"]');
-            const colorSchemeMeta = document.querySelector('meta[name="color-scheme"]');
-            const appleMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
-            const navStyle = window.getComputedStyle(document.querySelector('nav'));
-            const bodyStyle = window.getComputedStyle(document.body);
-            fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'index.html:head',message:'Theme color meta tags check',data:{themeColor:themeColorMeta?themeColorMeta.content:'not found',colorScheme:colorSchemeMeta?colorSchemeMeta.content:'not found',appleMeta:appleMeta?appleMeta.content:'not found',navBackground:navStyle.background,navBackdropFilter:navStyle.backdropFilter,bodyBackground:bodyStyle.background,userAgent:navigator.userAgent},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-        })();
-        // #endregion
-    </script>
 </head>
 <body>
     <script src="src/i18n/i18n.js"></script>

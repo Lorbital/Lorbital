@@ -244,7 +244,7 @@ function getDefaultMetadata(orbitalId) {
     type: type,
     displayName: orbitalId,
     description: `${orbitalId}轨道`,
-    pointCount: 500000,
+    pointCount: 150000,
     physicalDiameter: 0.529 * n * n,
     recommendedScale: 1.0,
     // 不设置默认颜色，使用PLY文件中的原始颜色

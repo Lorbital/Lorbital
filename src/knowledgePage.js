@@ -675,51 +675,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   // #endregion
 
-  // #region agent log
-  // Debug: 检查侧边栏和 nav 元素的尺寸和样式
-  setTimeout(() => {
-    const sidebar = toc.closest('.knowledge-sidebar');
-    if (sidebar && toc) {
-      const sidebarRect = sidebar.getBoundingClientRect();
-      const tocRect = toc.getBoundingClientRect();
-      const computedSidebar = window.getComputedStyle(sidebar);
-      const computedToc = window.getComputedStyle(toc);
-      const rootStyles = getComputedStyle(document.documentElement);
-      
-      fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          location: 'knowledgePage.js:110',
-          message: 'Sidebar and nav dimensions check',
-          data: {
-            sidebarHeight: sidebarRect.height,
-            sidebarComputedHeight: computedSidebar.height,
-            sidebarDisplay: computedSidebar.display,
-            sidebarFlexDirection: computedSidebar.flexDirection,
-            tocHeight: tocRect.height,
-            tocComputedHeight: computedToc.height,
-            tocFlex: computedToc.flex,
-            tocFlexGrow: computedToc.flexGrow,
-            tocFlexShrink: computedToc.flexShrink,
-            tocFlexBasis: computedToc.flexBasis,
-            tocMinHeight: computedToc.minHeight,
-            tocDisplay: computedToc.display,
-            navHeight: rootStyles.getPropertyValue('--nav-height'),
-            sidebarGap: rootStyles.getPropertyValue('--sidebar-gap'),
-            viewportHeight: window.innerHeight
-          },
-          timestamp: Date.now(),
-          sessionId: 'debug-session',
-          runId: 'run1',
-          hypothesisId: 'A,B,C'
-        })
-      }).catch(() => {});
-    }
-  }, 100);
-  // #endregion
-
-
   /** 渲染某一模块到中间区域 */
   function renderSection(sec) {
     if (!sec) {
@@ -1003,45 +958,6 @@ document.addEventListener('DOMContentLoaded', () => {
       history.replaceState(null, '', '#' + first.id);
     }
   }
-
-  // #region agent log
-  // Debug: 检查初始渲染后的尺寸
-  setTimeout(() => {
-    const sidebar = toc.closest('.knowledge-sidebar');
-    if (sidebar && toc) {
-      const sidebarRect = sidebar.getBoundingClientRect();
-      const tocRect = toc.getBoundingClientRect();
-      const computedSidebar = window.getComputedStyle(sidebar);
-      const computedToc = window.getComputedStyle(toc);
-      
-      fetch('http://127.0.0.1:7242/ingest/850e76a1-caf4-489c-9914-1d5532476236', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          location: 'knowledgePage.js:410',
-          message: 'After initial render dimensions check',
-          data: {
-            sidebarHeight: sidebarRect.height,
-            sidebarComputedHeight: computedSidebar.height,
-            tocHeight: tocRect.height,
-            tocComputedHeight: computedToc.height,
-            tocOffsetHeight: toc.offsetHeight,
-            tocScrollHeight: toc.scrollHeight,
-            tocClientHeight: toc.clientHeight,
-            tocFlex: computedToc.flex,
-            tocAlignSelf: computedToc.alignSelf,
-            tocParentDisplay: computedSidebar.display,
-            tocParentFlexDirection: computedSidebar.flexDirection
-          },
-          timestamp: Date.now(),
-          sessionId: 'debug-session',
-          runId: 'run1',
-          hypothesisId: 'A,B,D'
-        })
-      }).catch(() => {});
-    }
-  }, 500);
-  // #endregion
 
   // ---- i18n: re-render TOC titles and current content on language change ----
   if (window.I18N && window.I18N.onLangChange) {

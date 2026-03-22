@@ -240,7 +240,7 @@ models/model++/
   "type": "s",
   "displayName": "1s",
   "description": "基态氢原子轨道，球对称",
-  "pointCount": 500000,
+  "pointCount": 150000,
   "physicalDiameter": 0.529,
   "recommendedScale": 1.0,
   "color": "#00ffff",

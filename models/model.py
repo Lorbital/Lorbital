@@ -17,6 +17,15 @@ class QuantumOrbitalEngine:
 
         print(f"| 系统 | 引擎已启动。计算设备: {self.device}")
 
+    def orbital_id_to_disk_name(self, orbital_id):
+        """将 UI 轨道 ID 转为磁盘上的旧命名。"""
+        parts = orbital_id.split("_", 1)
+        if len(parts) == 2 and parts[0][-1] in "dfg":
+            prefix, suffix = parts
+            orbital_type = prefix[-1]
+            return f"{prefix}_{orbital_type}{suffix}"
+        return orbital_id
+
     def gen_laguerre(self, k, alpha, x):
         if k == 0: return torch.ones_like(x)
         if k == 1: return (alpha + 1 - x)
@@ -89,7 +98,7 @@ class QuantumOrbitalEngine:
 
         return torch.ones_like(theta), "error"
 
-    def sample_and_save(self, n, l, m_idx, num_points=250000):
+    def sample_and_save(self, n, l, m_idx, num_points=150000):
         l_char = "spdfg"[l]
         _, orb_name = self.get_angular_data(l, m_idx, torch.tensor([0.0]), torch.tensor([0.0]))
         # 1. full_name：s/p 不变；d/f/g 用 {n}{d|f|g}_{suffix}，suffix=去首字母，f 先做 fxx2-3y2→x(x2-3y2)、fyy2-3x2→y(x2-z2)
@@ -104,8 +113,9 @@ class QuantumOrbitalEngine:
                 suffix = orb_name[1:]  # 去首字母 d/f/g
             full_name = f"{n}{l_char}_{suffix}"  # 3d_z2, 4f_z3, 5g_z4 等
 
-        # 2. 目录：models/model++/{type}/{orbitalId}/，与 README 一致
-        dir_path = os.path.join(self.root_dir, l_char, full_name)
+        # 2. 磁盘路径：d/f/g 仍使用旧命名，需与前端的 orbitalIdToPathName 保持一致
+        disk_name = self.orbital_id_to_disk_name(full_name)
+        dir_path = os.path.join(self.root_dir, l_char, disk_name)
         os.makedirs(dir_path, exist_ok=True)
 
         # 3. 采样逻辑
@@ -143,7 +153,7 @@ class QuantumOrbitalEngine:
                     pbar.update(1)
 
         # 5. 写入 PLY
-        save_path = os.path.join(dir_path, f"{full_name}.ply")
+        save_path = os.path.join(dir_path, f"{disk_name}.ply")
         with open(save_path, 'w') as f:
             f.write(f"ply\nformat ascii 1.0\nelement vertex {len(points)}\n")
             f.write("property float x\nproperty float y\nproperty float z\n")

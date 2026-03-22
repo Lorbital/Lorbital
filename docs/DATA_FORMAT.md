@@ -30,7 +30,7 @@ models/model++/{type}/{orbital_id}/{orbital_id}.ply
 ```ply
 ply
 format ascii 1.0
-element vertex 500000
+element vertex 150000
 property float x
 property float y
 property float z
@@ -108,7 +108,7 @@ models/model++/{type}/{orbital_id}/meta.json
   "type": "s",
   "displayName": "1s",
   "description": "基态氢原子轨道，球对称",
-  "pointCount": 500000,
+  "pointCount": 150000,
   "physicalDiameter": 0.529,
   "recommendedScale": 1.0,
   "color": "#00ffff",
@@ -126,7 +126,7 @@ models/model++/{type}/{orbital_id}/meta.json
 | `type` | string | 是 | 轨道类型字符串 | `"s"`, `"p"`, `"d"`, `"f"` |
 | `displayName` | string | 是 | 显示名称 | `"1s"`, `"2px"`, `"3d (z²)"` |
 | `description` | string | 是 | 描述文本 | `"基态氢原子轨道，球对称"` |
-| `pointCount` | number | 是 | 点云点数 | `500000` |
+| `pointCount` | number | 是 | 点云点数 | `150000` |
 | `physicalDiameter` | number | 是 | 物理直径（Å） | `0.529` |
 | `recommendedScale` | number | 是 | 推荐初始缩放比例 | `1.0` |
 | `color` | string | 否 | 推荐颜色（HEX） | `"#00ffff"` |
