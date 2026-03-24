@@ -1,0 +1,12 @@
+---
+description: 运行/预览本地网站前先读 AGENT_RUN.md（静态站、Python 服务）
+alwaysApply: true
+---
+
+# 本地站点运行
+
+当用户要求**运行网站**、**起本地服务**、**预览**、**打开 localhost** 或同类需求时：
+
+1. **先阅读** 仓库根目录下的 `AGENT_RUN.md`，按其中命令与目录说明执行；不要先全文搜索 README 或猜测是否有 npm 构建。
+2. 本项目为**纯静态站**，无 `package.json`、无打包步骤；用 `python -m http.server`（或文档中的等价写法）即可。
+3. 若工作区为内层 `Lorbital\Lorbital`，网站根目录在上一级；`AGENT_RUN.md` 中的 `--directory ".."` 即为此场景准备。

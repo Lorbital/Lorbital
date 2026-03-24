@@ -277,7 +277,7 @@
             text-decoration: none;
             font-size: 14px;
             font-weight: 500;
-            line-height: 1.4;
+            line-height: 1.35;
             transition: color 0.2s, background 0.2s;
             width: 100%;
             box-sizing: border-box;
@@ -285,7 +285,11 @@
             left: auto !important;
             right: auto !important;
             white-space: normal;
-            overflow: visible;
+            overflow: hidden;
+            text-overflow: clip;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+            min-width: 0;
             flex: 1;
             border: none !important;
             border-top: none !important;
@@ -346,10 +350,11 @@
         }
         .knowledge-sidebar .knowledge-child-item {
             display: block;
-            padding: 0.8rem 1.25rem;
+            padding: 0.6rem 1.25rem;
             color: rgba(255, 255, 255, 0.7);
             text-decoration: none;
             font-size: 13px;
+            line-height: 1.35;
             transition: color 0.2s, background 0.2s;
             border-left: 2px solid transparent;
             width: 100%;
@@ -357,9 +362,11 @@
             position: static !important;
             left: auto !important;
             right: auto !important;
-            white-space: nowrap;
-            overflow: visible;
-            text-overflow: ellipsis;
+            white-space: normal;
+            overflow: hidden;
+            text-overflow: clip;
+            overflow-wrap: anywhere;
+            word-break: break-word;
         }
         .knowledge-sidebar .knowledge-child-item:hover {
             color: var(--accent);

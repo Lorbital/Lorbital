@@ -1,0 +1,5 @@
+{
+  "setup-worktree": [
+    "if (Test-Path package.json) { npm install } else { Write-Output 'No package.json, skip dependency install for static site.' }"
+  ]
+}
