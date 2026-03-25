@@ -697,11 +697,16 @@ document.addEventListener('DOMContentLoaded', () => {
       panel.appendChild(h3);
 
       for (const text of ch.content || []) {
-        const p = document.createElement('p');
-        // 先处理数学表达式，再处理加粗
-        const processedText = wrapMathExpressions(L(text));
-        p.innerHTML = bold(processedText);
-        panel.appendChild(p);
+        const raw = L(text);
+        const isBlock = /^\s*<(table|div)\b/i.test(raw);
+        const el = document.createElement(isBlock ? 'div' : 'p');
+        if (isBlock) {
+          el.className = 'kb-content-html';
+          el.innerHTML = bold(raw);
+        } else {
+          el.innerHTML = bold(wrapMathExpressions(raw));
+        }
+        panel.appendChild(el);
       }
 
       if (ch.formula) {
@@ -751,11 +756,16 @@ document.addEventListener('DOMContentLoaded', () => {
     panel.appendChild(h3);
 
     for (const text of child.content || []) {
-      const p = document.createElement('p');
-      // 先处理数学表达式，再处理加粗
-      const processedText = wrapMathExpressions(L(text));
-      p.innerHTML = bold(processedText);
-      panel.appendChild(p);
+      const raw = L(text);
+      const isBlock = /^\s*<(table|div)\b/i.test(raw);
+      const el = document.createElement(isBlock ? 'div' : 'p');
+      if (isBlock) {
+        el.className = 'kb-content-html';
+        el.innerHTML = bold(raw);
+      } else {
+        el.innerHTML = bold(wrapMathExpressions(raw));
+      }
+      panel.appendChild(el);
     }
 
     if (child.formula) {

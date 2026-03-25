@@ -1,0 +1,1091 @@
+[
+  {
+    "key": "1",
+    "title_zh": "1 轨道与量子基础",
+    "title_en": "1 Orbitals and Quantum Foundations",
+    "children": [
+      {
+        "key": "1.1",
+        "title_zh": "1.1 量子化与原子光谱",
+        "title_en": "1.1 Quantization and Atomic Spectra",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "在经典物理学中，加速运动的电荷应当连续辐射电磁波。然而，当科学家观察高温气体放电时，发现原子发出的并非连续光谱，而是具有特定波长的离散线状光谱（如氢原子的巴耳末系）1。1900年，马克斯·普朗克（Max Planck）提出能量量子化假说（），标志着量子理论的诞生 1。结合普朗克公式与经典力学，尼尔斯·玻尔（Niels Bohr）解释了氢原子的离散发射与吸收光谱，证明了电子只能在特定的“定态”轨道上运行，且轨道角动量是量子化的（）1。这一模型成功推导出了里德伯公式（Rydberg formula）背后的物理常数，揭示了光谱线与能级跃迁（）之间的直接关联 [1, 1]。"
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "In classical physics, accelerating charges should continuously radiate electromagnetic waves. However, when scientists observed high-temperature gas discharges, they found that atoms emitted discrete line spectra at specific wavelengths (such as the Balmer series for hydrogen) rather than continuous spectra.1 In 1900, Max Planck proposed the energy quantization hypothesis (), marking the birth of quantum theory.1 Combining Planck's formula with classical mechanics, Niels Bohr explained the discrete emission and absorption spectra of the hydrogen atom, proving that electrons can only travel in specific \"stationary\" orbits, and that orbital angular momentum is quantized ().1 This model successfully derived the physical constants behind the Rydberg formula, revealing the direct correlation between spectral lines and energy level transitions () [1, 1]."
+          }
+        ]
+      },
+      {
+        "key": "1.2",
+        "title_zh": "1.2 德布罗意关系与物质波",
+        "title_en": "1.2 de Broglie Relation and Matter Waves",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "玻尔模型虽然在解释氢原子光谱上取得了成功，但其设定的固定轨道仍基于经典力学框架。1924年，路易·德布罗意（Louis de Broglie）从光子的波粒二象性中获得启发，提出了物质波假说，指出任何具有质量  和速度  的运动粒子都伴随着特定的波长 ，即德布罗意关系式： 1。这一假说随后被戴维森-革末（Davisson-Germer）的电子衍射实验证实，表明电子具有波的干涉与衍射特性 1。物质波概念否定了电子具有经典确定轨道的模型，为建立现代波动力学铺平了道路。"
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "Although the Bohr model succeeded in explaining the hydrogen spectrum, its fixed orbits were still rooted in the framework of classical mechanics. In 1924, Louis de Broglie, inspired by the wave-particle duality of photons, proposed the matter wave hypothesis, stating that any moving particle with mass  and velocity  is accompanied by a specific wavelength , expressed by the de Broglie relation: .1 This hypothesis was subsequently confirmed by the Davisson-Germer electron diffraction experiment, which demonstrated that electrons exhibit wave interference and diffraction properties.1 The concept of matter waves negated the possibility of electrons having classically defined orbits, paving the way for modern wave mechanics."
+          }
+        ]
+      },
+      {
+        "key": "1.3",
+        "title_zh": "1.3 波函数与概率密度",
+        "title_en": "1.3 Wavefunctions and Probability Density",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "如果电子表现出波动性，那么它应当遵循特定的波动方程。马克斯·玻恩（Max Born）提出了波函数统计诠释：波函数  本身不具有直接的可观测物理量，但其模的平方 （或 ）代表了在空间某一体积元  处找到该粒子的概率密度 1。根据归一化条件，粒子在全空间内存在的总概率必须为1："
+          },
+          {
+            "type": "p",
+            "text": "这一概率诠释与维尔纳·海森堡（Werner Heisenberg）提出的不确定性原理（）在逻辑上相一致：由于波的弥散性质，无法同时精确测定电子的位置与动量 1。因此，原子中的电子不再被视为在特定轨道上运转的质点，而是被描述为分布在原子核周围的“电子云”。"
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "If an electron exhibits wave properties, it must obey a specific wave equation. Max Born proposed the statistical interpretation of the wavefunction: the wavefunction  itself does not represent a directly observable physical quantity, but its modulus squared  (or ) represents the probability density of finding the particle at a specific volume element  in space.1 According to the normalization condition, the total probability of finding the particle within the entire space must equal 1:"
+          },
+          {
+            "type": "p",
+            "text": "This probabilistic interpretation is logically consistent with Werner Heisenberg's uncertainty principle (): due to the dispersive nature of waves, it is impossible to simultaneously and precisely determine an electron's position and momentum.1 Therefore, electrons in an atom are no longer viewed as point masses rotating in specific orbits, but are instead described as \"electron clouds\" distributed around the nucleus."
+          }
+        ]
+      },
+      {
+        "key": "1.4",
+        "title_zh": "1.4 薛定谔方程与定态",
+        "title_en": "1.4 Schrödinger Equation and Stationary States",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "1926年，埃尔温·薛定谔（Erwin Schrödinger）提出了描述微观粒子物质波演化的偏微分方程。对于不随时间演化的定态系统，时间无关的薛定谔方程构成了一个本征值问题："
+          },
+          {
+            "type": "p",
+            "text": "其中， 为哈密顿算符（Hamiltonian operator），包含了体系的动能算符（）与势能算符（）， 则是体系的总能量本征值 [1, 1]。求解该方程即寻找满足特定边界条件的波函数解。对于被限制在特定空间内（如一维势箱）的粒子，物理边界条件迫使其波函数只能采取特定的驻波形式，从而在数学上自然推导出了能量的量子化现象（）1。"
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "In 1926, Erwin Schrödinger proposed a partial differential equation describing the evolution of matter waves for microscopic particles. For stationary systems that do not evolve with time, the time-independent Schrödinger equation poses an eigenvalue problem:"
+          },
+          {
+            "type": "p",
+            "text": "Here,  is the Hamiltonian operator, which includes the kinetic energy operator () and the potential energy operator (), while  is the total energy eigenvalue of the system [1, 1]. Solving this equation means finding a wavefunction that satisfies specific boundary conditions. For a particle confined within a specific space (like a 1D particle in a box), physical boundary conditions force its wavefunction to adopt specific standing wave forms, which mathematically derives the phenomenon of energy quantization ().1"
+          }
+        ]
+      },
+      {
+        "key": "1.5",
+        "title_zh": "1.5 氢原子分离变量与量子数",
+        "title_en": "1.5 Hydrogen Atom Separation of Variables and Quantum Numbers",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "对于氢原子或类氢离子（如 , ），由于势能项  具有球对称性，薛定谔方程可在球极坐标系（）中通过分离变量法精确求解 1。波函数  被分解为径向波函数  和角向波函数  的乘积 1。 方程在满足边界条件时产生了三个描述原子轨道的量子数："
+          },
+          {
+            "type": "p",
+            "text": "主量子数 ：决定了电子的能级和轨道的主要空间尺度， 1。"
+          },
+          {
+            "type": "p",
+            "text": "角量子数 ：决定了轨道的空间形状（），其取值受限于 ，为  1。"
+          },
+          {
+            "type": "p",
+            "text": "磁量子数 ：决定了轨道在三维空间中的取向，其取值受限于 ，为  1。 类氢原子的能量仅由主量子数  决定：，呈现出与玻尔模型一致的能级公式，但摒弃了固定轨道的概念 1。"
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "For the hydrogen atom or hydrogen-like ions (e.g., He+, Li2+), since the potential energy term  possesses spherical symmetry, the Schrödinger equation can be solved precisely using the separation of variables method in spherical polar coordinates .1 The wavefunction  is separated into the product of a radial wavefunction  and an angular wavefunction .1 When satisfying boundary conditions, the equation generates three quantum numbers that describe atomic orbitals:"
+          },
+          {
+            "type": "p",
+            "text": "Principal quantum number : Determines the primary energy level and the main spatial scale of the orbital; .1"
+          },
+          {
+            "type": "p",
+            "text": "Azimuthal (angular momentum) quantum number : Determines the spatial shape of the orbital (s, p, d, f). Its value is restricted by , taking values of .1"
+          },
+          {
+            "type": "p",
+            "text": "Magnetic quantum number : Determines the orientation of the orbital in 3D space. Its value is restricted by , ranging from .1 The energy of a hydrogen-like atom is determined solely by the principal quantum number : , presenting an energy level formula consistent with the Bohr model but completely discarding the concept of fixed orbits.1"
+          }
+        ]
+      },
+      {
+        "key": "1.6",
+        "title_zh": "1.6 节点结构与波函数相位",
+        "title_en": "1.6 Nodal Structure and Wavefunction Phase",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "原子轨道作为三维空间中的驻波，存在振幅为零的节点（Nodes）。节点的总数为 ，其中包含  个角向节点（表现为节面或节锥）和  个径向节点（表现为球面）1。跨越任何一个节点时，波函数的数学相位（正负号）发生反转。波函数的相位在孤立原子中不影响电子的概率密度（因  始终为非负值），但在分子成键过程中，不同原子轨道相位的匹配直接决定了重叠积分的正负，进而决定是形成建设性的成键作用还是破坏性的反键作用 1。"
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "As standing waves in 3D space, atomic orbitals possess nodes where the amplitude is zero. The total number of nodes is , which comprises  angular nodes (manifested as nodal planes or cones) and  radial nodes (manifested as spherical nodes).1 Crossing any node causes the mathematical phase (positive or negative sign) of the wavefunction to reverse. In an isolated atom, the phase of the wavefunction does not affect the probability density of the electron (since  is always non-negative). However, during molecular bond formation, the phase matching between different atomic orbitals directly dictates whether the overlap integral is positive or negative, which in turn determines whether the interaction is a constructive bonding interaction or a destructive antibonding interaction.1"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "key": "2",
+    "title_zh": "2 多电子原子与电子排布",
+    "title_en": "2 Multi-Electron Atoms and Electron Configurations",
+    "children": [
+      {
+        "key": "2.1",
+        "title_zh": "2.1 屏蔽、穿透与有效核电荷",
+        "title_en": "2.1 Shielding, Penetration, and Effective Nuclear Charge",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "多电子体系中引入了电子-电子之间的库仑斥力项（），导致薛定谔方程无法精确求解 1。在独立粒子模型近似下，研究引入了“有效核电荷（）”的概念。 内层电子部分遮蔽了原子核对外部电子的吸引力，这种现象称为屏蔽效应 1。通过分析径向分布函数（Radial Distribution Function, RDF，即在距离核  处极薄球壳内找到电子的概率 ），可以观察到  轨道的电子云在靠近原子核的区域存在一定的概率峰 [1, 1]。这种“穿透效应（Penetration）”使得  轨道电子能够部分避开内层电子的屏蔽，感受到比同层  轨道或  轨道更高的有效核电荷 1。这一物理机制打破了单电子原子中同一主量子数下的能级简并，导致多电子原子中  的能量顺序 1。"
+          },
+          {
+            "type": "tbl",
+            "rows": [
+              [
+                "元素",
+                "1s Zeff​",
+                "2s Zeff​",
+                "2p Zeff​"
+              ],
+              [
+                "铍 (Be)",
+                "3.68",
+                "1.91",
+                "-"
+              ],
+              [
+                "碳 (C)",
+                "5.67",
+                "3.22",
+                "3.14"
+              ],
+              [
+                "氧 (O)",
+                "7.66",
+                "4.49",
+                "4.45"
+              ],
+              [
+                "氖 (Ne)",
+                "9.64",
+                "5.76",
+                "5.76"
+              ]
+            ]
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "In multi-electron systems, the introduction of the electron-electron Coulombic repulsion term () makes the Schrödinger equation impossible to solve exactly.1 Under the Independent Particle Model approximation, the concept of \"effective nuclear charge (Zeff)\" was introduced. Inner-shell electrons partially shield the attractive force of the nucleus on outer electrons; this phenomenon is called the shielding effect.1 By analyzing the Radial Distribution Function (RDF, which represents the probability of finding an electron in an infinitely thin spherical shell at distance r from the nucleus, ), it can be observed that the electron cloud of s orbitals has distinct probability peaks close to the nucleus [1, 1]. This \"penetration effect\" allows s-orbital electrons to partially evade the shielding of inner electrons, thus feeling a higher effective nuclear charge compared to p or d orbitals in the same shell.1 This physical mechanism breaks the energy degeneracy of orbitals with the same principal quantum number found in single-electron atoms, resulting in the energy ordering  in multi-electron atoms.1"
+          },
+          {
+            "type": "tbl",
+            "rows": [
+              [
+                "Element",
+                "1s Zeff",
+                "2s Zeff",
+                "2p Zeff"
+              ],
+              [
+                "Beryllium (Be)",
+                "3.68",
+                "1.91",
+                "-"
+              ],
+              [
+                "Carbon (C)",
+                "5.67",
+                "3.22",
+                "3.14"
+              ],
+              [
+                "Oxygen (O)",
+                "7.66",
+                "4.49",
+                "4.45"
+              ],
+              [
+                "Neon (Ne)",
+                "9.64",
+                "5.76",
+                "5.76"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "key": "2.2",
+        "title_zh": "2.2 泡利、洪特与构造原理",
+        "title_en": "2.2 Pauli, Hund, and the Aufbau Principle",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "决定多电子原子基态排布的逻辑体系由三大原则构成。构造原理（Aufbau principle）规定电子优先填入能量最低的可用轨道 1。泡利不相容原理（Pauli exclusion principle）要求同一原子内不能有两个电子具有完全相同的四个量子数，这意味着每一个轨道最多只能容纳两个自旋相反（）的电子 1。当电子进入能量简并的轨道（如三个  轨道）时，洪特规则（Hund's rule of maximum multiplicity）指出，电子倾向于以平行的自旋状态分占不同的轨道 1。平行自旋促使电子在空间上保持较远距离，从而降低了电子-电子之间的库仑排斥能，提升了体系的稳定性 [1, 1]。"
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "The logical system dictating the ground-state electron configuration of multi-electron atoms consists of three major principles. The Aufbau principle dictates that electrons preferentially occupy the lowest energy available orbitals.1 The Pauli exclusion principle requires that no two electrons in the same atom can have the exact same set of four quantum numbers, implying that each orbital can hold a maximum of two electrons with opposite spins ().1 When electrons enter energy-degenerate orbitals (such as the three p orbitals), Hund's rule of maximum multiplicity states that electrons tend to occupy different orbitals singly with parallel spins.1 Parallel spins force electrons to stay further apart in space, thereby minimizing the electron-electron Coulombic repulsion energy and enhancing the overall stability of the system [1, 1]."
+          }
+        ]
+      },
+      {
+        "key": "2.3",
+        "title_zh": "2.3 4s/3d 顺序与离子化异常",
+        "title_en": "2.3 4s/3d Order and Ionization Anomalies",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "在第四周期元素的电子排布中， 与  轨道的能量相对高低是一个典型现象。对于钾（K）和钙（Ca），由于  轨道的穿透效应，其能量低于  轨道，电子优先占据  1。在进入过渡金属（如钪 Sc）后，随着原子序数  的增加，内层核心提供的屏蔽增加但逐渐趋缓，缺乏强穿透能力的  轨道感受到逐渐增加的有效核电荷，其能量下降并低于  1。 尽管如此，Sc 的基态电子排布是 。原因在于  轨道在空间分布上较为紧凑，若将电子全部排入  轨道，会引发较高的电子-电子排斥能。将部分电子置于空间分布更为弥散的  轨道，能够在整体上最小化系统的总能量 1。 在过渡金属发生电离时，失去电子导致整体电子排斥减弱、 增加。此时  轨道在能量上稳定地低于 。因此，过渡金属阳离子（如 ，）总是优先失去外部更弥散的  电子 1。"
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "In the electron configuration of Period 4 elements, the relative energy levels of the 4s and 3d orbitals present a classic scenario. For Potassium (K) and Calcium (Ca), due to the strong penetration effect of the 4s orbital, its energy is lower than the 3d orbital, so electrons occupy the 4s orbital first.1 Entering the transition metals (like Scandium, Sc), as the atomic number Z increases, the shielding provided by the inner core grows but gradually slows down. The 3d orbitals, which lack strong penetration capability, experience an increasingly higher effective nuclear charge, causing their energy to drop below that of the 4s orbital.1 Despite this, the ground-state electron configuration of Sc is [Ar]4s2 3d1. The reason lies in the fact that the 3d orbital is relatively compact in its spatial distribution. If all valence electrons were forced into 3d orbitals, it would induce high electron-electron repulsion energy. Keeping some electrons in the more diffuse 4s orbital minimizes the total energy of the system.1 When transition metals ionize, the loss of electrons weakens the overall electron repulsion, causing Zeff to increase. At this point, the energy of the 3d orbital falls stably below the 4s orbital. Therefore, transition metal cations (such as Fe2+, [Ar]3d6) always preferentially lose their outermost, more diffuse 4s electrons first.1"
+          }
+        ]
+      },
+      {
+        "key": "2.4",
+        "title_zh": "2.4 径向分布与轨道尺度",
+        "title_en": "2.4 Radial Distribution and Orbital Scale",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "有效核电荷  和主量子数  共同决定了原子轨道的宏观尺度。根据类氢原子模型的最可几半径公式近似推导， 1。在同一周期内从左至右， 保持不变而  稳步增加，导致原子半径逐渐收缩 1。在同一族内从上至下，尽管  略有增加，但主量子数  的增大占据主导地位，导致原子轨道尺度膨胀 1。这种径向分布的系统性变化，解释了元素周期表中电离能、电子亲和能和电负性的递变规律 1。"
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "The effective nuclear charge Zeff and the principal quantum number n together determine the macroscopic scale of atomic orbitals. Based on approximations from the most probable radius formula of the hydrogen-like atom model, .1 Moving from left to right across the same period, n remains constant while Zeff steadily increases, leading to a gradual contraction of the atomic radius.1 Moving down the same group, although Zeff slightly increases, the dominant factor is the significant enlargement of the principal quantum number squared (), leading to a rapid expansion of the orbital scale.1 This systematic scaling of the radial distribution perfectly explains the periodic trends in ionization energy, electron affinity, and electronegativity.1"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "key": "3",
+    "title_zh": "3 原子模型发展史",
+    "title_en": "3 History of Atomic Model Development",
+    "children": [
+      {
+        "key": "3.1",
+        "title_zh": "3.1 古典原子观与道尔顿",
+        "title_en": "3.1 Classical Atomic View and Dalton",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "人类对物质本源的思考可追溯至古希腊的德谟克利特（Democritus），他提出了宇宙由不可分割的“原子”与虚空组成的哲学概念 3。这一哲学探讨在1803年由英国化学家约翰·道尔顿（John Dalton）发展为科学理论 4。基于定比定律和倍比定律，道尔顿提出了实心球原子模型，认为每种元素由特定质量的、不可分割的原子构成，原子的重新组合是化学反应的基础 4。"
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "Human contemplation regarding the origin of matter dates back to Democritus in Ancient Greece, who proposed the philosophical concept that the universe consists of indivisible \"atoms\" and the void.3 This purely philosophical speculation was translated into scientific theory in 1803 by the English chemist John Dalton.4 Based on the law of definite proportions and the law of multiple proportions, Dalton proposed the solid sphere model, positing that every element is made of specific, indivisible atoms, and that chemical reactions are fundamentally the rearrangements of these atoms.4"
+          }
+        ]
+      },
+      {
+        "key": "3.2",
+        "title_zh": "3.2 汤姆逊到卢瑟福",
+        "title_en": "3.2 From Thomson to Rutherford",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "19世纪末，J.J. 汤姆逊（J.J. Thomson）在研究阴极射线时确认了带负电的电子的存在，表明原子具有内部结构 4。他随后提出了“枣糕模型（Plum pudding model）”，假设原子是一团带正电的均匀流体，电子镶嵌其中 4。 1911年，欧内斯特·卢瑟福（Ernest Rutherford）的金箔实验对这一模型提出了挑战 4。实验中用高能  粒子轰击极薄的金箔，绝大多数粒子径直穿过，但极少数粒子发生了大角度散射 4。卢瑟福指出这一现象出乎意料，犹如炮弹射击纸巾被反弹 4。基于此，他提出了核式结构模型：原子的正电荷与绝大部分质量集中在极其微小的原子核中，电子在原子核外围的广阔空间运动 4。"
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "In the late 19th century, J.J. Thomson's research on cathode rays confirmed the existence of the negatively charged electron, demonstrating that the atom possesses an internal structure.4 He subsequently proposed the \"Plum Pudding model,\" hypothesizing the atom as a uniform sphere of positively charged fluid with electrons embedded within it.4 In 1911, Ernest Rutherford's gold foil experiment challenged this model.4 By bombarding ultra-thin gold foil with high-energy alpha particles, he found that while most particles passed straight through, a very small fraction underwent large-angle scattering.4 Rutherford remarked that this phenomenon was as astonishing as \"firing a 15-inch shell at a piece of tissue paper and having it bounce back\".4 Based on this, he proposed the nuclear model: the positive charge and the vast majority of the mass of an atom are concentrated in an extremely tiny nucleus, with electrons moving in the vast empty space surrounding it.4"
+          }
+        ]
+      },
+      {
+        "key": "3.3",
+        "title_zh": "3.3 玻尔模型与氢光谱",
+        "title_en": "3.3 Bohr Model and Hydrogen Spectrum",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "卢瑟福的行星模型面临着经典电磁学中电子绕核旋转会辐射能量导致体系坍缩的矛盾 1。1913年，尼尔斯·玻尔（Niels Bohr）引入量子化假设，提出电子只能在特定的、不辐射能量的稳定轨道上运行 1。玻尔模型定量预测了氢原子光谱的里德伯常数，是首次用量子规律定量描述微观结构的尝试 1。"
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "Rutherford's planetary model faced a contradiction with classical electromagnetism, which predicted that an orbiting electron would radiate energy and inevitably spiral into the nucleus, causing the system to collapse.1 In 1913, Niels Bohr introduced the quantization hypothesis, proposing that electrons can only travel in specific, stable orbits without radiating energy.1 The Bohr model quantitatively predicted the Rydberg constant of the hydrogen spectrum, marking the first successful attempt to describe microscopic structures quantitatively using quantum principles.1"
+          }
+        ]
+      },
+      {
+        "key": "3.4",
+        "title_zh": "3.4 德布罗意、海森堡与薛定谔",
+        "title_en": "3.4 de Broglie, Heisenberg, and Schrödinger",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "尽管玻尔模型对氢原子有效，但它无法解释较重元素的谱线，且将电子视为具有确定轨迹的粒子的观点在进一步的微观实验中暴露出局限性 3。德布罗意的物质波假说赋予了电子波动属性，海森堡的不确定性原理说明了微观粒子不具备经典的确定轨道 [1, 1]。最终，薛定谔的波动方程将波动力学系统化，原子模型演化为以概率密度分布的“电子云”模型，为现代化学提供了物理基础 1。"
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "Although the Bohr model worked well for hydrogen, it failed to explain the spectral lines of heavier elements, and its view of electrons as particles with defined trajectories was proven inadequate by further microscopic experiments.3 de Broglie's matter wave hypothesis assigned wave properties to the electron, while Heisenberg's uncertainty principle clarified that microscopic particles do not have classically defined orbits [1, 1]. Ultimately, Schrödinger's wave equation systematized wave mechanics. The atomic model evolved into the \"electron cloud\" model based on probability density distributions, establishing the physical foundation of modern chemistry.1"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "key": "4",
+    "title_zh": "4 分子成键理论",
+    "title_en": "4 Molecular Bonding Theories",
+    "children": [
+      {
+        "key": "4.1",
+        "title_zh": "4.1 共价、离子与配位键",
+        "title_en": "4.1 Covalent, Ionic, and Coordinate Bonds",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "原子结合形成分子的基本驱动力是体系总能量的降低。基于元素电负性的差异，化学键表现为不同的形式：电负性差异极大时，电子发生明显转移形成离子键，依靠静电库仑力维持晶格结构（如 NaCl）1；电负性相近时，原子倾向于共享电子对形成共价键（如 , ）1。配位键（Coordinate bond）则是一种特殊的共价键，其中共享的电子对主要由作为 Lewis 碱的中心原子或配体单方面提供给具有空轨道的 Lewis 酸，如  体系以及过渡金属配合物 1。"
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "The fundamental driving force for atoms to combine into molecules is the minimization of total system energy. Based on the differences in element electronegativity, chemical bonds manifest in different forms: when the electronegativity difference is extremely large, significant electron transfer occurs, forming ionic bonds that rely on electrostatic Coulombic forces to maintain a crystal lattice (e.g., NaCl) 1; when electronegativity is similar, non-metal atoms tend to share electron pairs to form covalent bonds (e.g., H2, O2).1 A coordinate bond (dative bond) is a special type of covalent bond where the shared electron pair is unilaterally provided by a central atom or ligand acting as a Lewis base to a Lewis acid with an empty orbital, such as the H3N -> BF3 system and transition metal complexes.1"
+          }
+        ]
+      },
+      {
+        "key": "4.2",
+        "title_zh": "4.2 价键理论与重叠积分",
+        "title_en": "4.2 Valence Bond Theory and Overlap Integral",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "海特勒（Heitler）与伦敦（London）将量子力学引入化学，发展了价键理论（Valence Bond Theory, VBT）1。VBT 认为，当两个原子的半满轨道在空间中相互靠近并发生同相重叠时，由于电子的不可分辨性，产生量子力学中的交换能（Exchange energy），从而降低体系能量 1。轨道之间的重叠积分（Overlap integral, ）必须大于零，重叠积分的值越大，通常形成的共价键越强 1。"
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "Heitler and London introduced quantum mechanics into chemistry, developing Valence Bond Theory (VBT).1 VBT suggests that when two half-filled atomic orbitals approach each other in space and undergo in-phase overlap, the indistinguishability of electrons generates quantum mechanical exchange energy, which lowers the system's energy.1 The overlap integral between orbitals () must be greater than zero, and generally, a larger overlap integral results in a stronger covalent bond.1"
+          }
+        ]
+      },
+      {
+        "key": "4.3",
+        "title_zh": "4.3 杂化轨道与几何",
+        "title_en": "4.3 Hybrid Orbitals and Geometry",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "为了解释自然界中多原子分子的空间构型（如甲烷的正四面体结构），莱纳斯·鲍林（Linus Pauling）提出了杂化轨道（Hybrid Orbital）的概念 1。通过将中心原子的一个  轨道与多个  轨道进行波函数的线性组合，可以重新分配电子云的空间指向 1。"
+          },
+          {
+            "type": "p",
+            "text": "杂化：1个  与3个  轨道组合，生成4个夹角为  的杂化轨道（如 ）。"
+          },
+          {
+            "type": "p",
+            "text": "杂化：生成3个共平面的杂化轨道（夹角 ），剩余一个未杂化的  轨道用于形成  键（如乙烯 ）。"
+          },
+          {
+            "type": "p",
+            "text": "杂化：生成2个直线型杂化轨道（夹角 ），常用于三键或特定双键体系（如乙炔 ）1。 杂化轨道主要通过轨道轴向重叠形成定域的  键，而未参与杂化的  轨道则通过侧向重叠形成  键 1。"
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "To explain the spatial geometries of polyatomic molecules found in nature (such as the perfect tetrahedral structure of methane), Linus Pauling proposed the concept of Hybrid Orbitals.1 By taking linear combinations of the wavefunctions of one s orbital and multiple p orbitals on a central atom, the spatial directionality of the electron cloud is redistributed.1"
+          },
+          {
+            "type": "p",
+            "text": "sp3 hybridization: Combines 1 s and 3 p orbitals to generate 4 hybrid orbitals separated by an angle of 109.5 degrees (e.g., CH4)."
+          },
+          {
+            "type": "p",
+            "text": "sp2 hybridization: Generates 3 coplanar hybrid orbitals (120 degree angle), leaving one unhybridized p orbital to form a pi bond (e.g., ethylene C2H4)."
+          },
+          {
+            "type": "p",
+            "text": "sp hybridization: Generates 2 linear hybrid orbitals (180 degree angle), typically utilized in triple bonds or specific double bond systems (e.g., acetylene C2H2).1 Hybrid orbitals predominantly overlap head-on to form highly localized, strong sigma bonds, while unhybridized p orbitals overlap side-by-side to form pi bonds.1"
+          }
+        ]
+      },
+      {
+        "key": "4.4",
+        "title_zh": "4.4 分子轨道理论与键级",
+        "title_en": "4.4 Molecular Orbital Theory and Bond Order",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "价键理论和杂化模型在描述有机分子局部成键时具有实用性，但在描述全局性质（如氧气的顺磁性、离域电子体系）时存在局限。分子轨道理论（Molecular Orbital Theory, MOT）提出，分子中的电子分布在覆盖整个分子的分子轨道中 1。通过原子轨道的线性组合（LCAO）， 个原子轨道重叠产生  个分子轨道 10。 同相组合导致核间电子概率密度增加，形成能量低于孤立原子的成键轨道（Bonding MO）；反相组合导致核间出现波函数节点，电子密度减少，形成能量高于孤立原子的反键轨道（Antibonding MO）12。分子的稳定性可以通过键级（Bond Order）来衡量： 1。"
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "While Valence Bond Theory and the hybridization model are highly practical for describing local bonding in organic chemistry, they show limitations when describing global properties (such as the paramagnetism of oxygen gas or delocalized electron systems). Molecular Orbital Theory (MOT) proposes that electrons in a molecule are distributed in molecular orbitals that span the entire molecule.1 Through the Linear Combination of Atomic Orbitals (LCAO), the overlap of N atomic orbitals invariably produces N molecular orbitals.10 In-phase combinations increase the electron probability density between the nuclei, forming bonding molecular orbitals (Bonding MO) that are lower in energy than the isolated atoms; out-of-phase combinations create wavefunction nodes between the nuclei, decreasing electron density and forming antibonding molecular orbitals (Antibonding MO) with energy higher than the isolated atoms.12 The stability of the molecule can be quantified by the Bond Order: .1"
+          }
+        ]
+      },
+      {
+        "key": "4.5",
+        "title_zh": "4.5 VSEPR 与量子图像的衔接",
+        "title_en": "4.5 The Connection Between VSEPR and Quantum Imagery",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "价层电子对互斥理论（VSEPR）是一个用于预测分子三维几何构型的工具。其核心原理是：围绕中心原子的价层电子对会由于静电斥力而尽可能远离彼此，形成直线、平面三角、四面体等基本构型 1。 VSEPR 提供了宏观的核坐标图像预测，而 VBT 的杂化轨道提供了局部成键向量的微观描述，MOT 则在能量层面上提供了解释该构型为何达到总能量极小值的量子力学基础。三者从不同的近似角度描述了分子的几何稳定性 15。"
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "The Valence Shell Electron Pair Repulsion (VSEPR) theory is a tool used to predict the 3D geometry of molecules. Its core principle assumes that valence electron pairs surrounding a central atom will maximize their distance from one another due to electrostatic repulsion, forming basic geometries like linear, trigonal planar, and tetrahedral.1 VSEPR provides a macroscopic prediction of nuclear coordinates; VBT's hybrid orbitals offer a microscopic description of local bonding vectors; and MOT provides the quantum mechanical foundation explaining why that particular geometry achieves the lowest total energy. The three theories describe molecular geometric stability from different approximate perspectives.15"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "key": "5",
+    "title_zh": "5 分子对称性与 MO 进阶",
+    "title_en": "5 Molecular Symmetry and Advanced MO",
+    "children": [
+      {
+        "key": "5.1",
+        "title_zh": "5.1 点群与不可约表示",
+        "title_en": "5.1 Point Groups and Irreducible Representations",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "在多原子分子体系中，分子轨道构建涉及多个原子轨道的相互作用。群论（Group Theory）提供了分析分子对称性的数学工具，用于简化轨道组合的判定 1。 分子中的对称操作（恒等 、旋转 、镜面 、反演 、瑕旋转 ）构成一个点群（Point Group）1。例如，水分子拥有  四个操作，属于  点群 1。 特征标表（Character Table）列出了该点群下基函数在进行对称操作时的本征值变化 1。这些特征标构成不可约表示（Irreducible Representations，如  等）。量子力学对称性规则表明：只有属于相同不可约表示的原子轨道或群轨道，其重叠积分才不为零，才能有效组合形成分子轨道 1。"
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "In polyatomic molecular systems, constructing molecular orbitals involves the interactions of many atomic orbitals. Group Theory provides the mathematical tools to analyze molecular symmetry and simplify the determination of orbital combinations.1 The symmetry operations present in a molecule (identity E, rotation Cn, reflection sigma, inversion i, improper rotation Sn) mathematically form a Point Group.1 For example, the water molecule possesses E, C2, sigma_v(xz), and sigma_v'(yz) operations, classifying it under the C2v point group.1 A Character Table lists the eigenvalue changes of basis functions under symmetry operations for that point group.1 These characters make up Irreducible Representations (e.g., A1, B2). The symmetry rules of quantum mechanics state: Only atomic orbitals or group orbitals belonging to the same irreducible representation have non-zero overlap integrals and can effectively combine to form molecular orbitals.1"
+          }
+        ]
+      },
+      {
+        "key": "5.2",
+        "title_zh": "5.2 SALC 与群轨道",
+        "title_en": "5.2 SALC and Group Orbitals",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "对于中心原子周围的配位原子，需要将其轨道组合成“对称匹配线性组合（Symmetry Adapted Linear Combinations, SALC）”或群轨道 17。 使用投影算符（Projection Operator）可以系统地计算 SALC："
+          },
+          {
+            "type": "p",
+            "text": "该算符将外围原子的轨道转化为具有特定不可约表示的群轨道 1。这在数学上降低了构建分子轨道图时哈密顿矩阵的维度。"
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "For ligand atoms surrounding a central atom, their orbitals must first be combined into \"Symmetry Adapted Linear Combinations\" (SALC) or Group Orbitals.17 SALCs can be systematically calculated using a Projection Operator:"
+          },
+          {
+            "type": "p",
+            "text": "This operator converts the peripheral atoms' distributed orbitals into group orbitals possessing specific irreducible representations.1 This significantly reduces the dimensionality of the Hamiltonian matrix when constructing Molecular Orbital Diagrams."
+          }
+        ]
+      },
+      {
+        "key": "5.3",
+        "title_zh": "5.3 代表分子：H2O 与 NH3",
+        "title_en": "5.3 Representative Molecules: H2O and NH3",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "水分子 (, )：氧原子的价轨道分别属于 、 和  不可约表示 1。两个氢原子的  轨道通过 SALC 生成同相的  群轨道和反相的  群轨道 1。根据对称性匹配，氧的  轨道与氢的  SALC 组合成深度的  成键轨道；氧的  轨道与氢的  SALC 相互作用。而氧的  因缺乏对称性匹配的氢轨道，保持为非键轨道，容纳孤对电子 1。"
+          },
+          {
+            "type": "p",
+            "text": "氨分子 (, )：氮的  与  具有  对称性， 简并为  对称性。三个氢原子的  轨道通过 SALC 构造成一个  群轨道和两个简并的  群轨道。最高占据轨道（HOMO，属于 ）具有微弱的成键特性，但主要表现为定位在氮原子上的孤对电子特征 11。"
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "Water (H2O, C2v): The oxygen valence orbitals belong to the A1 (2s, 2pz), B1 (2px), and B2 (2py) irreducible representations.1 The two hydrogen 1s orbitals generate an in-phase A1 group orbital and an out-of-phase B2 group orbital through SALC.1 Based on symmetry matching, oxygen's A1 orbitals combine with hydrogen's A1 SALC to form deep sigma bonding orbitals; oxygen's B2 orbital interacts with hydrogen's B2 SALC. Oxygen's 2px (B1), lacking a symmetry-matched hydrogen orbital, remains a non-bonding orbital holding a lone pair.1"
+          },
+          {
+            "type": "p",
+            "text": "Ammonia (NH3, C3v): Nitrogen's 2s and 2pz orbitals possess A1 symmetry, while 2px/2py are degenerate with E symmetry. The three hydrogen 1s orbitals form one A1 group orbital and two degenerate E group orbitals via SALC. The Highest Occupied Molecular Orbital (HOMO, which is 2a1) has weak bonding character but mainly behaves as a lone pair localized on the nitrogen atom.11"
+          }
+        ]
+      },
+      {
+        "key": "5.4",
+        "title_zh": "5.4 代表分子：CH4、CO2、HCN、XeF2",
+        "title_en": "5.4 Representative Molecules: CH4, CO2, HCN, XeF2",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "以下表格展示了几种多原子分子的分子轨道构建及其与传统价键理论视角的比较："
+          },
+          {
+            "type": "tbl",
+            "rows": [
+              [
+                "分子",
+                "点群",
+                "轨道杂化论的描述",
+                "分子轨道(MO)结合SALC的描述",
+                "实验验证与理论意义"
+              ],
+              [
+                "甲烷 ()",
+                "",
+                "假设碳采用  杂化，形成4个能量等价的定域  键 [1, 1]。",
+                "碳轨道分为  与 。四个氢原子生成  与  SALCs。组合生成无节面的  成键轨道与三个简并的  成键轨道 2。",
+                "光电子能谱（PES）探测到甲烷价层有两个不同的电离能峰，证明成键电子具有两种不同的能级，这修正了简单杂化理论中的等价假设 1。"
+              ],
+              [
+                "二氧化碳 ()",
+                "(可代以 )",
+                "杂化形成  键和局部定域的  键。",
+                "中心碳具有  对称性轨道。两端氧原子组合出8个SALC。形成贯穿全分子的离域  和  键，以及属于氧原子的离域非键轨道 10。",
+                "离域的  体系更准确地反映了分子的电子分布和光谱特征。"
+              ],
+              [
+                "氢氰酸 ()",
+                "",
+                "杂化，三键定域在  和  之间。",
+                "碳需同时与氢  及氮的  SALC 进行匹配形成离域  骨架，其  轨道进一步形成离域  系统 24。",
+                "表明看似定域的三键，其电子云实际受到全分子势场的离域调控。"
+              ],
+              [
+                "二氟化氙 ()",
+                "",
+                "传统上依赖引入高能的  轨道参与  杂化来解释超价现象 11。",
+                "形成三中心四电子键（3c-4e bond）。氟的  生成  和  SALC。氙的  与氟的  组合，生成 1个成键、1个非键、1个反键轨道 11。",
+                "4个电子填满成键与非键轨道，每侧 Xe-F 的局部键级约为 0.5。表明无需引入高能  轨道即可解释其稳定性，展示了分子轨道理论在处理超价分子时的严密性 。"
+              ]
+            ]
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "The following table compares the molecular orbital constructions of several polyatomic molecules against traditional valence bond theory perspectives:"
+          },
+          {
+            "type": "tbl",
+            "rows": [
+              [
+                "Molecule",
+                "Point Group",
+                "Orbital Hybridization View",
+                "MO & SALC Description",
+                "Experimental Verification & Theoretical Significance"
+              ],
+              [
+                "Methane (CH4)",
+                "Td",
+                "Assumes carbon uses sp3 hybridization, forming 4 energetically equivalent localized C-H bonds [1, 1].",
+                "Carbon orbitals are divided into A1 (2s) and T2 (2p). Four hydrogen atoms generate A1 and T2 SALCs. These combine to form a nodeless 1a1 bonding orbital and three degenerate 1t2 bonding orbitals.2",
+                "Photoelectron spectroscopy (PES) detects two distinct ionization energy peaks in the valence shell of methane, proving that bonding electrons occupy two different energy levels, which corrects the equivalence assumption of simple hybridization theory.1"
+              ],
+              [
+                "Carbon Dioxide (CO2)",
+                "Dinfh (or D2h)",
+                "Assumes sp hybridization forming sigma bonds and localized pi bonds.",
+                "The central carbon has Ag, B1u, B2u, B3u symmetry orbitals. The two terminal oxygen atoms generate 8 SALCs. This creates delocalized sigma and pi bonds across the molecule, along with delocalized non-bonding orbitals belonging to the oxygen atoms.10",
+                "The delocalized pi system more accurately reflects the electron distribution and spectral characteristics of the molecule."
+              ],
+              [
+                "Hydrogen Cyanide (HCN)",
+                "Cinfv",
+                "Assumes sp hybridization, with a triple bond localized between C and N.",
+                "Carbon must simultaneously match with the hydrogen 1s and the nitrogen sigma SALC to form a delocalized sigma skeleton. Its px and py orbitals further form a delocalized pi system.24",
+                "Indicates that the seemingly localized triple bond's electron cloud is actually subject to delocalized modulation by the entire molecular potential field."
+              ],
+              [
+                "Xenon Difluoride (XeF2)",
+                "Dinfh",
+                "Traditionally relies on introducing high-energy 5d orbitals for sp3d hybridization to explain hypervalency.11",
+                "Forms a 3-center 4-electron (3c-4e) bond. Fluorine pz generates sigma_g and sigma_u SALCs. Xenon's 5pz (sigma_u) combines with the fluorine sigma_u to form 1 bonding, 1 non-bonding, and 1 antibonding orbital.11",
+                "4 electrons fill the bonding and non-bonding orbitals, resulting in a local bond order of roughly 0.5 for each Xe-F bond. This demonstrates that stability can be explained without invoking high-energy d orbitals, showcasing the rigor of MO theory in handling hypervalent molecules."
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "key": "6",
+    "title_zh": "6 反应与光谱",
+    "title_en": "6 Reactions and Spectroscopy",
+    "children": [
+      {
+        "key": "6.1",
+        "title_zh": "6.1 前线轨道理论（HOMO/LUMO）",
+        "title_en": "6.1 Frontier Molecular Orbital Theory (HOMO/LUMO)",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "分子轨道不仅用于描述静态结构，还提供了分析化学反应性的工具。福井谦一（Kenichi Fukui）提出的前线分子轨道理论（Frontier Molecular Orbital, FMO）指出，分子的化学反应性主要由最高占据分子轨道（HOMO）和最低未占分子轨道（LUMO）的相互作用决定 26。在反应过程中，两个分子的 HOMO 与 LUMO 发生空间重叠，电子从高能量的 HOMO 转移至 LUMO，从而降低体系总能量并促成新化学键的形成 26。"
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "Molecular orbitals are not only used to describe static structures but also provide tools for analyzing chemical reactivity. Kenichi Fukui's Frontier Molecular Orbital Theory (FMO) states that molecular reactivity is primarily determined by the interactions between the Highest Occupied Molecular Orbital (HOMO) and the Lowest Unoccupied Molecular Orbital (LUMO).26 During a reaction, the HOMO of one molecule overlaps with the LUMO of another in space, and electrons transfer from the high-energy HOMO to the LUMO, lowering the total energy of the system and facilitating the formation of new chemical bonds.26"
+          }
+        ]
+      },
+      {
+        "key": "6.2",
+        "title_zh": "6.2 Lewis 酸碱的 MO 视角",
+        "title_en": "6.2 MO Perspective of Lewis Acids and Bases",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "前线轨道理论为 Lewis 酸碱概念提供了量子力学层面的解释。"
+          },
+          {
+            "type": "p",
+            "text": "Lewis 碱作为电子对供体，利用其富电子的 HOMO（如孤对电子或  轨道）参与反应 28。"
+          },
+          {
+            "type": "p",
+            "text": "Lewis 酸作为电子对受体，提供其空置的 LUMO 接受电子 28。 例如，在氨（）与硼烷（）形成加合物的过程中， 的 HOMO（氮原子的非键轨道）向  的 LUMO（空  轨道）提供电子，形成能量更低的成键轨道 29。类似地，在双分子亲核取代反应（）中，亲核试剂（如 ）的 HOMO 供电子至底物（如 ）的 LUMO（ 反键轨道），这一相互作用直接导致了旧碳氯键的断裂和新键的形成 10。在周环反应（如 Diels-Alder 环加成反应）中，二烯体的 HOMO 与亲双烯体的 LUMO 之间的相位匹配同样是反应发生的核心驱动力 10。"
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "Frontier Orbital Theory offers a quantum mechanical explanation for the concept of Lewis acids and bases."
+          },
+          {
+            "type": "p",
+            "text": "A Lewis Base acts as an electron pair donor, utilizing its electron-rich HOMO (such as a lone pair or pi orbital) to participate in the reaction.28"
+          },
+          {
+            "type": "p",
+            "text": "A Lewis Acid acts as an electron pair acceptor, providing its vacant LUMO to receive electrons.28 For example, when ammonia (NH3) forms an adduct with borane (BH3), the HOMO of NH3 (the non-bonding orbital on the nitrogen atom) donates electrons to the LUMO of BH3 (the empty pz orbital), forming a lower-energy bonding orbital.29 Similarly, in a bimolecular nucleophilic substitution (SN2) reaction, the nucleophile (e.g., OH-) donates electrons from its HOMO to the LUMO (sigma* antibonding orbital) of the substrate (e.g., CH3Cl), leading directly to the cleavage of the old carbon-chlorine bond and the formation of a new bond.10 In pericyclic reactions (like the Diels-Alder cycloaddition), phase matching between the diene's HOMO and the dienophile's LUMO is likewise the core driving force.10"
+          }
+        ]
+      },
+      {
+        "key": "6.3",
+        "title_zh": "6.3 双键旋转与顺反异构",
+        "title_en": "6.3 Double Bond Rotation and Cis-Trans Isomerization",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "在有机体系中，单键（ 键）沿着键轴具有圆柱对称性，旋转势垒低。而双键（如乙烯）的  键要求两个相邻的  轨道保持平行以实现最大的侧向重叠。若绕  键旋转 ，两个  轨道将相互正交，导致重叠积分 ， 键被破坏 32。这一较高的旋转势垒（通常 ）导致了顺反异构体（cis-trans isomers）在室温下的稳定存在 34。 如果利用特定能量的光子照射，促使乙烯中的一个电子发生  跃迁进入激发态 13。此时反键轨道  被占据，导致  系统的总键级降为 0。在激发态势能面上，分子绕  键的旋转不再受到  键的刚性约束，从而能够在弛豫回基态时实现顺反异构体的相互转化 。"
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "In organic systems, single bonds (sigma bonds) have cylindrical symmetry along the bond axis, allowing for very low rotation barriers. Conversely, the pi bond in a double bond (like ethylene) requires adjacent p orbitals to remain parallel for maximum lateral overlap. If forced to rotate 90 degrees around the C=C bond, the two p orbitals become orthogonal, resulting in an overlap integral of  and the destruction of the pi bond.32 This high rotational barrier (typically > 60 kcal/mol) explains the stable existence of cis-trans isomers at room temperature.34 However, if irradiated with a photon of appropriate energy, an electron in ethylene can undergo a  transition to an excited state.13 In this state, the antibonding  orbital is populated, reducing the total pi bond order to 0. On this excited-state potential energy surface, rotation about the C-C bond is no longer constrained by the rigidity of the pi bond, allowing the molecule to overcome the barrier and undergo cis-trans interconversion upon relaxing back to the ground state."
+          }
+        ]
+      },
+      {
+        "key": "6.4",
+        "title_zh": "6.4 UV-Vis 吸收与电子跃迁",
+        "title_en": "6.4 UV-Vis Absorption and Electronic Transitions",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "紫外-可见（UV-Vis）吸收光谱测量分子电子跃迁吸收的能量。当入射光子的能量  匹配分子特定占据轨道与未占轨道之间的能隙时，发生光子吸收 37。 常见的有机发色团涉及以下电子跃迁："
+          },
+          {
+            "type": "p",
+            "text": "跃迁：常见于含双键或芳香环的体系，能隙通常位于 UV 区，由于轨道空间重叠良好，跃迁概率大，吸收强度高 39。随共轭体系延长，HOMO-LUMO 能隙缩小，吸收峰发生红移 37。"
+          },
+          {
+            "type": "p",
+            "text": "跃迁：杂原子（如氧、氮）上的孤对电子（ 轨道）向空置的  轨道跃迁 38。此类跃迁能隙较小，但由于  轨道与  轨道在空间上往往相互正交，重叠积分小，因此吸收强度（摩尔吸光系数 ）通常较弱 39。"
+          },
+          {
+            "type": "p",
+            "text": "光谱信号受制于量子力学的选择定则（Selection Rules）："
+          },
+          {
+            "type": "p",
+            "text": "拉波特选择定则（Laporte Selection Rule, ）：对于具中心反演对称性的体系，电子仅允许在不同宇称（）的轨道间跃迁 42。因此，理想八面体配合物中的  跃迁理论上是禁阻的 43。"
+          },
+          {
+            "type": "p",
+            "text": "自旋选择定则（Spin Selection Rule, ）：跃迁前后体系的自旋多重度必须保持不变 42。 实际观测到的微弱  吸收，通常是由于不对称的分子振动（振电耦合）破坏了中心对称性，或较重原子中的自旋-轨道耦合引起了选择定则的弛豫 42。"
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "Ultraviolet-Visible (UV-Vis) absorption spectroscopy measures the energy absorbed during molecular electronic transitions. When the energy of an incident photon  perfectly matches the energy gap between an occupied orbital and an unoccupied orbital, photon absorption occurs.37 Common electronic transitions in organic chromophores include:"
+          },
+          {
+            "type": "p",
+            "text": "transitions: Typically found in systems with double bonds or aromatic rings. The energy gap usually lies in the UV region, and due to excellent orbital spatial overlap, the transition probability is high, resulting in strong absorption.39 As the conjugated system extends, the HOMO-LUMO gap narrows, shifting the absorption peak to longer wavelengths (red shift).37"
+          },
+          {
+            "type": "p",
+            "text": "transitions: Involves a lone pair electron (n orbital) on a heteroatom (like oxygen or nitrogen) transitioning into an empty  orbital.38 The energy gap for this transition is smaller, but because the n orbital and the  orbital are usually orthogonal in space, the overlap integral is minimal. Thus, the absorption intensity (molar absorptivity ) is usually very weak.39"
+          },
+          {
+            "type": "p",
+            "text": "Spectral signals are strictly governed by the selection rules of quantum mechanics:"
+          },
+          {
+            "type": "p",
+            "text": "Laporte Selection Rule (): For systems with a center of inversion symmetry, electrons are only permitted to transition between orbitals of different parity ().42 Thus,  transitions in ideal octahedral complexes are theoretically forbidden.43"
+          },
+          {
+            "type": "p",
+            "text": "Spin Selection Rule (): The spin multiplicity of the system must remain unchanged before and after the transition.42 The faint  absorptions observed in reality are generally the result of asymmetric molecular vibrations (vibronic coupling) breaking the centrosymmetry, or spin-orbit coupling in heavier atoms inducing a relaxation of the selection rules.42"
+          }
+        ]
+      },
+      {
+        "key": "6.5",
+        "title_zh": "6.5 比尔-朗伯定律与定量分析",
+        "title_en": "6.5 Beer-Lambert Law and Quantitative Analysis",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "宏观层面上溶液吸光度与浓度的关系遵循比尔-朗伯定律（Beer-Lambert Law）："
+          },
+          {
+            "type": "p",
+            "text": "其中  为吸光度， 为浓度， 为光程 46。摩尔吸光系数（）由该跃迁的量子力学偶极矩决定，反映了跃迁的固有概率。例如，允许的  跃迁  常在  之间，而禁阻的  跃迁  通常仅为  39。"
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "At the macroscopic level, the relationship between solution absorbance and concentration is defined by the Beer-Lambert Law:"
+          },
+          {
+            "type": "p",
+            "text": "Where  is the dimensionless absorbance,  is the concentration, and  is the path length.46 The core parameter, the molar absorptivity (), is a constant determined by the quantum mechanical dipole moment of the specific transition, reflecting the intrinsic probability of the transition. For example, allowed  transitions frequently exhibit an  of 10,000 to 20,000, whereas forbidden  transitions generally display an  of only 10 to 100.39"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "key": "7",
+    "title_zh": "7 分子间作用与固体",
+    "title_en": "7 Intermolecular Forces and Solids",
+    "children": [
+      {
+        "key": "7.1",
+        "title_zh": "7.1 静电、诱导与色散作用",
+        "title_en": "7.1 Electrostatic, Induction, and Dispersion Forces",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "分子间作用力（Intermolecular Forces, IMFs）是决定宏观物质相态（如熔沸点）的主要因素。其能量级通常低于化学键，但对凝聚态物质的性质至关重要 48。 分子间力本质上起源于电磁相互作用 49："
+          },
+          {
+            "type": "p",
+            "text": "偶极-偶极相互作用：存在于极性分子间，由永久偶极间的静电引力主导 48。"
+          },
+          {
+            "type": "p",
+            "text": "伦敦色散力（London Dispersion Forces）：广泛存在于所有分子间。源于电子云涨落产生的瞬时偶极及其在邻近分子中诱导出的响应偶极之间的吸引 49。"
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "Intermolecular Forces (IMFs) are the primary factors dictating the macroscopic physical state of matter (e.g., melting and boiling points). Their energy levels are typically much lower than chemical bonds, yet they are crucial for the properties of condensed matter.48 Intermolecular forces essentially originate from electromagnetic interactions 49:"
+          },
+          {
+            "type": "p",
+            "text": "Dipole-Dipole Interactions: Exist between polar molecules, governed by the electrostatic attraction between permanent dipoles.48"
+          },
+          {
+            "type": "p",
+            "text": "London Dispersion Forces: Universally present between all molecules. They originate from the attraction between instantaneous dipoles created by the fluctuation of electron clouds and the corresponding induced dipoles in neighboring molecules.49"
+          }
+        ]
+      },
+      {
+        "key": "7.2",
+        "title_zh": "7.2 氢键的双重本质",
+        "title_en": "7.2 The Dual Nature of Hydrogen Bonds",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "经典教学常将氢键视为一种强烈的偶极-偶极静电相互作用 48。然而，实验（如核磁共振、红外光谱中  伸缩振动的红移）和理论计算表明，氢键并非纯粹的静电作用。 现代研究确立了氢键具有静电与共价的双重本质（Dual Nature） 51。2011年，IUPAC 重新定义了氢键，强调其形成必须包含“成键的证据” 14。除了多极静电引力外，氢键的形成还涉及受体的孤对电子（）向供体反键轨道（）的电荷转移（Charge Transfer）与量子力学离域 14。在作用力极强的对称氢键中，质子位于供受体正中，其共价成分显著提升，局部键级可达到 0.5，表现出化学键的特征 14。"
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "Classical education often treats the hydrogen bond as an exceptionally strong dipole-dipole electrostatic interaction.48 However, experiments (such as NMR and the red shift of X-H stretching vibrations in IR spectroscopy) and theoretical calculations show that hydrogen bonds are not purely electrostatic. Modern research has established the dual nature of the hydrogen bond, encompassing both electrostatic and covalent characteristics.51 In 2011, IUPAC redefined the hydrogen bond, emphasizing that its formation must include \"evidence of bond formation\".14 Beyond multipolar electrostatic attraction, hydrogen bond formation involves a charge transfer from the acceptor's lone pair () to the donor's antibonding orbital () and quantum mechanical delocalization.14 In exceptionally strong, symmetric hydrogen bonds, where the proton sits exactly in the middle of the donor and acceptor, the covalent character significantly increases, reaching a local bond order of 0.5 and exhibiting true chemical bond characteristics.14"
+          }
+        ]
+      },
+      {
+        "key": "7.3",
+        "title_zh": "7.3 固体类型与宏观性质",
+        "title_en": "7.3 Types of Solids and Macroscopic Properties",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "根据构成微粒与成键方式，晶态固体可分为四大类，其宏观物理性质反映了底层的电子分布结构 8："
+          },
+          {
+            "type": "tbl",
+            "rows": [
+              [
+                "固体类型",
+                "构成微粒",
+                "成键/作用力类型",
+                "宏观物理特性"
+              ],
+              [
+                "离子晶体",
+                "正负离子",
+                "库仑静电吸引",
+                "熔沸点高，硬而脆，固态绝缘，熔融或水溶液导电 53。"
+              ],
+              [
+                "分子晶体",
+                "分子或原子",
+                "范德华力、氢键",
+                "熔沸点较低，硬度小，电与热的绝缘体 53。"
+              ],
+              [
+                "共价网络晶体",
+                "原子",
+                "三维共价键网络",
+                "熔点高，硬度大（如金刚石），通常为绝缘体或半导体 53。"
+              ],
+              [
+                "金属晶体",
+                "金属阳离子",
+                "金属键（离域电子气与晶格作用）",
+                "具导电、导热性及延展性 54。"
+              ]
+            ]
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "Based on constituent particles and bonding types, crystalline solids are categorized into four main classes, with their macroscopic physical properties reflecting their underlying electron distribution 8:"
+          },
+          {
+            "type": "tbl",
+            "rows": [
+              [
+                "Solid Type",
+                "Constituent Particles",
+                "Bonding/Interaction Type",
+                "Macroscopic Physical Properties"
+              ],
+              [
+                "Ionic Crystals",
+                "Cations and anions",
+                "Coulombic electrostatic attraction",
+                "High melting/boiling points, hard and brittle, solid-state insulators, conduct electricity when molten or in aqueous solution.53"
+              ],
+              [
+                "Molecular Crystals",
+                "Molecules or atoms",
+                "van der Waals forces, hydrogen bonds",
+                "Lower melting/boiling points, low hardness, thermal and electrical insulators.53"
+              ],
+              [
+                "Covalent Network Crystals",
+                "Atoms",
+                "3D covalent bond network",
+                "High melting points, great hardness (e.g., diamond), typically insulators or semiconductors.53"
+              ],
+              [
+                "Metallic Crystals",
+                "Metal cations",
+                "Metallic bonds (delocalized electron gas interacting with lattice)",
+                "Good electrical and thermal conductivity, high ductility and malleability.54"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "key": "7.4",
+        "title_zh": "7.4 能带形成与费米能级",
+        "title_en": "7.4 Band Formation and Fermi Level",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "金属与半导体的全局导电行为无法通过定域的价键模型充分解释。能带理论（Band Theory）将晶体视为包含  个原子的巨型体系（）56。 根据分子轨道理论，当  个原子轨道重叠时，会生成  个极度密集的分子轨道 56。在宏观晶体中，这些离散的能级间距趋近于零，形成连续的能带（Energy Band） 56。在周期性晶格势场中，电子的状态用布洛赫函数（Bloch functions）描述，其波函数受波矢  的调制 19。 在绝对零度下，固体中电子占据的最高能量水平称为费米能级（Fermi Level, ），在物理图像上对应于分子的 HOMO 59。费米能级下方被电子充满的能带称为价带（Valence Band），上方未被填满或完全空置的能带称为导带（Conduction Band），两者间的能量间隙称为带隙（Band Gap）56。"
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "The global conductive behavior of metals and semiconductors cannot be adequately explained by localized valence bond models. Band Theory treats a crystal as a giant system containing N atoms ().56 According to Molecular Orbital Theory, when N atomic orbitals overlap, they generate N densely packed molecular orbitals.56 In a macroscopic crystal, the energy gap between these discrete levels approaches zero, forming a continuous Energy Band.56 Within a periodic crystal potential field, electron states are described by Bloch functions, where the wavefunction is modulated by the wave vector .19 At absolute zero, the highest energy level occupied by electrons in a solid is termed the Fermi Level (), which physically corresponds to the HOMO of a molecule.59 The band completely filled with electrons below the Fermi level is the Valence Band, while the unfilled or entirely empty band above it is the Conduction Band. The energy gap between the two is known as the Band Gap.56"
+          }
+        ]
+      },
+      {
+        "key": "7.5",
+        "title_zh": "7.5 导体、半导体与绝缘体",
+        "title_en": "7.5 Conductors, Semiconductors, and Insulators",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "带隙的宽度与费米能级的位置决定了材料的导电行为 59："
+          },
+          {
+            "type": "p",
+            "text": "绝缘体：价带被充满，带隙宽（通常 ）59。室温下的热激发不足以使电子跨越带隙，故不导电 58。"
+          },
+          {
+            "type": "p",
+            "text": "半导体：价带充满，但带隙较窄（通常 ）61。室温下部分电子可通过热激发跃迁至导带，留下带正电的空穴，产生一定导电性 60。掺杂可向带隙中引入杂质能级，改变其导电性质 61。"
+          },
+          {
+            "type": "p",
+            "text": "导体（金属）：费米能级位于能带内部（能带未满），或价带与导带在能量上发生重叠 56。电子仅需获取微小能量即可跃迁至空置的近邻能态，形成宏观电流 55。 此外，在特定的一维体系（如无限长聚乙炔链）中，结构可能会发生晶格畸变（键长交替变化），导致在费米能级处打开带隙，使体系能量降低并由金属态转变为半导体或绝缘体。这一现象在固体物理中称为佩尔斯畸变（Peierls Distortion），是单分子扬-泰勒效应在无限一维晶体中的表现 19。"
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "The width of the band gap and the position of the Fermi level determine the material's conductive behavior 59:"
+          },
+          {
+            "type": "p",
+            "text": "Insulators: The valence band is full, and the band gap is wide (typically > 3 to 4 eV).59 Thermal excitation at room temperature is insufficient for electrons to cross the band gap, resulting in non-conductivity.58"
+          },
+          {
+            "type": "p",
+            "text": "Semiconductors: The valence band is full, but the band gap is narrow (typically < 3 eV).61 At room temperature, a fraction of electrons can be thermally excited into the conduction band, leaving behind positively charged holes, thereby generating some conductivity.60 Doping can introduce impurity energy levels within the band gap, significantly modifying conductivity.61"
+          },
+          {
+            "type": "p",
+            "text": "Conductors (Metals): The Fermi level resides within a band (the band is partially filled), or the valence and conduction bands overlap in energy.56 Electrons only require minimal energy to transition to adjacent empty states, generating macroscopic electrical current.55 Furthermore, in specific 1D systems (like an infinitely long polyacetylene chain), the structure may undergo lattice distortion (alternating bond lengths), which opens a band gap at the Fermi level, lowering the system's energy and transitioning the material from a metallic state to a semiconductor or insulator. This phenomenon is known in solid-state physics as Peierls Distortion, which is the manifestation of the single-molecule Jahn-Teller effect within infinite 1D crystals.19"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "key": "8",
+    "title_zh": "8 面向 Lorbital 的应用层",
+    "title_en": "8 Application Layer for Lorbital",
+    "children": [
+      {
+        "key": "8.1",
+        "title_zh": "8.1 轨道可视化与化学解释联动",
+        "title_en": "8.1 Orbital Visualization and Chemical Explanation Synergy",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "薛定谔方程求解得到的波函数通常呈现为多维的数学函数。Lorbital 等计算化学可视化工具，将这些数学表达转化为直观的三维等值面图像（Boundary surfaces）62。这使得轨道的空间拓扑形态以及代表波函数相位的正负号得以立体呈现，为理解节点分布和重叠积分的物理意义提供了图像支撑 63，从而辅助说明“相位匹配是有效成键的基础”。"
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "The wavefunctions derived from solving the Schrödinger equation are typically multi-dimensional mathematical functions. Computational chemistry visualization tools, such as Lorbital, convert these mathematical expressions into intuitive 3D boundary surfaces.62 This allows the spatial topological shapes of orbitals and the positive/negative signs representing wavefunction phases to be displayed three-dimensionally. It provides visual support for understanding the physical significance of nodal distributions and overlap integrals 63, assisting in clarifying why \"phase matching is the foundation of effective bonding.\""
+          }
+        ]
+      },
+      {
+        "key": "8.2",
+        "title_zh": "8.2 AO 到 MO 的学习路径",
+        "title_en": "8.2 Learning Path from AO to MO",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "Lorbital 的知识架构旨在建立系统的理论认知路径：从孤立原子轨道（AO）的能级与形态出发，引入空间对称性原则（点群与特征标表），利用群论方法将配体轨道转化为对称性匹配的群轨道（SALC），最终构建定量的分子轨道（MO）模型。例如，通过对  分子三中心四电子键的分析，表明了无需借助高能  轨道杂化假设，利用基本分子轨道理论即能严谨地解释其电子结构与稳定性 11。"
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "The knowledge architecture of Lorbital is designed to establish a systematic theoretical cognitive path: starting from the energy levels and morphologies of isolated Atomic Orbitals (AO), introducing spatial symmetry principles (Point Groups and Character Tables), utilizing group theory methods to convert ligand orbitals into Symmetry Adapted Linear Combinations (SALC), and ultimately constructing quantitative Molecular Orbital (MO) models. For instance, the analysis of the 3-center 4-electron bond in the XeF2 molecule demonstrates that its electron structure and stability can be rigorously explained using basic MO theory without assuming high-energy d-orbital hybridization.11"
+          }
+        ]
+      },
+      {
+        "key": "8.3",
+        "title_zh": "8.3 MO 到能带的连续叙事",
+        "title_en": "8.3 Continuous Narrative from MO to Band Theory",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "量子化学的理论框架在尺度上具有连续性。从双原子分子的离散能级图扩展至具有  个重复单元的寡聚物，分子轨道能级逐渐密集。当向宏观晶体延伸时，这些离散的轨道平滑过渡为固体物理中的能带（Bands）19。在此连续体系中，分子的 HOMO 对应于固体的费米能级，而 HOMO-LUMO 能隙演变为半导体的带隙 59。这种跨尺度的理论一致性，为理解从微观分子到宏观材料性质的演变提供了物理基础。"
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "The theoretical framework of quantum chemistry exhibits continuity across scales. Progressing from the discrete energy level diagrams of diatomic molecules to oligomers with N repeating units, molecular orbital energy levels become increasingly dense. When extended to macroscopic crystals, these discrete orbitals smoothly transition into the bands of solid-state physics.19 In this continuous system, the molecule's HOMO corresponds to the solid's Fermi level, while the HOMO-LUMO gap evolves into the semiconductor's band gap.59 This cross-scale theoretical consistency provides the physical foundation for understanding the evolution from microscopic molecules to macroscopic material properties."
+          }
+        ]
+      },
+      {
+        "key": "8.4",
+        "title_zh": "8.4 实验导向的知识闭环",
+        "title_en": "8.4 Experiment-Oriented Knowledge Closed Loop",
+        "body_zh": [
+          {
+            "type": "p",
+            "text": "理论模型需要通过实验数据的检验。在分子轨道与能带理论的框架下，光电子能谱（PES）数据印证了多原子分子中存在不同能级的价层成键电子 1；核磁共振（NMR）与红外光谱（IR）实验证实了氢键中电荷转移现象的存在 14；紫外-可见吸收光谱（UV-Vis）结合选择定则，定量反映了前线轨道间电子跃迁的概率 39。这些实验证据与量子力学和群论计算相吻合，构建了现代化学理论的基础框架。"
+          }
+        ],
+        "body_en": [
+          {
+            "type": "p",
+            "text": "Theoretical models must be validated by experimental data. Within the frameworks of molecular orbital and band theories, Photoelectron Spectroscopy (PES) data confirms the presence of distinct energy levels for valence bonding electrons in polyatomic molecules 1; Nuclear Magnetic Resonance (NMR) and Infrared Spectroscopy (IR) experiments verify the existence of charge transfer phenomena in hydrogen bonds 14; and UV-Vis absorption spectroscopy, coupled with selection rules, quantitatively reflects the probability of electronic transitions between frontier orbitals.39 These experimental proofs align with calculations based on wave mechanics and group theory, formulating the foundational structure of modern chemistry theories."
+          }
+        ]
+      }
+    ]
+  }
+]
