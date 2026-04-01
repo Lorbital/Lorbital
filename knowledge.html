@@ -117,6 +117,20 @@
             line-height: 1.6;
             color: rgba(255, 255, 255, 0.7);
         }
+        .page-container > .glass-panel:first-of-type p + p {
+            margin-top: 0.85rem;
+        }
+        .kb-contact-qr {
+            max-width: 200px;
+            margin: 1rem auto;
+        }
+        .kb-contact-qr img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
         :root {
             --nav-height: 70px;
             --page-padding-top: 80px;
@@ -456,6 +470,13 @@
     </nav>
 
     <div class="page-container">
+        <div class="glass-panel kb-contact-banner" aria-label="联系与购买">
+            <p data-i18n-html="story.p10">推开这扇门，加入<b>探索者</b>的行列：<br>Lorbital_official（微信号）</p>
+            <div class="kb-contact-qr">
+                <img src="public/images/story/QR%20code.jpg" alt="微信二维码 QR code" width="200" height="200" loading="lazy">
+            </div>
+            <p data-i18n-html="story.p11">将<b>科学之美</b>留在身边：<br><a href="https://e.tb.cn/h.iQu6LtZAW4Xi0O6?tk=gyg4520vEF8" target="_blank" rel="noopener noreferrer" style="color: var(--accent); text-decoration: underline;">【淘宝】Lorbital 电子轨道模型</a><br>点击链接直接打开 或者 淘宝搜索直接打开</p>
+        </div>
         <div class="knowledge-layout">
             <aside class="knowledge-sidebar">
                 <nav id="knowledge-toc" aria-label="知识库目录"></nav>

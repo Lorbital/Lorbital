@@ -41,9 +41,8 @@
       p8: '<b>我们相信，理解世界的工具，本身就应该是一种美。<br>而我们，正从让电子"被看见"开始。</b>',
       p9: '未来，我们希望这里能成为一个<b>共同</b>的<b>"科学之家"</b>----<br>一个不止于讨论，更能让<b>灵魂碰撞</b>，让<b>好奇生根</b>的地方。',
       p10: '推开这扇门，加入<b>探索者</b>的行列：<br>Lorbital_official（微信号）',
-      p11: '将<b>科学之美</b>留在身边：',
-      p12: '<b>我们期待与你一起，从"看见"电子，到理解万物，直至真正热爱上科学本身。</b>',
-      shopLink: 'online shop link'
+      p11: '将<b>科学之美</b>留在身边：<br><a href="https://e.tb.cn/h.iQu6LtZAW4Xi0O6?tk=gyg4520vEF8" target="_blank" rel="noopener noreferrer" style="color: var(--accent); text-decoration: underline;">【淘宝】Lorbital 电子轨道模型</a><br>点击链接直接打开 或者 淘宝搜索直接打开',
+      p12: '<b>我们期待与你一起，从"看见"电子，到理解万物，直至真正热爱上科学本身。</b>'
     },
 
     // --- knowledge.html ---

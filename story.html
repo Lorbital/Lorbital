@@ -98,6 +98,20 @@
             text-align: center;
             color: #ccc;
         }
+
+        /* 微信号后的微信二维码 */
+        .story-qr {
+            max-width: 220px;
+            margin: 1.25rem auto 1.75rem;
+        }
+        .story-qr img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+        }
         
         @media (max-width: 768px) {
             .story-image {
@@ -245,8 +259,10 @@
             <p data-animate data-i18n-html="story.p9">未来，我们希望这里能成为一个<b>共同</b>的<b>"科学之家"</b>----<br>一个不止于讨论，更能让<b>灵魂碰撞</b>，让<b>好奇生根</b>的地方。</p>
             
             <p data-animate data-i18n-html="story.p10">推开这扇门，加入<b>探索者</b>的行列：<br>Lorbital_official（微信号）</p>
-            
-            <p data-animate data-i18n-html="story.p11">将<b>科学之美</b>留在身边：<br><a href="#" style="color: var(--accent); text-decoration: underline;">online shop link</a></p>
+            <div class="story-qr" data-animate="image">
+                <img src="public/images/story/QR%20code.jpg" alt="微信二维码 QR code" width="220" height="220" loading="lazy">
+            </div>
+            <p data-animate data-i18n-html="story.p11">将<b>科学之美</b>留在身边：<br><a href="https://e.tb.cn/h.iQu6LtZAW4Xi0O6?tk=gyg4520vEF8" target="_blank" rel="noopener noreferrer" style="color: var(--accent); text-decoration: underline;">【淘宝】Lorbital 电子轨道模型</a><br>点击链接直接打开 或者 淘宝搜索直接打开</p>
             
             <p data-animate style="margin-top: 40px;" data-i18n-html="story.p12"><b>我们期待与你一起，从"看见"电子，到理解万物，直至真正热爱上科学本身。</b></p>
         </div>

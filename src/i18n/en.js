@@ -41,9 +41,8 @@
       p8: '<b>We believe that the tools we use to understand the world should themselves be beautiful.<br>Therefore, we are starting by making electrons "visible".</b>',
       p9: 'In the future, we hope this space will become a <b>shared</b> <b>"Home of Science"</b>\u2014<br>A space not just for discussion, but where <b>minds collide</b> and <b>curiosity takes root</b>.',
       p10: 'Open this door, join the ranks of <b>explorers</b>:<br>Lorbital_official (Wechat number)',
-      p11: 'Keep the <b>beauty of science</b> close to you:',
-      p12: '<b>We look forward to journeying with you\u2014<br>from visualizing electrons to comprehending the universe,<br>and ultimately falling in love with science itself.</b>',
-      shopLink: 'Online Shop Link'
+      p11: 'Keep the <b>beauty of science</b> close to you:<br><a href="https://e.tb.cn/h.iQu6LtZAW4Xi0O6?tk=gyg4520vEF8" target="_blank" rel="noopener noreferrer" style="color: var(--accent); text-decoration: underline;">Taobao: Lorbital electron orbital model</a><br>Open the link (Taobao app recommended) or search for the product on Taobao.',
+      p12: '<b>We look forward to journeying with you\u2014<br>from visualizing electrons to comprehending the universe,<br>and ultimately falling in love with science itself.</b>'
     },
 
     // --- knowledge.html ---
