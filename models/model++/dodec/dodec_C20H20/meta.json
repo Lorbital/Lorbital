@@ -1,0 +1,63 @@
+{
+  "id": "dodec_C20H20",
+  "displayName": "C20H20",
+  "molecule": "C20H20",
+  "charge": 0,
+  "multiplicity": 1,
+  "symmetry": "Geometry optimized from an idealized Ih starting cage",
+  "displayTarget": "Geometry-optimized electron-density and HOMO point clouds",
+  "method": "PySCF RKS/PBE",
+  "basis": "6-31g",
+  "pointCount": 92000,
+  "recommendedScale": 1.0,
+  "opacity": 0.84,
+  "physicalDiameter": 8.598,
+  "homoIndex": 69,
+  "lumoIndex": 70,
+  "targetOrbitalIndex": 69,
+  "targetOrbitalLabel": "HOMO",
+  "orbitalEnergyHartree": -0.22113564434703908,
+  "totalEnergyHartree": -773.0283956702217,
+  "cubeThreshold": 0.020900783115843743,
+  "densityCubeThreshold": 0.17388029999998397,
+  "gridResolutionBohr": 0.35,
+  "densityGridResolutionBohr": 0.18,
+  "source": "Geometry optimization plus final DFT point clouds on a polyhedral cage molecule",
+  "atomCount": 40,
+  "vertexCount": 20,
+  "initialGeometryPath": "dodec_C20H20_initial.xyz",
+  "optimizedGeometryPath": "dodec_C20H20_optimized.xyz",
+  "geometryOptimization": {
+    "backend": "reused existing optimized geometry",
+    "converged": true,
+    "message": "Loaded coordinates from dodec_C20H20_optimized.xyz",
+    "iterations": 0,
+    "functionEvaluations": 0,
+    "gradientEvaluations": 0,
+    "initialEnergyHartree": null,
+    "finalEnergyHartree": null,
+    "finalGradientNorm": null
+  },
+  "maxCoordinateShiftAngstrom": 0.0471,
+  "meanCoordinateShiftAngstrom": 0.0399,
+  "layers": [
+    {
+      "id": "density",
+      "label": "Electron density",
+      "path": "dodec_C20H20_density.ply",
+      "pointCount": 38000,
+      "opacity": 0.38,
+      "sizeScale": 1.08,
+      "defaultVisible": true
+    },
+    {
+      "id": "homo",
+      "label": "HOMO",
+      "path": "dodec_C20H20.ply",
+      "pointCount": 54000,
+      "opacity": 0.42,
+      "sizeScale": 0.96,
+      "defaultVisible": false
+    }
+  ]
+}

@@ -173,7 +173,49 @@ export const ORBITAL_KNOWLEDGE = {
   '5g_xzx2-3y2': { title: { zh: '5g (gxz(x²-3y²))轨道', en: '5g (gxz(x²-3y²)) Orbital' }, basicInfo: { quantumNumbers: { n: 5, l: 4, m: 3 }, description: { zh: '第五主壳层g轨道，复杂对称形态', en: '5th shell g orbital, complex symmetry' }, orbitalType: { zh: 'g轨道（超高阶轨道）', en: 'g orbital (ultra-high-order)' } }, shapeFeatures: { shape: { zh: '十二个瓣，复杂对称分布', en: 'Twelve lobes, complex symmetric distribution' }, symmetry: { zh: '关于y轴对称', en: 'Symmetric about the y-axis' }, nodes: { zh: '径向节点数：0，角节点数：4', en: 'Radial nodes: 0, angular nodes: 4' } } },
   '5g_yzy2-3x2': { title: { zh: '5g (gyz(y²-3x²))轨道', en: '5g (gyz(y²-3x²)) Orbital' }, basicInfo: { quantumNumbers: { n: 5, l: 4, m: -3 }, description: { zh: '第五主壳层g轨道，复杂对称形态', en: '5th shell g orbital, complex symmetry' }, orbitalType: { zh: 'g轨道（超高阶轨道）', en: 'g orbital (ultra-high-order)' } }, shapeFeatures: { shape: { zh: '十二个瓣，复杂对称分布', en: 'Twelve lobes, complex symmetric distribution' }, symmetry: { zh: '关于x轴对称', en: 'Symmetric about the x-axis' }, nodes: { zh: '径向节点数：0，角节点数：4', en: 'Radial nodes: 0, angular nodes: 4' } } },
   '5g_x4+y4': { title: { zh: '5g (gx⁴+y⁴)轨道', en: '5g (gx⁴+y⁴) Orbital' }, basicInfo: { quantumNumbers: { n: 5, l: 4, m: 4 }, description: { zh: '第五主壳层g轨道，复杂对称形态', en: '5th shell g orbital, complex symmetry' }, orbitalType: { zh: 'g轨道（超高阶轨道）', en: 'g orbital (ultra-high-order)' } }, shapeFeatures: { shape: { zh: '十六个瓣，xy平面对称', en: 'Sixteen lobes, xy-plane symmetric' }, symmetry: { zh: '关于x、y轴对称', en: 'Symmetric about x and y axes' }, nodes: { zh: '径向节点数：0，角节点数：4', en: 'Radial nodes: 0, angular nodes: 4' } } },
-  '5g_xyx2-y2': { title: { zh: '5g (gxy(x²-y²))轨道', en: '5g (gxy(x²-y²)) Orbital' }, basicInfo: { quantumNumbers: { n: 5, l: 4, m: -4 }, description: { zh: '第五主壳层g轨道，xy平面对称', en: '5th shell g orbital, xy-plane symmetric' }, orbitalType: { zh: 'g轨道（超高阶轨道）', en: 'g orbital (ultra-high-order)' } }, shapeFeatures: { shape: { zh: '十六个瓣，xy平面对称', en: 'Sixteen lobes, xy-plane symmetric' }, symmetry: { zh: '关于x、y轴对称', en: 'Symmetric about x and y axes' }, nodes: { zh: '径向节点数：0，角节点数：4', en: 'Radial nodes: 0, angular nodes: 4' } } }
+  '5g_xyx2-y2': { title: { zh: '5g (gxy(x²-y²))轨道', en: '5g (gxy(x²-y²)) Orbital' }, basicInfo: { quantumNumbers: { n: 5, l: 4, m: -4 }, description: { zh: '第五主壳层g轨道，xy平面对称', en: '5th shell g orbital, xy-plane symmetric' }, orbitalType: { zh: 'g轨道（超高阶轨道）', en: 'g orbital (ultra-high-order)' } }, shapeFeatures: { shape: { zh: '十六个瓣，xy平面对称', en: 'Sixteen lobes, xy-plane symmetric' }, symmetry: { zh: '关于x、y轴对称', en: 'Symmetric about x and y axes' }, nodes: { zh: '径向节点数：0，角节点数：4', en: 'Radial nodes: 0, angular nodes: 4' } } },
+
+  'dodec_C20H20': {
+    title: { zh: 'C20H20 正十二面体分子轨道', en: 'C20H20 Dodecahedral Molecular Orbital' },
+    basicInfo: {
+      kind: 'molecular',
+      molecule: { zh: '正十二面体烷 C20H20', en: 'Dodecahedrane C20H20' },
+      orbitalType: { zh: '几何优化后 DFT 分子轨道与电子密度', en: 'Geometry-optimized DFT orbital and electron density' },
+      symmetry: { zh: '由理想 Ih 笼架出发优化得到', en: 'Optimized from an idealized Ih cage' },
+      displayTarget: { zh: 'PySCF 计算得到的总电子密度与 HOMO 叠加点云', en: 'Layered total-electron-density and HOMO point clouds computed in PySCF' },
+      method: { zh: 'PySCF RKS / PBE', en: 'PySCF RKS / PBE' },
+      basis: { zh: '6-31G', en: '6-31G' },
+      chargeMultiplicity: { zh: '0 / 单重态', en: '0 / singlet' },
+      description: { zh: '该模型以理想化正十二面体碳骨架与径向 C-H 键长构造初始结构，先在 PySCF 中做几何优化，再把优化后结构的总电子密度与 HOMO Cube 网格转换为可叠加查看的点云。', en: 'This model starts from an idealized dodecahedral carbon cage with radial C-H bonds, performs a geometry optimization in PySCF, and then converts the optimized total-electron-density and HOMO cube grids into layered point clouds.' },
+      scientificNote: { zh: '当前展示已包含几何优化，因此骨架形状比纯理想多面体更接近自洽场下的稳定结构；若需更高精度，仍可进一步加入更高阶基组、色散修正或文献实验坐标。', en: 'The current display already includes geometry optimization, so the cage shape is closer to a self-consistent stable structure than a purely ideal polyhedron; larger basis sets, dispersion corrections, or literature geometries could still be added for higher accuracy.' }
+    },
+    shapeFeatures: {
+      shape: { zh: '浅金色层显示骨架总电子密度，双色层显示 HOMO 相位高值区域，因此既能看到成键骨架，也能看到前线轨道分布', en: 'The pale gold layer shows the total electron density of the cage, while the two-color layer highlights high-amplitude HOMO regions, so both the bonding scaffold and frontier-orbital pattern remain visible' },
+      symmetry: { zh: '优化后仍保留接近正十二面体笼架的高对称特征，但会出现真实分子中允许的小幅键长与键角调整', en: 'After optimization, the structure still preserves near-dodecahedral high symmetry, while allowing the small bond-length and bond-angle relaxations expected in a real molecule' },
+      nodes: { zh: '双色分区对应 HOMO 波函数正负相位；浅金色总电子密度不含相位信息，主要用于呈现优化后的分子骨架', en: 'The two-color partitioning tracks the positive and negative phases of the HOMO wavefunction; the pale gold total electron density carries no phase information and primarily shows the optimized molecular scaffold' }
+    }
+  },
+
+  'icosa_B12H12': {
+    title: { zh: 'B12H12²⁻ 正二十面体分子轨道', en: 'B12H12²⁻ Icosahedral Molecular Orbital' },
+    basicInfo: {
+      kind: 'molecular',
+      molecule: { zh: 'closo-B12H12²⁻', en: 'closo-B12H12²⁻' },
+      orbitalType: { zh: '几何优化后 DFT 分子轨道与电子密度', en: 'Geometry-optimized DFT orbital and electron density' },
+      symmetry: { zh: '由理想 Ih 笼架出发优化得到', en: 'Optimized from an idealized Ih cage' },
+      displayTarget: { zh: 'PySCF 计算得到的总电子密度与 HOMO 叠加点云', en: 'Layered total-electron-density and HOMO point clouds computed in PySCF' },
+      method: { zh: 'PySCF RKS / PBE', en: 'PySCF RKS / PBE' },
+      basis: { zh: 'def2-SVP', en: 'def2-SVP' },
+      chargeMultiplicity: { zh: '-2 / 单重态', en: '-2 / singlet' },
+      description: { zh: '该模型以理想化 closo-B12H12²⁻ 正二十面体硼笼为起点，先在 PySCF 中做几何优化，再把优化后结构的总电子密度与 HOMO Cube 网格转换为可交互叠加点云。', en: 'This model starts from an idealized icosahedral boron cage for closo-B12H12²⁻, performs a geometry optimization in PySCF, and then converts the optimized total-electron-density and HOMO cube grids into layered interactive point clouds.' },
+      scientificNote: { zh: '当前结果已不再只是理想笼架上的单点轨道，而是包含优化后核坐标的自洽电子分布；如需进一步贴近实验，可继续引入更高阶泛函、溶剂效应或文献结构。', en: 'The current result is no longer just a single-point orbital on an ideal cage, but a self-consistent electronic distribution on optimized nuclear coordinates; higher-level functionals, solvent effects, or literature geometries could bring it even closer to experiment.' }
+    },
+    shapeFeatures: {
+      shape: { zh: '浅金色层呈现 closo 硼笼与 B-H 骨架的总电子密度，双色层则突出 HOMO 的多中心离域分布', en: 'The pale gold layer shows the total electron density of the closo boron cage and B-H framework, while the two-color layer highlights the multicenter delocalized HOMO distribution' },
+      symmetry: { zh: '优化后整体仍保持接近正二十面体 closo 笼的高对称性，但会比理想几何更符合自洽场平衡构型', en: 'After optimization, the structure still remains close to the high symmetry of an icosahedral closo cage, while better matching the self-consistent equilibrium geometry than the idealized starting shape' },
+      nodes: { zh: '双色区分 HOMO 正负相位与节点；浅金色总电子密度则帮助直接识别优化后的笼架位置与成键区域', en: 'The two-color layer separates HOMO phases and nodes; the pale gold total electron density helps identify the optimized cage positions and bonding regions directly' }
+    }
+  }
 };
 
 /**

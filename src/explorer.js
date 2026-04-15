@@ -9,7 +9,9 @@ import { Line2 } from 'three/addons/lines/Line2.js';
 import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
-import { MODEL_REGISTRY, getPlyUrl, loadMetadata, hasOrbitalModel, getActualModelId } from './data/modelRegistry.js';
+import { MODEL_REGISTRY, getPlyUrl, getModelAssetUrl, loadMetadata, hasOrbitalModel, getActualModelId, getOrbitalType } from './data/modelRegistry.js';
+import { PERIODIC_ELEMENTS } from './data/periodicTable.js';
+import { getOrbitalPosterUrls } from './data/previewRegistry.js';
 import { getOrbitalKnowledge } from './data/orbitalKnowledge.js';
 import { RenderController } from './three/renderer.js';
 import { GestureController } from './components/GestureController.js';
@@ -18,14 +20,18 @@ import { GestureState } from './gesture/gestureMapping.js';
 import { ROTATION_SENSITIVITY, ZOOM_SENSITIVITY, MIN_SCALE, MAX_SCALE } from './utils/constants.js';
 
 let scene, camera, renderer, orbitalPoints, renderController, axesHelper, css2DRenderer;
+let orbitalLayerObjects = [];
 const orbitalGroup = new THREE.Group();
 const loader = new PLYLoader();
 
 // 界面状态
-let currentView = 'category'; // 'category', 'orbital', 'viewer'
+let currentView = 'home'; // 'home', 'periodic', 'orbital', 'viewer'
+/** @type {{ type: 'home'|'periodic'|'orbital', category?: string }} */
+let viewerReturnContext = { type: 'home' };
 let currentCategory = null;
 let currentMetadata = null;
 let currentOrbitalId = null; // 当前查看的轨道 id，用于同分类切换与信息按钮
+let orbitalLayerVisibility = { density: true, homo: false, main: true };
 let lastErrorOrbitalId = null;
 let lastErrorOpts = null;
 let cameraVisible = true; // 摄像头显示状态
@@ -52,15 +58,28 @@ let lastMousePos = { x: 0, y: 0 };
 const settings = {
     autoRotate: true,
     showAxes: true,
-    particleSize: 0.0275,
+    particleSize: 0.032,
     rotationSpeed: 0.0105
     // 不使用默认颜色，完全使用PLY文件中的原始颜色
 };
 const invertRotationY = true;
 
+const CATEGORY_TITLE_KEYS = {
+    s: 'explorer.catTitleS',
+    p: 'explorer.catTitleP',
+    d: 'explorer.catTitleD',
+    f: 'explorer.catTitleF',
+    g: 'explorer.catTitleG',
+    dodec: 'explorer.catTitleDodec',
+    icosa: 'explorer.catTitleIcosa'
+};
+
 // --- 手势教程功能常量 ---
 const TUTORIAL_STORAGE_KEY = 'lorbital_tutorial_shown';
 const TUTORIAL_TOTAL_STEPS = 3;
+
+/** @type {ReturnType<typeof setTimeout> | null} */
+let previewHideTimer = null;
 
 init();
 
@@ -117,6 +136,8 @@ function init() {
 
     if (document.hidden) pauseBackgroundWork();
 
+    showHomeView();
+
     // i18n: re-apply translations when language changes
     if (window.I18N && window.I18N.onLangChange) {
         window.I18N.onLangChange(() => {
@@ -124,6 +145,9 @@ function init() {
             // Re-render orbital list if visible
             if (currentView === 'orbital' && currentCategory) {
                 showOrbitalList(currentCategory);
+            }
+            if (currentView === 'periodic') {
+                renderPeriodicTable();
             }
             // Re-render knowledge card if visible
             if (currentView === 'viewer' && currentOrbitalId) {
@@ -143,20 +167,35 @@ function init() {
 
 // 初始化UI界面
 function initUI() {
-    // 分类选择界面
-    const categoryCards = document.querySelectorAll('.category-card');
-    categoryCards.forEach(card => {
+    // 首页四入口
+    const homeCards = document.querySelectorAll('.home-card');
+    homeCards.forEach((card) => {
         card.addEventListener('click', () => {
-            const type = card.dataset.type;
-            showOrbitalList(type);
+            const entry = card.dataset.entry;
+            if (entry === 'sf') {
+                showPeriodicTable();
+            } else if (entry === 'g') {
+                showOrbitalList('g');
+            } else if (entry === 'dodec') {
+                viewerReturnContext = { type: 'home' };
+                loadOrbital('dodec_C20H20');
+            } else if (entry === 'icosa') {
+                viewerReturnContext = { type: 'home' };
+                loadOrbital('icosa_B12H12');
+            }
         });
     });
+
+    const periodicBack = document.getElementById('periodic-back-button');
+    if (periodicBack) {
+        periodicBack.addEventListener('click', () => showHomeView());
+    }
 
     // 返回按钮（轨道列表界面）
     const backButton = document.querySelector('.back-button');
     if (backButton) {
         backButton.addEventListener('click', () => {
-            showCategorySelector();
+            showHomeView();
         });
     }
     
@@ -164,11 +203,7 @@ function initUI() {
     const viewerBackButton = document.getElementById('viewer-back-button');
     if (viewerBackButton) {
         viewerBackButton.addEventListener('click', () => {
-            if (currentCategory) {
-                showOrbitalList(currentCategory);
-            } else {
-                showCategorySelector();
-            }
+            handleViewerBack();
         });
     }
 
@@ -193,16 +228,40 @@ function initUI() {
     if (backBtn) {
         backBtn.addEventListener('click', () => {
             hideLoadingOverlay();
-            if (currentCategory) showOrbitalList(currentCategory);
-            else showCategorySelector();
+            if (viewerReturnContext.type === 'orbital' && viewerReturnContext.category) {
+                showOrbitalList(viewerReturnContext.category);
+            } else if (viewerReturnContext.type === 'periodic') {
+                showPeriodicTable();
+            } else {
+                showHomeView();
+            }
         });
     }
 }
 
-// 显示分类选择界面
-function showCategorySelector() {
-    currentView = 'category';
-    document.getElementById('category-selector').classList.remove('hidden');
+function handleViewerBack() {
+    hideElementPreviewCard();
+    if (viewerReturnContext.type === 'periodic') {
+        showPeriodicTable();
+    } else if (viewerReturnContext.type === 'orbital' && viewerReturnContext.category) {
+        showOrbitalList(viewerReturnContext.category);
+    } else {
+        showHomeView();
+    }
+}
+
+// 显示首页（四入口）
+function showHomeView() {
+    currentView = 'home';
+    hideElementPreviewCard();
+    if (previewHideTimer) {
+        clearTimeout(previewHideTimer);
+        previewHideTimer = null;
+    }
+    const homeEl = document.getElementById('explorer-home');
+    if (homeEl) homeEl.classList.remove('hidden');
+    const periodicEl = document.getElementById('periodic-selector');
+    if (periodicEl) periodicEl.classList.add('hidden');
     document.getElementById('orbital-selector').classList.add('hidden');
     document.getElementById('container').style.display = 'none';
     document.getElementById('instructions').classList.add('hidden');
@@ -214,7 +273,6 @@ function showCategorySelector() {
     const consoleEl = document.getElementById('experiment-console');
     if (consoleEl) consoleEl.classList.add('hidden');
     
-    // 隐藏 viewer 页面信息按钮和知识卡片
     const viewerKnowledgeButton = document.getElementById('viewer-knowledge-button');
     if (viewerKnowledgeButton) {
         viewerKnowledgeButton.classList.add('hidden');
@@ -227,10 +285,158 @@ function showCategorySelector() {
     if (gestureController) gestureController.stop();
 }
 
+function showPeriodicTable() {
+    currentView = 'periodic';
+    hideElementPreviewCard();
+    const homeEl = document.getElementById('explorer-home');
+    if (homeEl) homeEl.classList.add('hidden');
+    const periodicEl = document.getElementById('periodic-selector');
+    if (periodicEl) periodicEl.classList.remove('hidden');
+    document.getElementById('orbital-selector').classList.add('hidden');
+    document.getElementById('container').style.display = 'none';
+    document.getElementById('instructions').classList.add('hidden');
+    document.getElementById('orbital-tag').classList.add('hidden');
+    document.getElementById('video-container').classList.add('hidden');
+    document.getElementById('viewer-back-button').classList.add('hidden');
+    const cameraCard = document.getElementById('camera-toggle-card');
+    if (cameraCard) cameraCard.classList.add('hidden');
+    const consoleEl = document.getElementById('experiment-console');
+    if (consoleEl) consoleEl.classList.add('hidden');
+    const viewerKnowledgeButton = document.getElementById('viewer-knowledge-button');
+    if (viewerKnowledgeButton) viewerKnowledgeButton.classList.add('hidden');
+    const knowledgeCard = document.getElementById('knowledge-card');
+    if (knowledgeCard) knowledgeCard.classList.add('hidden');
+    if (gestureController) gestureController.stop();
+    renderPeriodicTable();
+}
+
+function renderPeriodicTable() {
+    const grid = document.getElementById('periodic-grid');
+    if (!grid) return;
+    grid.querySelectorAll('.periodic-cell').forEach((node) => node.remove());
+    PERIODIC_ELEMENTS.forEach((el) => {
+        const cell = document.createElement('button');
+        cell.type = 'button';
+        cell.className = 'periodic-cell';
+        cell.dataset.z = String(el.z);
+        cell.style.gridRow = String(el.gridRow);
+        cell.style.gridColumn = String(el.gridCol);
+        if (el.cellStatus === 'available') {
+            cell.classList.add('periodic-cell--available');
+        } else {
+            cell.classList.add('periodic-cell--previewonly');
+        }
+        cell.innerHTML = `
+            <span class="periodic-cell-z">${el.z}</span>
+            <span class="periodic-cell-symbol">${el.symbol}</span>
+            <span class="periodic-cell-subshell">${el.representativeLabel}</span>
+        `;
+        cell.addEventListener('mouseenter', (ev) => {
+            showElementPreviewCard(el, ev.clientX, ev.clientY);
+        });
+        cell.addEventListener('mousemove', (ev) => {
+            if (document.getElementById('element-hover-preview')?.classList.contains('hidden')) return;
+            positionElementPreviewCard(ev.clientX, ev.clientY);
+        });
+        cell.addEventListener('mouseleave', () => {
+            scheduleHideElementPreviewCard();
+        });
+        cell.addEventListener('click', () => {
+            if (el.cellStatus !== 'available') return;
+            viewerReturnContext = { type: 'periodic' };
+            loadOrbital(el.representativeOrbitalId);
+        });
+        grid.appendChild(cell);
+    });
+}
+
+function showElementPreviewCard(el, clientX, clientY) {
+    if (previewHideTimer) {
+        clearTimeout(previewHideTimer);
+        previewHideTimer = null;
+    }
+    const card = document.getElementById('element-hover-preview');
+    if (!card) return;
+    const title = document.getElementById('element-preview-title');
+    const sub = document.getElementById('element-preview-subshell');
+    const hint = document.getElementById('element-preview-hint');
+    const img = document.getElementById('element-preview-img');
+    const ph = document.getElementById('element-preview-placeholder');
+    if (title) title.textContent = `${el.symbol} (${el.z})`;
+    if (sub) sub.innerHTML = formatOrbitalName(el.representativeOrbitalId);
+    if (hint) hint.textContent = t('explorer.previewClickHint');
+    const urls = getOrbitalPosterUrls(el.representativeOrbitalId);
+    if (img && ph) {
+        delete img.dataset.fallbackTried;
+        img.classList.add('hidden');
+        ph.classList.remove('hidden');
+        img.onload = () => {
+            img.classList.remove('hidden');
+            ph.classList.add('hidden');
+        };
+        img.onerror = () => {
+            if (!img.dataset.fallbackTried) {
+                img.dataset.fallbackTried = '1';
+                img.src = urls.png;
+                return;
+            }
+            img.classList.add('hidden');
+            ph.classList.remove('hidden');
+        };
+        img.src = urls.webp;
+        img.alt = el.representativeOrbitalId;
+    }
+    card.classList.remove('hidden');
+    positionElementPreviewCard(clientX, clientY);
+}
+
+function positionElementPreviewCard(clientX, clientY) {
+    const card = document.getElementById('element-hover-preview');
+    if (!card) return;
+    const margin = 12;
+    const offset = 14;
+    let x = clientX + offset;
+    let y = clientY + offset;
+    const w = card.offsetWidth || 392;
+    const h = card.offsetHeight || 280;
+    if (x + w + margin > window.innerWidth) x = clientX - w - offset;
+    if (y + h + margin > window.innerHeight) y = clientY - h - offset;
+    x = Math.max(margin, Math.min(x, window.innerWidth - w - margin));
+    y = Math.max(margin, Math.min(y, window.innerHeight - h - margin));
+    card.style.left = `${x}px`;
+    card.style.top = `${y}px`;
+}
+
+function scheduleHideElementPreviewCard() {
+    if (previewHideTimer) clearTimeout(previewHideTimer);
+    previewHideTimer = setTimeout(() => {
+        hideElementPreviewCard();
+        previewHideTimer = null;
+    }, 120);
+}
+
+function hideElementPreviewCard() {
+    const card = document.getElementById('element-hover-preview');
+    if (card) card.classList.add('hidden');
+}
+
+// 兼容旧名（若仍有引用）
+function showCategorySelector() {
+    showHomeView();
+}
+
 // 智能布局函数：根据轨道类型设置网格布局
 function setupGridLayout(categoryType, orbitalList) {
     // 移除所有布局类
-    orbitalList.classList.remove('orbital-list-s', 'orbital-list-p', 'orbital-list-d', 'orbital-list-f', 'orbital-list-g');
+    orbitalList.classList.remove(
+        'orbital-list-s',
+        'orbital-list-p',
+        'orbital-list-d',
+        'orbital-list-f',
+        'orbital-list-g',
+        'orbital-list-dodec',
+        'orbital-list-icosa'
+    );
     
     // 根据类型添加对应的布局类
     switch(categoryType) {
@@ -259,6 +465,16 @@ function setupGridLayout(categoryType, orbitalList) {
             orbitalList.style.gridTemplateColumns = 'repeat(3, 1fr)';
             orbitalList.style.gridTemplateRows = 'repeat(3, auto)';
             break;
+        case 'dodec':
+            orbitalList.classList.add('orbital-list-dodec');
+            orbitalList.style.gridTemplateColumns = 'minmax(260px, 420px)';
+            orbitalList.style.gridTemplateRows = 'auto';
+            break;
+        case 'icosa':
+            orbitalList.classList.add('orbital-list-icosa');
+            orbitalList.style.gridTemplateColumns = 'minmax(260px, 420px)';
+            orbitalList.style.gridTemplateRows = 'auto';
+            break;
         default:
             // 默认布局
             orbitalList.style.gridTemplateColumns = 'repeat(auto-fill, minmax(150px, 1fr))';
@@ -270,10 +486,16 @@ function setupGridLayout(categoryType, orbitalList) {
 function showOrbitalList(categoryType) {
     currentView = 'orbital';
     currentCategory = categoryType;
+    viewerReturnContext = { type: 'orbital', category: categoryType };
+    hideElementPreviewCard();
     
-    document.getElementById('category-selector').classList.add('hidden');
+    const homeEl = document.getElementById('explorer-home');
+    if (homeEl) homeEl.classList.add('hidden');
+    const periodicEl = document.getElementById('periodic-selector');
+    if (periodicEl) periodicEl.classList.add('hidden');
     document.getElementById('orbital-selector').classList.remove('hidden');
-    document.getElementById('current-category-title').textContent = categoryType.toUpperCase();
+    const titleKey = CATEGORY_TITLE_KEYS[categoryType];
+    document.getElementById('current-category-title').textContent = titleKey ? t(titleKey) : categoryType.toUpperCase();
     
     const consoleEl = document.getElementById('experiment-console');
     if (consoleEl) consoleEl.classList.add('hidden');
@@ -327,6 +549,7 @@ function showOrbitalList(categoryType) {
                 <div class="orbital-item-name">${formatOrbitalName(orbitalId)}</div>
             `;
             item.addEventListener('click', () => {
+                viewerReturnContext = { type: 'orbital', category: categoryType };
                 loadOrbital(actualModelId || orbitalId);
             });
         }
@@ -338,6 +561,14 @@ function showOrbitalList(categoryType) {
 // 格式化轨道名称显示。新 ID：d/f/g 为 {n}d|f|g_{suffix}，如 3d_z2 → 3d<sub>z²</sub>
 function formatOrbitalName(orbitalId, asHtml = true) {
     function toSub(s) { return s.replace(/2/g, '²').replace(/3/g, '³').replace(/4/g, '⁴'); }
+
+    if (orbitalId === 'dodec_C20H20') {
+        return asHtml ? 'C<sub>20</sub>H<sub>20</sub>' : 'C20H20';
+    }
+
+    if (orbitalId === 'icosa_B12H12') {
+        return asHtml ? 'B<sub>12</sub>H<sub>12</sub><sup>2-</sup>' : 'B12H12^2-';
+    }
     
     // 处理 d/f/g 轨道: {n}{type}_{suffix}
     const m = orbitalId.match(/^(\d+)([dfg])_(.+)$/);
@@ -429,189 +660,253 @@ function showLoadingError(msg, orbitalId, opts) {
     document.getElementById('loading-overlay').classList.remove('hidden');
 }
 
+function loadPlyGeometry(url, onProgress) {
+    return new Promise((resolve, reject) => {
+        loader.load(url, resolve, onProgress, reject);
+    });
+}
+
+function getRenderableLayers(orbitalId, metadata) {
+    if (Array.isArray(metadata?.layers) && metadata.layers.length > 0) {
+        return metadata.layers.map((layer, index) => ({
+            id: layer.id || `layer-${index}`,
+            label: layer.label || `Layer ${index + 1}`,
+            path: layer.path,
+            url: getModelAssetUrl(orbitalId, layer.path),
+            opacity: layer.opacity ?? metadata?.opacity ?? 0.8,
+            sizeScale: layer.sizeScale ?? 1,
+            defaultVisible: layer.defaultVisible !== false,
+        }));
+    }
+    return [{
+        id: 'main',
+        label: 'Main',
+        path: null,
+        url: getPlyUrl(orbitalId),
+        opacity: metadata?.opacity ?? 0.8,
+        sizeScale: 1,
+        defaultVisible: true,
+    }];
+}
+
+function disposePointLayer(points) {
+    if (!points) return;
+    if (points.geometry) points.geometry.dispose();
+    if (points.material) points.material.dispose();
+}
+
+function clearPointLayers() {
+    orbitalLayerObjects.forEach(disposePointLayer);
+    orbitalLayerObjects = [];
+    orbitalPoints = null;
+}
+
+function createPointMaterial(geometry, layer, orbitalId) {
+    const opacity = layer.opacity ?? currentMetadata?.opacity ?? 0.8;
+    const size = settings.particleSize * (layer.sizeScale ?? 1);
+    const hasColors = geometry.attributes.color !== undefined;
+
+    let material;
+    if (hasColors) {
+        material = new THREE.PointsMaterial({
+            size,
+            vertexColors: true,
+            transparent: true,
+            opacity,
+            blending: THREE.NormalBlending,
+            depthWrite: false,
+        });
+    } else {
+        material = new THREE.PointsMaterial({
+            size,
+            color: 0xffffff,
+            transparent: true,
+            opacity,
+            blending: THREE.NormalBlending,
+            depthWrite: false,
+        });
+        console.warn(`PLY file for ${orbitalId} layer ${layer.id} has no color information`);
+    }
+    material.userData.baseOpacity = opacity;
+    return material;
+}
+
+function applyPointLayerSettings() {
+    orbitalLayerObjects.forEach((points) => {
+        if (!points.material) return;
+        const sizeScale = points.userData?.sizeScale ?? 1;
+        const baseOpacity = points.userData?.baseOpacity ?? currentMetadata?.opacity ?? 0.8;
+        const visible = points.userData?.layerVisible !== false;
+        points.visible = visible;
+        points.material.size = settings.particleSize * sizeScale;
+        points.material.opacity = visible ? baseOpacity : 0;
+    });
+}
+
+function setLayerVisibility(layerId, visible) {
+    orbitalLayerVisibility[layerId] = visible;
+    orbitalLayerObjects.forEach((points) => {
+        if (points.userData?.layerId === layerId) {
+            points.userData.layerVisible = visible;
+        }
+    });
+    applyPointLayerSettings();
+}
+
+function syncLayerToggleRow(rowId, checkboxId, layerId) {
+    const row = document.getElementById(rowId);
+    const checkbox = document.getElementById(checkboxId);
+    if (!row || !checkbox) return;
+    const layerExists = orbitalLayerObjects.some((points) => points.userData?.layerId === layerId);
+    row.style.display = layerExists ? 'flex' : 'none';
+    if (layerExists) {
+        checkbox.checked = orbitalLayerVisibility[layerId] !== false;
+    }
+}
+
+function updateLayerToggleControls() {
+    syncLayerToggleRow('experiment-console-density-row', 'experiment-console-show-density', 'density');
+    syncLayerToggleRow('experiment-console-homo-row', 'experiment-console-show-homo', 'homo');
+}
+
 // 加载轨道模型；opts.isSwitch 为同分类切换，不显示全屏 loading、不重复 showViewer
 async function loadOrbital(orbitalId, opts = {}) {
     try {
         if (!opts.isSwitch) showLoadingOverlay(orbitalId);
 
-        // 获取实际模型ID（处理P轨道映射等）
         const actualModelId = getActualModelId(orbitalId) || orbitalId;
-        
-        // 加载元数据（包含颜色信息）
         currentMetadata = await loadMetadata(actualModelId);
-        
-        // 更新轨道名称显示（使用科学命名法）
+
         const nameEl = document.getElementById('orbital-name');
         if (nameEl) {
-            // 使用格式化函数，保持科学命名法的正确大小写
             nameEl.innerHTML = formatOrbitalName(orbitalId);
         }
 
-        // 加载PLY文件
-        const plyUrl = getPlyUrl(actualModelId);
-        console.log('Loading PLY from URL:', plyUrl);
-        console.log('Orbital ID:', orbitalId, 'Actual Model ID:', actualModelId);
-        
-        console.log('Starting PLYLoader.load() with URL:', plyUrl);
-        loader.load(plyUrl, (geometry) => {
-            console.log('PLY file loaded successfully!', geometry);
-            console.log('Success callback executed!');
-            // 确保geometry存在
-            if (!geometry) {
-                console.error('Geometry is null or undefined');
-                showLoadingError(t('explorer.modelFormatError'), orbitalId, opts);
-                return;
+        const layers = getRenderableLayers(actualModelId, currentMetadata);
+        const geometries = await Promise.all(layers.map((layer, index) => loadPlyGeometry(
+            layer.url,
+            (progress) => {
+                if (!opts.isSwitch && index === layers.length - 1) updateLoadingProgress(progress);
+            },
+        )));
+
+        if (!opts.isSwitch) {
+            const txt = document.getElementById('loading-text');
+            if (txt) txt.textContent = t('explorer.loadingProcess');
+            const bar = document.getElementById('loading-progress-bar');
+            const pct = document.getElementById('loading-percent');
+            if (bar) {
+                bar.classList.remove('indeterminate');
+                bar.style.width = '100%';
             }
-            
-            console.log(`Geometry loaded: ${geometry.attributes.position.count} vertices`);
-
-            // 更新加载文本，提示正在处理模型
-            if (!opts.isSwitch) {
-                const txt = document.getElementById('loading-text');
-                if (txt) txt.textContent = t('explorer.loadingProcess');
-                const bar = document.getElementById('loading-progress-bar');
-                const pct = document.getElementById('loading-percent');
-                if (bar) {
-                    bar.classList.remove('indeterminate');
-                    bar.style.width = '100%';
-                }
-                if (pct) {
-                    pct.textContent = '100%';
-                    pct.classList.remove('hidden');
-                }
+            if (pct) {
+                pct.textContent = '100%';
+                pct.classList.remove('hidden');
             }
+        }
 
-            // 使用 requestAnimationFrame 分帧处理，避免阻塞UI
-            requestAnimationFrame(() => {
-                try {
-                    // 清理旧模型
-                    orbitalGroup.children.slice().forEach((child) => {
-                        if (child.isPoints && child.geometry) { child.geometry.dispose(); }
-                        if (child.isPoints && child.material) child.material.dispose();
-                        if (child.userData?.isAxesHelper) disposeAxesGroup(child);
-                    });
-                    orbitalGroup.clear();
+        requestAnimationFrame(() => {
+            try {
+                orbitalGroup.children.slice().forEach((child) => {
+                    if (child.userData?.isPointLayer) disposePointLayer(child);
+                    if (child.userData?.isAxesHelper) disposeAxesGroup(child);
+                });
+                orbitalGroup.clear();
+                clearPointLayers();
 
-                    // 分帧执行耗时操作：几何处理
-                    requestAnimationFrame(() => {
-                        try {
-                            geometry.center();
-                            geometry.computeBoundingSphere();
-                            const L = Math.max(geometry.boundingSphere.radius * 1.2, 0.5);
+                let maxRadius = 0.5;
+                const geometryInfo = layers.map((layer, index) => {
+                    const geometry = geometries[index];
+                    if (!geometry) throw new Error(t('explorer.modelFormatError'));
+                    geometry.computeBoundingBox();
+                    geometry.computeBoundingSphere();
+                    return {
+                        layer,
+                        geometry,
+                        center: geometry.boundingBox
+                            ? geometry.boundingBox.getCenter(new THREE.Vector3())
+                            : new THREE.Vector3(),
+                    };
+                });
+                const anchor = (geometryInfo.find((item) => item.layer.id === 'density') || geometryInfo[0]).center.clone();
 
-                            // 检查PLY文件是否包含颜色信息
-                            const hasColors = geometry.attributes.color !== undefined;
-                            
-                            let material;
-                            if (hasColors) {
-                                // 使用PLY文件中的原始颜色（vertexColors会自动使用PLY文件中的颜色）
-                                material = new THREE.PointsMaterial({ 
-                                    size: settings.particleSize, 
-                                    vertexColors: true, // 使用顶点颜色，这是关键
-                                    transparent: true, 
-                                    opacity: currentMetadata?.opacity || 0.8, 
-                                    blending: THREE.NormalBlending, 
-                                    depthWrite: false 
-                                });
-                                material.userData.baseOpacity = currentMetadata?.opacity || 0.8;
-                            } else {
-                                // 如果PLY文件没有颜色信息（应该不会发生，因为模型都有颜色）
-                                // 使用白色作为后备，但这种情况不应该出现
-                                const opacity = currentMetadata?.opacity || 0.8;
-                                material = new THREE.PointsMaterial({ 
-                                    size: settings.particleSize, 
-                                    color: 0xffffff, // 白色作为后备（不应该用到）
-                                    transparent: true, 
-                                    opacity: opacity, 
-                                    blending: THREE.NormalBlending, 
-                                    depthWrite: false 
-                                });
-                                material.userData.baseOpacity = opacity;
-                                console.warn(`PLY file for ${orbitalId} has no color information`);
-                            }
-                            
-                            // 再分一帧创建和添加模型
-                            requestAnimationFrame(() => {
-                                try {
-                                    orbitalPoints = new THREE.Points(geometry, material);
-                                    orbitalGroup.add(orbitalPoints);
-                                    axesHelper = createAxesHelper(L);
-                                    axesHelper.visible = settings.showAxes;
-                                    setAxesLabelsVisibility(settings.showAxes);
-                                    orbitalGroup.add(axesHelper);
-                                    console.log('OrbitalPoints created and added to scene');
+                geometryInfo.forEach(({ layer, geometry }) => {
+                    geometry.translate(-anchor.x, -anchor.y, -anchor.z);
+                    geometry.computeBoundingSphere();
+                    maxRadius = Math.max(maxRadius, geometry.boundingSphere?.radius || 0.5);
 
-                                    // 应用推荐缩放
-                                    if (currentMetadata?.recommendedScale) {
-                                        if (renderController) {
-                                            renderController.targetScale = currentMetadata.recommendedScale;
-                                            renderController.currentScale = currentMetadata.recommendedScale;
-                                        }
-                                        orbitalGroup.scale.setScalar(currentMetadata.recommendedScale);
-                                    }
-                                    
-                                    currentOrbitalId = orbitalId;
-                                    
-                                    // 重置相机位置和旋转
-                                    if (camera) {
-                                        camera.position.set(0, 0, 15);
-                                        camera.lookAt(0, 0, 0);
-                                    }
-                                    const initialScale = currentMetadata?.recommendedScale || 1.0;
-                                    if (renderController) {
-                                        renderController.targetQuaternion.set(0, 0, 0, 1);
-                                        renderController.currentQuaternion.set(0, 0, 0, 1);
-                                        renderController.targetScale = initialScale;
-                                        renderController.currentScale = initialScale;
-                                    }
-                                    if (orbitalGroup) {
-                                        orbitalGroup.quaternion.set(0, 0, 0, 1);
-                                        orbitalGroup.scale.setScalar(initialScale);
-                                        orbitalGroup.position.set(0, 0, 0);
-                                    }
-                                    
-                                    // 强制渲染一次，确保模型显示
-                                    requestAnimationFrame(() => {
-                                        if (renderer && scene && camera) {
-                                            renderer.render(scene, camera);
-                                            console.log('Forced render after model load');
-                                        }
-                                        
-                                        // 所有处理完成，隐藏加载遮罩并显示查看器
-                                        if (!opts.isSwitch) {
-                                            hideLoadingOverlay();
-                                            showViewer(opts);
-                                        }
-                                        const orbitalSelect = document.getElementById('experiment-console-orbital-select');
-                                        if (orbitalSelect) orbitalSelect.value = currentOrbitalId;
-                                    });
-                                } catch (renderError) {
-                                    console.error('Error creating or rendering orbital points:', renderError);
-                                    showLoadingError(`${t('explorer.renderFailed')}: ${renderError.message}`, orbitalId, opts);
-                                }
-                            });
-                        } catch (processError) {
-                            console.error('Error processing geometry:', processError);
-                            showLoadingError(`${t('explorer.processFailed')}: ${processError.message}`, orbitalId, opts);
-                        }
-                    });
-                } catch (cleanupError) {
-                    console.error('Error cleaning up old model:', cleanupError);
-                    showLoadingError(`${t('explorer.cleanupFailed')}: ${cleanupError.message}`, orbitalId, opts);
+                    const visible = orbitalLayerVisibility[layer.id] ?? layer.defaultVisible;
+                    const material = createPointMaterial(geometry, layer, orbitalId);
+                    const points = new THREE.Points(geometry, material);
+                    points.userData = {
+                        isPointLayer: true,
+                        layerId: layer.id,
+                        sizeScale: layer.sizeScale ?? 1,
+                        baseOpacity: layer.opacity ?? currentMetadata?.opacity ?? 0.8,
+                        layerVisible: visible,
+                    };
+                    orbitalLayerObjects.push(points);
+                    orbitalGroup.add(points);
+
+                    if (layer.id === 'homo' || (!orbitalPoints && layer.id !== 'density')) {
+                        orbitalPoints = points;
+                    }
+                });
+
+                if (!orbitalPoints) orbitalPoints = orbitalLayerObjects[0] || null;
+                applyPointLayerSettings();
+                updateLayerToggleControls();
+
+                const L = Math.max(maxRadius * 1.2, 0.5);
+                axesHelper = createAxesHelper(L);
+                axesHelper.visible = settings.showAxes;
+                setAxesLabelsVisibility(settings.showAxes);
+                orbitalGroup.add(axesHelper);
+
+                if (currentMetadata?.recommendedScale) {
+                    if (renderController) {
+                        renderController.targetScale = currentMetadata.recommendedScale;
+                        renderController.currentScale = currentMetadata.recommendedScale;
+                    }
+                    orbitalGroup.scale.setScalar(currentMetadata.recommendedScale);
                 }
-            });
-        }, (progress) => {
-            if (!opts.isSwitch) updateLoadingProgress(progress);
-            if (progress && progress.total > 0) {
-                console.log(`Loading progress: ${Math.round((progress.loaded / progress.total) * 100)}% (${progress.loaded}/${progress.total} bytes)`);
+
+                currentOrbitalId = orbitalId;
+                currentCategory = getOrbitalType(orbitalId);
+
+                if (camera) {
+                    camera.position.set(0, 0, 15);
+                    camera.lookAt(0, 0, 0);
+                }
+                const initialScale = currentMetadata?.recommendedScale || 1.0;
+                if (renderController) {
+                    renderController.targetQuaternion.set(0, 0, 0, 1);
+                    renderController.currentQuaternion.set(0, 0, 0, 1);
+                    renderController.targetScale = initialScale;
+                    renderController.currentScale = initialScale;
+                }
+                if (orbitalGroup) {
+                    orbitalGroup.quaternion.set(0, 0, 0, 1);
+                    orbitalGroup.scale.setScalar(initialScale);
+                    orbitalGroup.position.set(0, 0, 0);
+                }
+
+                requestAnimationFrame(() => {
+                    if (renderer && scene && camera) {
+                        renderer.render(scene, camera);
+                    }
+                    if (!opts.isSwitch) {
+                        hideLoadingOverlay();
+                        showViewer(opts);
+                    }
+                    const orbitalSelect = document.getElementById('experiment-console-orbital-select');
+                    if (orbitalSelect) orbitalSelect.value = currentOrbitalId;
+                });
+            } catch (renderError) {
+                console.error('Error creating or rendering orbital points:', renderError);
+                showLoadingError(`${t('explorer.renderFailed')}: ${renderError.message}`, orbitalId, opts);
             }
-        }, (error) => {
-            console.error('Failed to load model:', error);
-            console.error('Failed URL:', plyUrl);
-            console.error('Error details:', error.message || error);
-            showLoadingError(error?.message || t('explorer.checkModel'), orbitalId, opts);
         });
-        
     } catch (error) {
         console.error('Failed to load orbital:', error);
         showLoadingError(error.message, orbitalId, opts);
@@ -739,6 +1034,7 @@ function syncExperimentConsoleControls() {
     if (rotationSpeed) rotationSpeed.value = String(settings.rotationSpeed);
     if (showAxes) showAxes.checked = settings.showAxes;
     if (particleSize) particleSize.value = String(settings.particleSize);
+    updateLayerToggleControls();
 }
 
 function initExperimentConsole() {
@@ -747,6 +1043,8 @@ function initExperimentConsole() {
     const autoRotate = document.getElementById('experiment-console-auto-rotate');
     const rotationSpeed = document.getElementById('experiment-console-rotation-speed');
     const showAxes = document.getElementById('experiment-console-show-axes');
+    const showDensity = document.getElementById('experiment-console-show-density');
+    const showHomo = document.getElementById('experiment-console-show-homo');
     const orbitalSelect = document.getElementById('experiment-console-orbital-select');
     if (!root || !header) return;
 
@@ -770,9 +1068,17 @@ function initExperimentConsole() {
     if (particleSize) {
         particleSize.addEventListener('input', () => {
             settings.particleSize = parseFloat(particleSize.value);
-            if (orbitalPoints && orbitalPoints.material) {
-                orbitalPoints.material.size = settings.particleSize;
-            }
+            applyPointLayerSettings();
+        });
+    }
+    if (showDensity) {
+        showDensity.addEventListener('change', () => {
+            setLayerVisibility('density', showDensity.checked);
+        });
+    }
+    if (showHomo) {
+        showHomo.addEventListener('change', () => {
+            setLayerVisibility('homo', showHomo.checked);
         });
     }
     if (orbitalSelect) {
@@ -786,7 +1092,11 @@ function initExperimentConsole() {
 // 显示查看器界面
 function showViewer(opts = {}) {
     currentView = 'viewer';
-    document.getElementById('category-selector').classList.add('hidden');
+    hideElementPreviewCard();
+    const homeEl = document.getElementById('explorer-home');
+    if (homeEl) homeEl.classList.add('hidden');
+    const periodicEl = document.getElementById('periodic-selector');
+    if (periodicEl) periodicEl.classList.add('hidden');
     document.getElementById('orbital-selector').classList.add('hidden');
     
     const container = document.getElementById('container');
@@ -1192,13 +1502,13 @@ function initMouseEvents() {
         console.log('Wheel zoom, new scale:', clampedScale);
     }, { passive: false });
     
-    // ESC键返回分类选择，i键放大50%
+    // ESC：viewer → 上一屏；orbital/periodic → 首页
     window.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             if (currentView === 'viewer') {
-                showCategorySelector();
-            } else if (currentView === 'orbital') {
-                showCategorySelector();
+                handleViewerBack();
+            } else if (currentView === 'orbital' || currentView === 'periodic') {
+                showHomeView();
             }
         } else if (e.key === 'i' || e.key === 'I') {
             // i键放大50%
@@ -1419,19 +1729,47 @@ function showKnowledgeCard(orbitalId) {
     
     // 构建知识卡片内容
     const lang = (window.I18N && window.I18N.getLang) ? window.I18N.getLang() : 'zh';
-    const kTitle = (typeof knowledge.title === 'object') ? (knowledge.title[lang] || knowledge.title.zh) : knowledge.title;
-    const kOrbitalType = (typeof knowledge.basicInfo.orbitalType === 'object') ? (knowledge.basicInfo.orbitalType[lang] || knowledge.basicInfo.orbitalType.zh) : knowledge.basicInfo.orbitalType;
-    const kDescription = (typeof knowledge.basicInfo.description === 'object') ? (knowledge.basicInfo.description[lang] || knowledge.basicInfo.description.zh) : knowledge.basicInfo.description;
-    const kShape = (typeof knowledge.shapeFeatures.shape === 'object') ? (knowledge.shapeFeatures.shape[lang] || knowledge.shapeFeatures.shape.zh) : knowledge.shapeFeatures.shape;
-    const kSymmetry = (typeof knowledge.shapeFeatures.symmetry === 'object') ? (knowledge.shapeFeatures.symmetry[lang] || knowledge.shapeFeatures.symmetry.zh) : knowledge.shapeFeatures.symmetry;
-    const kNodes = (typeof knowledge.shapeFeatures.nodes === 'object') ? (knowledge.shapeFeatures.nodes[lang] || knowledge.shapeFeatures.nodes.zh) : knowledge.shapeFeatures.nodes;
+    const localize = (value) => {
+        if (typeof value === 'object' && value !== null) {
+            return value[lang] || value.zh || value.en || '';
+        }
+        return value ?? '';
+    };
+    const kTitle = localize(knowledge.title);
+    const kOrbitalType = localize(knowledge.basicInfo.orbitalType);
+    const kDescription = localize(knowledge.basicInfo.description);
+    const kShape = localize(knowledge.shapeFeatures.shape);
+    const kSymmetry = localize(knowledge.shapeFeatures.symmetry);
+    const kNodes = localize(knowledge.shapeFeatures.nodes);
     
     let html = `<div class="knowledge-title">${kTitle}</div>`;
     
     // 基本信息部分
     html += '<div class="knowledge-section">';
     html += `<div class="knowledge-section-title">${t('explorer.basicInfo')}</div>`;
-    html += `<div class="knowledge-item">
+
+    if (knowledge.basicInfo.kind === 'molecular') {
+        const molecularFields = [
+            ['explorer.molecule', localize(knowledge.basicInfo.molecule)],
+            ['explorer.orbitalType', kOrbitalType],
+            ['explorer.symmetryLabel', localize(knowledge.basicInfo.symmetry)],
+            ['explorer.displayTarget', localize(knowledge.basicInfo.displayTarget)],
+            ['explorer.method', localize(knowledge.basicInfo.method)],
+            ['explorer.basis', localize(knowledge.basicInfo.basis)],
+            ['explorer.chargeMultiplicity', localize(knowledge.basicInfo.chargeMultiplicity)],
+            ['explorer.description', kDescription],
+            ['explorer.scientificNote', localize(knowledge.basicInfo.scientificNote)]
+        ];
+
+        molecularFields.forEach(([labelKey, value]) => {
+            if (!value) return;
+            html += `<div class="knowledge-item">
+        <div class="knowledge-item-label">${t(labelKey)}</div>
+        <div class="knowledge-item-value">${value}</div>
+    </div>`;
+        });
+    } else {
+        html += `<div class="knowledge-item">
         <div class="knowledge-item-label">${t('explorer.quantumNumbers')}</div>
         <div class="knowledge-item-value">
             n = <strong>${knowledge.basicInfo.quantumNumbers.n}</strong>, 
@@ -1439,14 +1777,15 @@ function showKnowledgeCard(orbitalId) {
             m = <strong>${knowledge.basicInfo.quantumNumbers.m}</strong>
         </div>
     </div>`;
-    html += `<div class="knowledge-item">
+        html += `<div class="knowledge-item">
         <div class="knowledge-item-label">${t('explorer.orbitalType')}</div>
         <div class="knowledge-item-value">${kOrbitalType}</div>
     </div>`;
-    html += `<div class="knowledge-item">
+        html += `<div class="knowledge-item">
         <div class="knowledge-item-label">${t('explorer.description')}</div>
         <div class="knowledge-item-value">${kDescription}</div>
     </div>`;
+    }
     html += '</div>';
     
     // 形状特征部分

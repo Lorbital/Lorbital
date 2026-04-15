@@ -10,7 +10,7 @@
  * 模型分类注册表
  * 
  * 按轨道类型组织，用于 UI 显示
- * 按类型分组：s, p, d, f, g
+ * 按类型分组：s, p, d, f, g, dodec, icosa
  */
 /**
  * 实际存在的轨道模型（已生成PLY文件）
@@ -27,7 +27,8 @@ export const EXISTING_ORBITALS = new Set([
   '4f_z3', '4f_xz2', '4f_yz2', '4f_zx2-y2', '4f_xyz', '4f_x(x2-3y2)', '4f_y(x2-z2)',
   '5f_z3', '5f_xz2', '5f_yz2', '5f_zx2-y2', '5f_xyz', '5f_x(x2-3y2)', '5f_y(x2-z2)',
   '5g_z4', '5g_xz3', '5g_yz3', '5g_z2x2-y2', '5g_xyz2',
-  '5g_xzx2-3y2', '5g_yzy2-3x2', '5g_x4+y4', '5g_xyx2-y2'
+  '5g_xzx2-3y2', '5g_yzy2-3x2', '5g_x4+y4', '5g_xyx2-y2',
+  'dodec_C20H20', 'icosa_B12H12'
 ]);
 
 /** 新 ID：d/f/g 为 {n}d|f|g_{suffix} */
@@ -47,7 +48,9 @@ export const MODEL_REGISTRY = {
   'g': [
     '5g_z4', '5g_xz3', '5g_yz3', '5g_z2x2-y2', '5g_xyz2',
     '5g_xzx2-3y2', '5g_yzy2-3x2', '5g_x4+y4', '5g_xyx2-y2'
-  ]
+  ],
+  'dodec': ['dodec_C20H20'],
+  'icosa': ['icosa_B12H12']
 };
 
 /**
@@ -62,7 +65,7 @@ export function getAllOrbitalIds() {
 /**
  * 按类型获取轨道 ID
  * 
- * @param {string} type - 轨道类型 ('s', 'p', 'd', 'f', 'g')
+ * @param {string} type - 轨道类型 ('s', 'p', 'd', 'f', 'g', 'dodec', 'icosa')
  * @returns {string[]} 该类型的所有轨道 ID
  */
 export function getOrbitalsByType(type) {
@@ -75,6 +78,8 @@ export function getOrbitalsByType(type) {
     if (type === 'd') return /^\d+d_/.test(id);
     if (type === 'f') return /^\d+f_/.test(id);
     if (type === 'g') return /^\d+g_/.test(id);
+    if (type === 'dodec') return /^dodec_/.test(id);
+    if (type === 'icosa') return /^icosa_/.test(id);
     return false;
   });
 }
@@ -89,10 +94,12 @@ export function getOrbitalsByType(type) {
  * 获取轨道类型
  * 
  * @param {string} orbitalId - 轨道 ID
- * @returns {string} 轨道类型 (s, p, d, f, g)
+ * @returns {string} 轨道类型 (s, p, d, f, g, dodec, icosa)
  */
 /** 支持新 ID：d/f/g 为 {n}d|f|g_{suffix}，如 3d_z2、4f_z3、5g_z4；^\d+d_、^\d+f_、^\d+g_ 可匹配 */
 export function getOrbitalType(orbitalId) {
+  if (orbitalId.match(/^dodec_/)) return 'dodec';
+  if (orbitalId.match(/^icosa_/)) return 'icosa';
   if (orbitalId.match(/^\d+s$/)) return 's';
   if (orbitalId.match(/^\d+p[xyz]$/)) return 'p';
   if (orbitalId.match(/^\d+d_/)) return 'd';
@@ -164,6 +171,12 @@ function buildModelUrl(relativePath) {
   return `${window.location.origin}${absolutePath}`;
 }
 
+function getModelFolderRelativePath(orbitalId) {
+  const orbitalType = getOrbitalType(orbitalId);
+  const pathName = orbitalIdToPathName(orbitalId);
+  return `${orbitalType}/${pathName}`;
+}
+
 /**
  * 获取轨道的元数据 URL
  * 
@@ -171,11 +184,7 @@ function buildModelUrl(relativePath) {
  * @returns {string} meta.json 文件 URL
  */
 export function getMetadataUrl(orbitalId) {
-  // 从 models/model++/{type}/{pathName}/meta.json 读取；pathName 与磁盘文件夹一致
-  const orbitalType = getOrbitalType(orbitalId);
-  const pathName = orbitalIdToPathName(orbitalId);
-  const relativePath = `${orbitalType}/${pathName}/meta.json`;
-  return buildModelUrl(relativePath);
+  return buildModelUrl(`${getModelFolderRelativePath(orbitalId)}/meta.json`);
 }
 
 /**
@@ -185,11 +194,12 @@ export function getMetadataUrl(orbitalId) {
  * @returns {string} PLY 文件 URL
  */
 export function getPlyUrl(orbitalId) {
-  // 从 models/model++/{type}/{pathName}/{pathName}.ply 读取；pathName 与磁盘文件夹/文件名一致
-  const orbitalType = getOrbitalType(orbitalId);
   const pathName = orbitalIdToPathName(orbitalId);
-  const relativePath = `${orbitalType}/${pathName}/${pathName}.ply`;
-  return buildModelUrl(relativePath);
+  return buildModelUrl(`${getModelFolderRelativePath(orbitalId)}/${pathName}.ply`);
+}
+
+export function getModelAssetUrl(orbitalId, assetFileName) {
+  return buildModelUrl(`${getModelFolderRelativePath(orbitalId)}/${assetFileName}`);
 }
 
 /**
@@ -223,6 +233,40 @@ export async function loadMetadata(orbitalId) {
  * @returns {Object} 默认元数据对象
  */
 function getDefaultMetadata(orbitalId) {
+  if (orbitalId === 'dodec_C20H20') {
+    return {
+      id: orbitalId,
+      type: 'dodec',
+      displayName: 'C20H20',
+      description: '正十二面体烷 C20H20 的几何优化电子密度与 HOMO 点云',
+      pointCount: 150000,
+      physicalDiameter: 9.0,
+      recommendedScale: 0.9,
+      opacity: 0.85,
+      layers: [
+        { id: 'density', label: 'Electron density', path: 'dodec_C20H20_density.ply', opacity: 0.38, sizeScale: 1.08, defaultVisible: true },
+        { id: 'homo', label: 'HOMO', path: 'dodec_C20H20.ply', opacity: 0.42, sizeScale: 0.96, defaultVisible: false }
+      ]
+    };
+  }
+
+  if (orbitalId === 'icosa_B12H12') {
+    return {
+      id: orbitalId,
+      type: 'icosa',
+      displayName: 'B12H12^2-',
+      description: 'closo-B12H12^2- 二十面体笼的几何优化电子密度与 HOMO 点云',
+      pointCount: 150000,
+      physicalDiameter: 7.5,
+      recommendedScale: 1.0,
+      opacity: 0.85,
+      layers: [
+        { id: 'density', label: 'Electron density', path: 'icosa_B12H12_density.ply', opacity: 0.38, sizeScale: 1.08, defaultVisible: true },
+        { id: 'homo', label: 'HOMO', path: 'icosa_B12H12.ply', opacity: 0.42, sizeScale: 0.96, defaultVisible: false }
+      ]
+    };
+  }
+
   // 从轨道ID提取信息
   const nMatch = orbitalId.match(/^(\d+)/);
   const n = nMatch ? parseInt(nMatch[1]) : 1;
@@ -269,9 +313,7 @@ export function isValidOrbitalId(orbitalId) {
  * @returns {boolean} 是否有实际模型
  */
 export function hasOrbitalModel(orbitalId) {
-  // 所有轨道都应该存在，因为model++中有所有文件
-  // 如果orbitalId在注册表中，就认为存在
-  return getAllOrbitalIds().includes(orbitalId);
+  return EXISTING_ORBITALS.has(orbitalId);
 }
 
 /**

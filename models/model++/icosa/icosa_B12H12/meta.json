@@ -1,0 +1,63 @@
+{
+  "id": "icosa_B12H12",
+  "displayName": "B12H12^2-",
+  "molecule": "B12H12^2-",
+  "charge": -2,
+  "multiplicity": 1,
+  "symmetry": "Geometry optimized from an idealized Ih starting cage",
+  "displayTarget": "Geometry-optimized electron-density and HOMO point clouds",
+  "method": "PySCF RKS/PBE",
+  "basis": "def2-svp",
+  "pointCount": 92000,
+  "recommendedScale": 1.0,
+  "opacity": 0.84,
+  "physicalDiameter": 6.64,
+  "homoIndex": 36,
+  "lumoIndex": 37,
+  "targetOrbitalIndex": 36,
+  "targetOrbitalLabel": "HOMO",
+  "orbitalEnergyHartree": 0.05216343916677733,
+  "totalEnergyHartree": -304.9853127707463,
+  "cubeThreshold": 0.02362140217291562,
+  "densityCubeThreshold": 0.107689,
+  "gridResolutionBohr": 0.32,
+  "densityGridResolutionBohr": 0.16,
+  "source": "Geometry optimization plus final DFT point clouds on a polyhedral cage molecule",
+  "atomCount": 24,
+  "vertexCount": 12,
+  "initialGeometryPath": "icosa_B12H12_initial.xyz",
+  "optimizedGeometryPath": "icosa_B12H12_optimized.xyz",
+  "geometryOptimization": {
+    "backend": "reused existing optimized geometry",
+    "converged": true,
+    "message": "Loaded coordinates from icosa_B12H12_optimized.xyz",
+    "iterations": 0,
+    "functionEvaluations": 0,
+    "gradientEvaluations": 0,
+    "initialEnergyHartree": null,
+    "finalEnergyHartree": null,
+    "finalGradientNorm": null
+  },
+  "maxCoordinateShiftAngstrom": 0.0609,
+  "meanCoordinateShiftAngstrom": 0.0413,
+  "layers": [
+    {
+      "id": "density",
+      "label": "Electron density",
+      "path": "icosa_B12H12_density.ply",
+      "pointCount": 36000,
+      "opacity": 0.38,
+      "sizeScale": 1.08,
+      "defaultVisible": true
+    },
+    {
+      "id": "homo",
+      "label": "HOMO",
+      "path": "icosa_B12H12.ply",
+      "pointCount": 56000,
+      "opacity": 0.42,
+      "sizeScale": 0.96,
+      "defaultVisible": false
+    }
+  ]
+}

@@ -176,8 +176,8 @@
             border-color: var(--accent);
         }
         
-        /* 分类选择界面 */
-        #category-selector {
+        /* 首页四入口 */
+        #explorer-home {
             position: absolute;
             top: 0;
             left: 0;
@@ -187,29 +187,33 @@
             flex-direction: column;
             justify-content: flex-start;
             align-items: center;
-            padding-top: 140px; /* 介绍文字与 SPDFG 整体下移 */
+            padding-top: 120px;
+            padding-bottom: 40px;
             background: rgba(0, 0, 0, 0.95);
             z-index: 300;
             backdrop-filter: blur(20px);
+            overflow-y: auto;
         }
-        #category-selector.hidden {
+        #explorer-home.hidden {
             display: none;
         }
-        .category-grid {
+        .home-grid {
+            --home-card-size: clamp(140px, 23vw, 280px);
+            --home-grid-gap: clamp(16px, 2.4vw, 28px);
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 40px;
-            max-width: 1400px;
-            width: 90%;
-            margin-top: 28px;
+            grid-template-columns: repeat(2, var(--home-card-size));
+            grid-auto-rows: var(--home-card-size);
+            gap: var(--home-grid-gap);
+            width: min(92vw, calc(var(--home-card-size) * 2 + var(--home-grid-gap)));
+            margin-top: clamp(18px, 2.2vh, 24px);
             justify-content: center;
+            align-content: start;
+            place-items: stretch;
         }
-        @media (min-width: 1200px) {
-            .category-grid {
-                grid-template-columns: repeat(5, 1fr);
-            }
-        }
-        .category-card {
+        .home-card {
+            width: 100%;
+            height: 100%;
+            min-height: 0;
             aspect-ratio: 1;
             background: rgba(255, 255, 255, 0.05);
             border: 2px solid var(--glass-border);
@@ -221,21 +225,21 @@
             cursor: pointer;
             transition: all 0.3s ease;
             backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px); /* Safari前缀 */
+            -webkit-backdrop-filter: blur(10px);
             position: relative;
             overflow: hidden;
-            pointer-events: auto; /* 确保可点击 */
-            -webkit-tap-highlight-color: transparent; /* Safari移动设备点击高亮 */
-            -webkit-touch-callout: none; /* 禁用Safari长按菜单 */
-            user-select: none; /* 防止文本选择 */
+            pointer-events: auto;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            user-select: none;
         }
-        .category-card:hover {
-            transform: scale(1.1);
+        .home-card:hover {
+            transform: scale(1.05);
             border-color: var(--accent);
             box-shadow: 0 0 40px rgba(0, 255, 255, 0.5);
             background: rgba(0, 255, 255, 0.1);
         }
-        .category-card::before {
+        .home-card::before {
             content: '';
             position: absolute;
             top: -50%;
@@ -245,25 +249,242 @@
             background: radial-gradient(circle, rgba(0, 255, 255, 0.1) 0%, transparent 70%);
             opacity: 0;
             transition: opacity 0.3s ease;
-            pointer-events: none; /* 防止伪元素遮挡点击 */
+            pointer-events: none;
         }
-        .category-card:hover::before {
+        .home-card:hover::before {
             opacity: 1;
         }
-        .category-letter {
-            font-size: 120px;
+        .home-card-letter {
+            font-size: 72px;
             font-weight: 300;
             color: var(--accent);
             text-shadow: 0 0 30px var(--accent);
             z-index: 1;
-            pointer-events: none; /* 防止文字遮挡点击 */
+            pointer-events: none;
+            line-height: 1.1;
         }
-        .category-name {
-            font-size: 18px;
-            color: rgba(255, 255, 255, 0.7);
-            margin-top: 10px;
+        .home-card-name {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.85);
+            margin-top: 12px;
             z-index: 1;
-            pointer-events: none; /* 防止文字遮挡点击 */
+            pointer-events: none;
+            text-align: center;
+            padding: 0 12px;
+        }
+        .home-card-desc {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.45);
+            margin-top: 8px;
+            text-align: center;
+            padding: 0 14px;
+            line-height: 1.4;
+            pointer-events: none;
+        }
+        @media (max-width: 700px) {
+            .home-card-letter {
+                font-size: clamp(44px, 12vw, 62px);
+            }
+            .home-card-name {
+                font-size: clamp(13px, 3.2vw, 15px);
+                margin-top: 10px;
+            }
+            .home-card-desc {
+                font-size: clamp(10px, 2.6vw, 12px);
+            }
+        }
+
+        /* 元素周期表视图 */
+        #periodic-selector {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 88px 16px 32px;
+            box-sizing: border-box;
+            background: rgba(0, 0, 0, 0.96);
+            z-index: 295;
+            backdrop-filter: blur(20px);
+            overflow-y: auto;
+        }
+        #periodic-selector.hidden {
+            display: none;
+        }
+        .periodic-header {
+            position: relative;
+            width: 100%;
+            max-width: calc(100vw - 32px);
+            margin-bottom: 16px;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+        #periodic-selector .periodic-back-button {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            margin: 0;
+        }
+        #periodic-selector .periodic-back-button:hover {
+            transform: translateY(-50%) translateX(-5px);
+        }
+        .periodic-intro {
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            font-size: clamp(12px, 1.1vw, 14px);
+            line-height: 1.55;
+            color: rgba(255, 255, 255, 0.75);
+            margin: 0;
+            text-align: center;
+            padding: 0 clamp(80px, 14vw, 200px);
+        }
+        /* 镧系 / 锕系：占第 8、9 行第 3 列（该两行下第 1–3 列为空），右对齐后整体再右移，紧贴 Ce / Th 一侧 */
+        .periodic-f-label {
+            font-size: clamp(10px, 0.95vw, 14px);
+            color: rgba(255, 255, 255, 0.55);
+            letter-spacing: 0.06em;
+            white-space: nowrap;
+            align-self: center;
+            justify-self: end;
+            padding-right: 0;
+            /* 在上一版基础上向左收回约「半格」宽度（≈ 18 列周期表单列宽度的一半） */
+            transform: translateX(calc(clamp(14px, 1.6vw, 32px) - (100vw - 32px) / 36));
+            pointer-events: none;
+            user-select: none;
+        }
+        .periodic-f-label--row8 {
+            grid-column: 3;
+            grid-row: 8;
+        }
+        .periodic-f-label--row9 {
+            grid-column: 3;
+            grid-row: 9;
+        }
+        #periodic-grid {
+            display: grid;
+            grid-template-columns: repeat(18, minmax(0, 1fr));
+            grid-template-rows: repeat(9, auto);
+            gap: clamp(3px, 0.35vw, 6px);
+            width: 100%;
+            max-width: calc(100vw - 32px);
+            box-sizing: border-box;
+        }
+        .periodic-cell {
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: clamp(4px, 0.4vw, 8px);
+            background: rgba(255, 255, 255, 0.04);
+            padding: clamp(3px, 0.35vw, 10px) clamp(2px, 0.25vw, 6px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 0;
+            aspect-ratio: 1;
+            cursor: default;
+            font-family: inherit;
+            color: inherit;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .periodic-cell--available {
+            cursor: pointer;
+        }
+        .periodic-cell--available:hover {
+            border-color: var(--accent);
+            background: rgba(0, 255, 255, 0.08);
+            z-index: 2;
+        }
+        .periodic-cell--previewonly {
+            opacity: 0.55;
+        }
+        .periodic-cell-z {
+            font-size: clamp(9px, 1.1vw, 13px);
+            color: rgba(255, 255, 255, 0.45);
+            line-height: 1;
+        }
+        .periodic-cell-symbol {
+            font-size: clamp(11px, 1.35vw + 0.25rem, 22px);
+            font-weight: 600;
+            color: var(--accent);
+            line-height: 1.2;
+            margin-top: 2px;
+        }
+        .periodic-cell-subshell {
+            font-size: clamp(8px, 1.05vw + 0.1rem, 14px);
+            color: rgba(255, 255, 255, 0.55);
+            margin-top: 2px;
+            text-align: center;
+            line-height: 1.1;
+            word-break: break-all;
+        }
+        @media (max-width: 700px) {
+            #periodic-grid {
+                gap: 2px;
+            }
+            .periodic-cell {
+                padding: 2px 1px;
+            }
+        }
+
+        /* 元素悬停预览卡片（整体约 +40%） */
+        #element-hover-preview {
+            position: fixed;
+            z-index: 500;
+            width: min(420px, 92vw);
+            background: rgba(0, 0, 0, 0.92);
+            backdrop-filter: blur(16px);
+            border: 3px solid var(--glass-border);
+            border-radius: 22px;
+            padding: 20px 22px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+            pointer-events: none;
+        }
+        #element-hover-preview.hidden {
+            display: none;
+        }
+        .element-preview-title {
+            font-size: 25px;
+            color: white;
+            margin-bottom: 8px;
+        }
+        .element-preview-subshell {
+            font-size: 21px;
+            color: var(--accent);
+            margin-bottom: 14px;
+        }
+        .element-preview-img-wrap {
+            width: 100%;
+            aspect-ratio: 4/3;
+            border-radius: 14px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.06);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .element-preview-img-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .element-preview-placeholder {
+            font-size: 17px;
+            color: rgba(255, 255, 255, 0.35);
+            padding: 16px;
+            text-align: center;
+        }
+        .element-preview-hint {
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.45);
+            margin-top: 14px;
+            line-height: 1.4;
         }
         .intro-panel {
             width: 90%;
@@ -997,34 +1218,57 @@
         <button class="lang-toggle" id="lang-toggle">EN</button>
     </nav>
 
-    <!-- 分类选择界面 -->
-    <div id="category-selector">
+    <!-- 首页：四入口 -->
+    <div id="explorer-home">
         <div class="intro-panel">
             <h2 data-i18n="explorer.introTitle">量子轨道探测器</h2>
-            <p data-i18n="explorer.introText">本页提供氢原子轨道的 3D 点云可视化。氢原子是最简单的原子系统，其薛定谔方程可以精确求解，从而得到电子在不同量子态下的轨道波函数。这些模型通过求解氢原子的薛定谔方程计算得出，使用 Python 通过蒙特卡洛拒绝采样法生成，根据波函数的概率密度分布 |ψ|² 进行采样，使得点云的密度准确反映电子在原子核周围不同位置出现的概率。选择下方 S、P、D、F、G 任一类型即可浏览该族轨道。</p>
+            <p data-i18n="explorer.introText">本页提供氢原子轨道的 3D 点云可视化。氢原子是最简单的原子系统，其薛定谔方程可以精确求解，从而得到电子在不同量子态下的轨道波函数。这些模型通过求解氢原子的薛定谔方程计算得出，使用 Python 通过蒙特卡洛拒绝采样法生成，根据波函数的概率密度分布 |ψ|² 进行采样，使得点云的密度准确反映电子在原子核周围不同位置出现的概率。页面同时加入了正十二面体与正二十面体代表分子的真实单点 DFT 结果，通过 PySCF 计算分子轨道并导出 Cube，再转换为可交互的 PLY 点云。请从下方入口进入周期表、g 轨道或分子笼模型。</p>
         </div>
-        <div class="category-grid">
-            <div class="category-card" data-type="s">
-                <div class="category-letter">s</div>
-                <div class="category-name" data-i18n="explorer.catS">球对称轨道</div>
+        <div class="home-grid">
+            <div class="home-card" data-entry="sf">
+                <div class="home-card-letter">s–f</div>
+                <div class="home-card-name" data-i18n="explorer.homeSfTitle">原子轨道（周期表）</div>
+                <div class="home-card-desc" data-i18n="explorer.homeSfDesc">按元素浏览代表性占据亚层，悬停可预览</div>
             </div>
-            <div class="category-card" data-type="p">
-                <div class="category-letter">p</div>
-                <div class="category-name" data-i18n="explorer.catP">哑铃形轨道</div>
+            <div class="home-card" data-entry="g">
+                <div class="home-card-letter">g</div>
+                <div class="home-card-name" data-i18n="explorer.homeGTitle">g 轨道</div>
+                <div class="home-card-desc" data-i18n="explorer.homeGDesc">超高阶氢样轨道列表</div>
             </div>
-            <div class="category-card" data-type="d">
-                <div class="category-letter">d</div>
-                <div class="category-name" data-i18n="explorer.catD">瓣状分布轨道</div>
+            <div class="home-card" data-entry="dodec">
+                <div class="home-card-letter">12</div>
+                <div class="home-card-name" data-i18n="explorer.homeDodecTitle">正十二面体</div>
+                <div class="home-card-desc" data-i18n="explorer.homeDodecDesc">C₂₀H₂₀ 笼模型</div>
             </div>
-            <div class="category-card" data-type="f">
-                <div class="category-letter">f</div>
-                <div class="category-name" data-i18n="explorer.catF">高阶对称轨道</div>
-            </div>
-            <div class="category-card" data-type="g">
-                <div class="category-letter">g</div>
-                <div class="category-name" data-i18n="explorer.catG">超高阶轨道</div>
+            <div class="home-card" data-entry="icosa">
+                <div class="home-card-letter">20</div>
+                <div class="home-card-name" data-i18n="explorer.homeIcosaTitle">正二十面体</div>
+                <div class="home-card-desc" data-i18n="explorer.homeIcosaDesc">B₁₂H₁₂²⁻ 笼模型</div>
             </div>
         </div>
+    </div>
+
+    <!-- 元素周期表 -->
+    <div id="periodic-selector" class="hidden">
+        <div class="periodic-header">
+            <button type="button" class="back-button periodic-back-button" id="periodic-back-button" data-i18n="explorer.backBtn">← 返回</button>
+            <p class="periodic-intro" data-i18n="explorer.periodicIntro">格子内为各元素的「代表性占据亚层」示意，并非完整电子排布。悬停显示静态预览图（若已提供），点击进入三维查看器。</p>
+        </div>
+        <div id="periodic-grid" aria-label="Periodic table">
+            <span class="periodic-f-label periodic-f-label--row8" data-i18n="explorer.periodicLanth">镧系 58–71</span>
+            <span class="periodic-f-label periodic-f-label--row9" data-i18n="explorer.periodicAct">锕系 90–103</span>
+        </div>
+    </div>
+
+    <!-- 周期表元素悬停预览（共享浮层） -->
+    <div id="element-hover-preview" class="hidden" aria-hidden="true">
+        <div class="element-preview-title" id="element-preview-title"></div>
+        <div class="element-preview-subshell" id="element-preview-subshell"></div>
+        <div class="element-preview-img-wrap">
+            <img id="element-preview-img" class="hidden" alt="" />
+            <div class="element-preview-placeholder" id="element-preview-placeholder" data-i18n="explorer.previewNoPoster">暂无预览图</div>
+        </div>
+        <div class="element-preview-hint" id="element-preview-hint"></div>
     </div>
 
     <!-- 轨道列表界面 -->
@@ -1079,6 +1323,8 @@
             <label><span data-i18n="explorer.showAxes">显示坐标轴</span> <input type="checkbox" id="experiment-console-show-axes"></label>
             <label data-i18n="explorer.particleSize">粒子大小</label>
             <input type="range" id="experiment-console-particle-size" min="0.005" max="0.05" step="0.001">
+            <label id="experiment-console-density-row" style="display:none;"><span data-i18n="explorer.showElectronDensity">显示电子密度</span> <input type="checkbox" id="experiment-console-show-density"></label>
+            <label id="experiment-console-homo-row" style="display:none;"><span data-i18n="explorer.showOrbitalPhase">显示轨道相位</span> <input type="checkbox" id="experiment-console-show-homo"></label>
             <label data-i18n="explorer.currentOrbital">当前 block 轨道</label>
             <select id="experiment-console-orbital-select"></select>
         </div>
