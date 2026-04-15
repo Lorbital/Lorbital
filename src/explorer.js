@@ -58,7 +58,7 @@ let lastMousePos = { x: 0, y: 0 };
 const settings = {
     autoRotate: true,
     showAxes: true,
-    particleSize: 0.032,
+    particleSize: 0.05,
     rotationSpeed: 0.0105
     // 不使用默认颜色，完全使用PLY文件中的原始颜色
 };
