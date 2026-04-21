@@ -176,7 +176,113 @@
             border-color: var(--accent);
         }
         
-        /* 首页四入口 */
+        /* 原子 / 分子二级页 */
+        #atomic-home,
+        #molecular-home {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            padding-top: 100px;
+            padding-bottom: 40px;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 300;
+            backdrop-filter: blur(20px);
+            overflow-y: auto;
+        }
+        #atomic-home.hidden,
+        #molecular-home.hidden {
+            display: none;
+        }
+        .sub-home-header {
+            width: min(92vw, 720px);
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 16px;
+            margin-bottom: 8px;
+        }
+        .sub-home-back {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 10px 18px;
+            color: white;
+            cursor: pointer;
+            font-size: 13px;
+            backdrop-filter: blur(10px);
+            flex-shrink: 0;
+        }
+        .sub-home-back:hover {
+            background: rgba(0, 255, 255, 0.2);
+            border-color: var(--accent);
+        }
+        .molecular-grid {
+            --m-card-min: clamp(220px, 28vw, 340px);
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(var(--m-card-min), 1fr));
+            gap: clamp(14px, 2vw, 22px);
+            width: min(92vw, 1100px);
+            margin-top: clamp(12px, 2vh, 20px);
+            padding: 0 12px 32px;
+            box-sizing: border-box;
+        }
+        .molecular-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--glass-border);
+            border-radius: 18px;
+            padding: 20px 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            text-align: left;
+        }
+        .molecular-card:hover:not(.molecular-card--disabled) {
+            border-color: var(--accent);
+            box-shadow: 0 5px 30px rgba(0, 255, 255, 0.35);
+            background: rgba(0, 255, 255, 0.08);
+        }
+        .molecular-card--disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .molecular-card-title {
+            font-size: clamp(17px, 2vw, 22px);
+            font-weight: 400;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+        .molecular-card-formula {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.55);
+            margin-bottom: 10px;
+        }
+        .molecular-card-sym {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-bottom: 8px;
+        }
+        .molecular-card-desc {
+            font-size: 13px;
+            line-height: 1.45;
+            color: rgba(255, 255, 255, 0.72);
+        }
+        .molecular-card-soon {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.35);
+            margin-top: 10px;
+        }
+
+        /* 首页两大入口 */
         #explorer-home {
             position: absolute;
             top: 0;
@@ -1218,11 +1324,34 @@
         <button class="lang-toggle" id="lang-toggle">EN</button>
     </nav>
 
-    <!-- 首页：四入口 -->
+    <!-- 首页：原子轨道 / 分子轨道 -->
     <div id="explorer-home">
         <div class="intro-panel">
             <h2 data-i18n="explorer.introTitle">量子轨道探测器</h2>
-            <p data-i18n="explorer.introText">本页提供氢原子轨道的 3D 点云可视化。氢原子是最简单的原子系统，其薛定谔方程可以精确求解，从而得到电子在不同量子态下的轨道波函数。这些模型通过求解氢原子的薛定谔方程计算得出，使用 Python 通过蒙特卡洛拒绝采样法生成，根据波函数的概率密度分布 |ψ|² 进行采样，使得点云的密度准确反映电子在原子核周围不同位置出现的概率。页面同时加入了正十二面体与正二十面体代表分子的真实单点 DFT 结果，通过 PySCF 计算分子轨道并导出 Cube，再转换为可交互的 PLY 点云。请从下方入口进入周期表、g 轨道或分子笼模型。</p>
+            <p data-i18n="explorer.introText">本页提供两条主线：原子轨道（氢样 s–g 点云）与分子轨道（DFT 总电子密度与 HOMO 等多层点云）。请选择下方入口。</p>
+        </div>
+        <div class="home-grid">
+            <div class="home-card" data-entry="atomic">
+                <div class="home-card-letter">A</div>
+                <div class="home-card-name" data-i18n="explorer.homeAtomicTitle">原子轨道</div>
+                <div class="home-card-desc" data-i18n="explorer.homeAtomicDesc">周期表与 g 轨道</div>
+            </div>
+            <div class="home-card" data-entry="molecular">
+                <div class="home-card-letter">M</div>
+                <div class="home-card-name" data-i18n="explorer.homeMolecularTitle">分子轨道</div>
+                <div class="home-card-desc" data-i18n="explorer.homeMolecularDesc">多面体笼与基础小分子</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 原子轨道二级：周期表 / g -->
+    <div id="atomic-home" class="hidden">
+        <div class="sub-home-header">
+            <button type="button" class="sub-home-back" id="atomic-back-button" data-i18n="explorer.backBtn">← 返回</button>
+        </div>
+        <div class="intro-panel">
+            <h2 data-i18n="explorer.atomicHomeTitle">原子轨道</h2>
+            <p data-i18n="explorer.atomicHomeIntro">通过元素周期表浏览代表性氢样轨道，或打开 g 轨道完整列表。</p>
         </div>
         <div class="home-grid">
             <div class="home-card" data-entry="sf">
@@ -1235,17 +1364,19 @@
                 <div class="home-card-name" data-i18n="explorer.homeGTitle">g 轨道</div>
                 <div class="home-card-desc" data-i18n="explorer.homeGDesc">超高阶氢样轨道列表</div>
             </div>
-            <div class="home-card" data-entry="dodec">
-                <div class="home-card-letter">12</div>
-                <div class="home-card-name" data-i18n="explorer.homeDodecTitle">正十二面体</div>
-                <div class="home-card-desc" data-i18n="explorer.homeDodecDesc">C₂₀H₂₀ 笼模型</div>
-            </div>
-            <div class="home-card" data-entry="icosa">
-                <div class="home-card-letter">20</div>
-                <div class="home-card-name" data-i18n="explorer.homeIcosaTitle">正二十面体</div>
-                <div class="home-card-desc" data-i18n="explorer.homeIcosaDesc">B₁₂H₁₂²⁻ 笼模型</div>
-            </div>
         </div>
+    </div>
+
+    <!-- 分子轨道：卡片列表由 JS 填充 -->
+    <div id="molecular-home" class="hidden">
+        <div class="sub-home-header">
+            <button type="button" class="sub-home-back" id="molecular-back-button" data-i18n="explorer.backBtn">← 返回</button>
+        </div>
+        <div class="intro-panel">
+            <h2 data-i18n="explorer.molecularHomeTitle">分子轨道</h2>
+            <p data-i18n="explorer.molecularHomeIntro">几何优化后的 DFT 电子密度与 HOMO 点云；多面体笼与基础小分子统一由此进入。</p>
+        </div>
+        <div class="molecular-grid" id="molecular-list" aria-label="Molecular models"></div>
     </div>
 
     <!-- 元素周期表 -->
@@ -1273,7 +1404,7 @@
 
     <!-- 轨道列表界面 -->
     <div id="orbital-selector" class="hidden">
-        <button class="back-button" data-i18n="explorer.backBtn">← 返回</button>
+        <button type="button" class="back-button" id="orbital-list-back-button" data-i18n="explorer.backBtn">← 返回</button>
         <div class="category-title" id="current-category-title">S</div>
         <div class="orbital-list-container">
             <div class="orbital-list" id="orbital-list"></div>
@@ -1325,7 +1456,7 @@
             <input type="range" id="experiment-console-particle-size" min="0.01" max="0.1" step="0.001" value="0.05">
             <label id="experiment-console-density-row" style="display:none;"><span data-i18n="explorer.showElectronDensity">显示电子密度</span> <input type="checkbox" id="experiment-console-show-density"></label>
             <label id="experiment-console-homo-row" style="display:none;"><span data-i18n="explorer.showOrbitalPhase">显示轨道相位</span> <input type="checkbox" id="experiment-console-show-homo"></label>
-            <label data-i18n="explorer.currentOrbital">当前 block 轨道</label>
+            <label data-i18n="explorer.currentModel">当前模型</label>
             <select id="experiment-console-orbital-select"></select>
         </div>
     </div>

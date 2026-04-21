@@ -10,6 +10,7 @@ import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import { MODEL_REGISTRY, getPlyUrl, getModelAssetUrl, loadMetadata, hasOrbitalModel, getActualModelId, getOrbitalType } from './data/modelRegistry.js';
+import { MOLECULAR_MODELS, getAllMolecularOrbitalIds } from './data/molecularRegistry.js';
 import { PERIODIC_ELEMENTS } from './data/periodicTable.js';
 import { getOrbitalPosterUrls } from './data/previewRegistry.js';
 import { getOrbitalKnowledge } from './data/orbitalKnowledge.js';
@@ -25,9 +26,11 @@ const orbitalGroup = new THREE.Group();
 const loader = new PLYLoader();
 
 // 界面状态
-let currentView = 'home'; // 'home', 'periodic', 'orbital', 'viewer'
-/** @type {{ type: 'home'|'periodic'|'orbital', category?: string }} */
+let currentView = 'home'; // 'home'|'atomic-home'|'molecular-home'|'periodic'|'orbital'|'viewer'
+/** @type {{ type: string, category?: string, parent?: string }} */
 let viewerReturnContext = { type: 'home' };
+/** g 等轨道列表从何处进入：'atomic-home' | 'home' */
+let orbitalListParent = 'atomic-home';
 let currentCategory = null;
 let currentMetadata = null;
 let currentOrbitalId = null; // 当前查看的轨道 id，用于同分类切换与信息按钮
@@ -144,10 +147,13 @@ function init() {
             window.I18N.applyI18n();
             // Re-render orbital list if visible
             if (currentView === 'orbital' && currentCategory) {
-                showOrbitalList(currentCategory);
+                showOrbitalList(currentCategory, { parent: orbitalListParent });
             }
             if (currentView === 'periodic') {
                 renderPeriodicTable();
+            }
+            if (currentView === 'molecular-home') {
+                renderMolecularList();
             }
             // Re-render knowledge card if visible
             if (currentView === 'viewer' && currentOrbitalId) {
@@ -167,35 +173,46 @@ function init() {
 
 // 初始化UI界面
 function initUI() {
-    // 首页四入口
-    const homeCards = document.querySelectorAll('.home-card');
-    homeCards.forEach((card) => {
+    document.querySelectorAll('#explorer-home .home-card').forEach((card) => {
+        card.addEventListener('click', () => {
+            const entry = card.dataset.entry;
+            if (entry === 'atomic') showAtomicHome();
+            else if (entry === 'molecular') showMolecularHome();
+        });
+    });
+
+    document.querySelectorAll('#atomic-home .home-card').forEach((card) => {
         card.addEventListener('click', () => {
             const entry = card.dataset.entry;
             if (entry === 'sf') {
+                viewerReturnContext = { type: 'atomic-home' };
                 showPeriodicTable();
             } else if (entry === 'g') {
-                showOrbitalList('g');
-            } else if (entry === 'dodec') {
-                viewerReturnContext = { type: 'home' };
-                loadOrbital('dodec_C20H20');
-            } else if (entry === 'icosa') {
-                viewerReturnContext = { type: 'home' };
-                loadOrbital('icosa_B12H12');
+                showOrbitalList('g', { parent: 'atomic-home' });
             }
         });
     });
 
-    const periodicBack = document.getElementById('periodic-back-button');
-    if (periodicBack) {
-        periodicBack.addEventListener('click', () => showHomeView());
+    const atomicBack = document.getElementById('atomic-back-button');
+    if (atomicBack) {
+        atomicBack.addEventListener('click', () => showHomeView());
     }
 
-    // 返回按钮（轨道列表界面）
-    const backButton = document.querySelector('.back-button');
-    if (backButton) {
-        backButton.addEventListener('click', () => {
-            showHomeView();
+    const molecularBack = document.getElementById('molecular-back-button');
+    if (molecularBack) {
+        molecularBack.addEventListener('click', () => showHomeView());
+    }
+
+    const periodicBack = document.getElementById('periodic-back-button');
+    if (periodicBack) {
+        periodicBack.addEventListener('click', () => showAtomicHome());
+    }
+
+    const orbitalListBack = document.getElementById('orbital-list-back-button');
+    if (orbitalListBack) {
+        orbitalListBack.addEventListener('click', () => {
+            if (orbitalListParent === 'atomic-home') showAtomicHome();
+            else showHomeView();
         });
     }
     
@@ -229,9 +246,15 @@ function initUI() {
         backBtn.addEventListener('click', () => {
             hideLoadingOverlay();
             if (viewerReturnContext.type === 'orbital' && viewerReturnContext.category) {
-                showOrbitalList(viewerReturnContext.category);
+                showOrbitalList(viewerReturnContext.category, {
+                    parent: viewerReturnContext.parent || orbitalListParent
+                });
             } else if (viewerReturnContext.type === 'periodic') {
                 showPeriodicTable();
+            } else if (viewerReturnContext.type === 'molecular-home') {
+                showMolecularHome();
+            } else if (viewerReturnContext.type === 'atomic-home') {
+                showAtomicHome();
             } else {
                 showHomeView();
             }
@@ -244,13 +267,19 @@ function handleViewerBack() {
     if (viewerReturnContext.type === 'periodic') {
         showPeriodicTable();
     } else if (viewerReturnContext.type === 'orbital' && viewerReturnContext.category) {
-        showOrbitalList(viewerReturnContext.category);
+        showOrbitalList(viewerReturnContext.category, {
+            parent: viewerReturnContext.parent || orbitalListParent
+        });
+    } else if (viewerReturnContext.type === 'molecular-home') {
+        showMolecularHome();
+    } else if (viewerReturnContext.type === 'atomic-home') {
+        showAtomicHome();
     } else {
         showHomeView();
     }
 }
 
-// 显示首页（四入口）
+// 显示首页（原子 / 分子两大入口）
 function showHomeView() {
     currentView = 'home';
     hideElementPreviewCard();
@@ -260,6 +289,8 @@ function showHomeView() {
     }
     const homeEl = document.getElementById('explorer-home');
     if (homeEl) homeEl.classList.remove('hidden');
+    document.getElementById('atomic-home')?.classList.add('hidden');
+    document.getElementById('molecular-home')?.classList.add('hidden');
     const periodicEl = document.getElementById('periodic-selector');
     if (periodicEl) periodicEl.classList.add('hidden');
     document.getElementById('orbital-selector').classList.add('hidden');
@@ -285,11 +316,90 @@ function showHomeView() {
     if (gestureController) gestureController.stop();
 }
 
+function showAtomicHome() {
+    currentView = 'atomic-home';
+    hideElementPreviewCard();
+    if (previewHideTimer) {
+        clearTimeout(previewHideTimer);
+        previewHideTimer = null;
+    }
+    document.getElementById('explorer-home')?.classList.add('hidden');
+    document.getElementById('molecular-home')?.classList.add('hidden');
+    document.getElementById('atomic-home')?.classList.remove('hidden');
+    document.getElementById('periodic-selector')?.classList.add('hidden');
+    document.getElementById('orbital-selector').classList.add('hidden');
+    document.getElementById('container').style.display = 'none';
+    document.getElementById('instructions').classList.add('hidden');
+    document.getElementById('orbital-tag').classList.add('hidden');
+    document.getElementById('video-container').classList.add('hidden');
+    document.getElementById('viewer-back-button').classList.add('hidden');
+    const cameraCard = document.getElementById('camera-toggle-card');
+    if (cameraCard) cameraCard.classList.add('hidden');
+    document.getElementById('experiment-console')?.classList.add('hidden');
+    document.getElementById('viewer-knowledge-button')?.classList.add('hidden');
+    document.getElementById('knowledge-card')?.classList.add('hidden');
+    if (gestureController) gestureController.stop();
+}
+
+function showMolecularHome() {
+    currentView = 'molecular-home';
+    hideElementPreviewCard();
+    if (previewHideTimer) {
+        clearTimeout(previewHideTimer);
+        previewHideTimer = null;
+    }
+    document.getElementById('explorer-home')?.classList.add('hidden');
+    document.getElementById('atomic-home')?.classList.add('hidden');
+    document.getElementById('molecular-home')?.classList.remove('hidden');
+    document.getElementById('periodic-selector')?.classList.add('hidden');
+    document.getElementById('orbital-selector').classList.add('hidden');
+    document.getElementById('container').style.display = 'none';
+    document.getElementById('instructions').classList.add('hidden');
+    document.getElementById('orbital-tag').classList.add('hidden');
+    document.getElementById('video-container').classList.add('hidden');
+    document.getElementById('viewer-back-button').classList.add('hidden');
+    const cameraCard = document.getElementById('camera-toggle-card');
+    if (cameraCard) cameraCard.classList.add('hidden');
+    document.getElementById('experiment-console')?.classList.add('hidden');
+    document.getElementById('viewer-knowledge-button')?.classList.add('hidden');
+    document.getElementById('knowledge-card')?.classList.add('hidden');
+    if (gestureController) gestureController.stop();
+    renderMolecularList();
+}
+
+function renderMolecularList() {
+    const container = document.getElementById('molecular-list');
+    if (!container) return;
+    container.innerHTML = '';
+    MOLECULAR_MODELS.forEach((entry) => {
+        const orbitalId = entry.orbitalId;
+        const hasModel = hasOrbitalModel(orbitalId);
+        const card = document.createElement('div');
+        card.className = 'molecular-card' + (hasModel ? '' : ' molecular-card--disabled');
+        card.innerHTML = `
+            <div class="molecular-card-title">${t(entry.titleKey)}</div>
+            <div class="molecular-card-formula">${formatOrbitalName(orbitalId)}</div>
+            <div class="molecular-card-sym">${t(entry.symmetryKey)}</div>
+            <div class="molecular-card-desc">${t(entry.descKey)}</div>
+            ${hasModel ? '' : `<div class="molecular-card-soon">${t('explorer.comingSoon')}</div>`}
+        `;
+        if (hasModel) {
+            card.addEventListener('click', () => {
+                viewerReturnContext = { type: 'molecular-home' };
+                loadOrbital(orbitalId);
+            });
+        }
+        container.appendChild(card);
+    });
+}
+
 function showPeriodicTable() {
     currentView = 'periodic';
     hideElementPreviewCard();
     const homeEl = document.getElementById('explorer-home');
     if (homeEl) homeEl.classList.add('hidden');
+    document.getElementById('atomic-home')?.classList.add('hidden');
+    document.getElementById('molecular-home')?.classList.add('hidden');
     const periodicEl = document.getElementById('periodic-selector');
     if (periodicEl) periodicEl.classList.remove('hidden');
     document.getElementById('orbital-selector').classList.add('hidden');
@@ -483,14 +593,17 @@ function setupGridLayout(categoryType, orbitalList) {
 }
 
 // 显示轨道列表
-function showOrbitalList(categoryType) {
+function showOrbitalList(categoryType, options = {}) {
     currentView = 'orbital';
     currentCategory = categoryType;
-    viewerReturnContext = { type: 'orbital', category: categoryType };
+    if (options.parent) orbitalListParent = options.parent;
+    viewerReturnContext = { type: 'orbital', category: categoryType, parent: orbitalListParent };
     hideElementPreviewCard();
     
     const homeEl = document.getElementById('explorer-home');
     if (homeEl) homeEl.classList.add('hidden');
+    document.getElementById('atomic-home')?.classList.add('hidden');
+    document.getElementById('molecular-home')?.classList.add('hidden');
     const periodicEl = document.getElementById('periodic-selector');
     if (periodicEl) periodicEl.classList.add('hidden');
     document.getElementById('orbital-selector').classList.remove('hidden');
@@ -549,7 +662,7 @@ function showOrbitalList(categoryType) {
                 <div class="orbital-item-name">${formatOrbitalName(orbitalId)}</div>
             `;
             item.addEventListener('click', () => {
-                viewerReturnContext = { type: 'orbital', category: categoryType };
+                viewerReturnContext = { type: 'orbital', category: categoryType, parent: orbitalListParent };
                 loadOrbital(actualModelId || orbitalId);
             });
         }
@@ -568,6 +681,17 @@ function formatOrbitalName(orbitalId, asHtml = true) {
 
     if (orbitalId === 'icosa_B12H12') {
         return asHtml ? 'B<sub>12</sub>H<sub>12</sub><sup>2-</sup>' : 'B12H12^2-';
+    }
+
+    const molFormula = {
+        mol_small_CH4: { html: 'CH<sub>4</sub>', plain: 'CH4' },
+        mol_small_NH3: { html: 'NH<sub>3</sub>', plain: 'NH3' },
+        mol_small_H2O: { html: 'H<sub>2</sub>O', plain: 'H2O' },
+        mol_small_C2H4: { html: 'C<sub>2</sub>H<sub>4</sub>', plain: 'C2H4' },
+        mol_small_C6H6: { html: 'C<sub>6</sub>H<sub>6</sub>', plain: 'C6H6' }
+    };
+    if (molFormula[orbitalId]) {
+        return asHtml ? molFormula[orbitalId].html : molFormula[orbitalId].plain;
     }
     
     // 处理 d/f/g 轨道: {n}{type}_{suffix}
@@ -600,6 +724,20 @@ function getNavigableOrbitalIds(category) {
         const a = getActualModelId(id);
         return a != null || /^\d+p[xyz]$/.test(id);
     }).map(id => getActualModelId(id) || id);
+}
+
+/** dodec / icosa / molecule 在控制台共用「分子列表」切换 */
+function isMolecularFamilyOrbitalId(id) {
+    if (!id) return false;
+    const ty = getOrbitalType(id);
+    return ty === 'dodec' || ty === 'icosa' || ty === 'molecule';
+}
+
+function getNavigableOrbitalIdsForConsole() {
+    if (currentOrbitalId && isMolecularFamilyOrbitalId(currentOrbitalId)) {
+        return getAllMolecularOrbitalIds().filter((id) => hasOrbitalModel(id));
+    }
+    return getNavigableOrbitalIds(currentCategory);
 }
 
 // --- 加载遮罩 overlay 辅助 ---
@@ -898,6 +1036,9 @@ async function loadOrbital(orbitalId, opts = {}) {
                     if (!opts.isSwitch) {
                         hideLoadingOverlay();
                         showViewer(opts);
+                    } else {
+                        refreshExperimentConsoleBlockSelect();
+                        syncExperimentConsoleControls();
                     }
                     const orbitalSelect = document.getElementById('experiment-console-orbital-select');
                     if (orbitalSelect) orbitalSelect.value = currentOrbitalId;
@@ -1014,7 +1155,7 @@ function setAxesLabelsVisibility(visible) {
 function refreshExperimentConsoleBlockSelect() {
     const select = document.getElementById('experiment-console-orbital-select');
     if (!select) return;
-    const ids = getNavigableOrbitalIds(currentCategory);
+    const ids = getNavigableOrbitalIdsForConsole();
     select.innerHTML = '';
     ids.forEach(id => {
         const opt = document.createElement('option');
@@ -1095,6 +1236,8 @@ function showViewer(opts = {}) {
     hideElementPreviewCard();
     const homeEl = document.getElementById('explorer-home');
     if (homeEl) homeEl.classList.add('hidden');
+    document.getElementById('atomic-home')?.classList.add('hidden');
+    document.getElementById('molecular-home')?.classList.add('hidden');
     const periodicEl = document.getElementById('periodic-selector');
     if (periodicEl) periodicEl.classList.add('hidden');
     document.getElementById('orbital-selector').classList.add('hidden');
@@ -1507,7 +1650,12 @@ function initMouseEvents() {
         if (e.key === 'Escape') {
             if (currentView === 'viewer') {
                 handleViewerBack();
-            } else if (currentView === 'orbital' || currentView === 'periodic') {
+            } else if (currentView === 'periodic') {
+                showAtomicHome();
+            } else if (currentView === 'orbital') {
+                if (orbitalListParent === 'atomic-home') showAtomicHome();
+                else showHomeView();
+            } else if (currentView === 'atomic-home' || currentView === 'molecular-home') {
                 showHomeView();
             }
         } else if (e.key === 'i' || e.key === 'I') {

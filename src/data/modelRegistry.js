@@ -10,7 +10,7 @@
  * 模型分类注册表
  * 
  * 按轨道类型组织，用于 UI 显示
- * 按类型分组：s, p, d, f, g, dodec, icosa
+ * 按类型分组：s, p, d, f, g, dodec, icosa, molecule（小分子 mol_*）
  */
 /**
  * 实际存在的轨道模型（已生成PLY文件）
@@ -28,7 +28,8 @@ export const EXISTING_ORBITALS = new Set([
   '5f_z3', '5f_xz2', '5f_yz2', '5f_zx2-y2', '5f_xyz', '5f_x(x2-3y2)', '5f_y(x2-z2)',
   '5g_z4', '5g_xz3', '5g_yz3', '5g_z2x2-y2', '5g_xyz2',
   '5g_xzx2-3y2', '5g_yzy2-3x2', '5g_x4+y4', '5g_xyx2-y2',
-  'dodec_C20H20', 'icosa_B12H12'
+  'dodec_C20H20', 'icosa_B12H12',
+  // 小分子 mol_small_*：PLY 就绪后加入 EXISTING_ORBITALS
 ]);
 
 /** 新 ID：d/f/g 为 {n}d|f|g_{suffix} */
@@ -50,7 +51,15 @@ export const MODEL_REGISTRY = {
     '5g_xzx2-3y2', '5g_yzy2-3x2', '5g_x4+y4', '5g_xyx2-y2'
   ],
   'dodec': ['dodec_C20H20'],
-  'icosa': ['icosa_B12H12']
+  'icosa': ['icosa_B12H12'],
+  /** 小分子 DFT 模型：目录 models/model++/molecule/<id>/ */
+  'molecule': [
+    'mol_small_CH4',
+    'mol_small_NH3',
+    'mol_small_H2O',
+    'mol_small_C2H4',
+    'mol_small_C6H6'
+  ]
 };
 
 /**
@@ -80,6 +89,7 @@ export function getOrbitalsByType(type) {
     if (type === 'g') return /^\d+g_/.test(id);
     if (type === 'dodec') return /^dodec_/.test(id);
     if (type === 'icosa') return /^icosa_/.test(id);
+    if (type === 'molecule') return /^mol_/.test(id);
     return false;
   });
 }
@@ -98,6 +108,7 @@ export function getOrbitalsByType(type) {
  */
 /** 支持新 ID：d/f/g 为 {n}d|f|g_{suffix}，如 3d_z2、4f_z3、5g_z4；^\d+d_、^\d+f_、^\d+g_ 可匹配 */
 export function getOrbitalType(orbitalId) {
+  if (orbitalId.match(/^mol_/)) return 'molecule';
   if (orbitalId.match(/^dodec_/)) return 'dodec';
   if (orbitalId.match(/^icosa_/)) return 'icosa';
   if (orbitalId.match(/^\d+s$/)) return 's';
@@ -263,6 +274,32 @@ function getDefaultMetadata(orbitalId) {
       layers: [
         { id: 'density', label: 'Electron density', path: 'icosa_B12H12_density.ply', opacity: 0.38, sizeScale: 1.08, defaultVisible: true },
         { id: 'homo', label: 'HOMO', path: 'icosa_B12H12.ply', opacity: 0.42, sizeScale: 0.96, defaultVisible: false }
+      ]
+    };
+  }
+
+  /** 小分子：与多面体相同两层 density + homo；PLY 文件名约定见 docs/MOLECULAR_MODELS.md */
+  const smallMolDefaults = {
+    mol_small_CH4: { displayName: 'CH4', physicalDiameter: 4.0, recommendedScale: 1.0 },
+    mol_small_NH3: { displayName: 'NH3', physicalDiameter: 4.0, recommendedScale: 1.0 },
+    mol_small_H2O: { displayName: 'H2O', physicalDiameter: 3.5, recommendedScale: 1.0 },
+    mol_small_C2H4: { displayName: 'C2H4', physicalDiameter: 5.0, recommendedScale: 0.95 },
+    mol_small_C6H6: { displayName: 'C6H6', physicalDiameter: 6.0, recommendedScale: 0.9 }
+  };
+  if (smallMolDefaults[orbitalId]) {
+    const cfg = smallMolDefaults[orbitalId];
+    return {
+      id: orbitalId,
+      type: 'molecule',
+      displayName: cfg.displayName,
+      description: `${cfg.displayName} 几何优化后 DFT 总电子密度与 HOMO 点云`,
+      pointCount: 150000,
+      physicalDiameter: cfg.physicalDiameter,
+      recommendedScale: cfg.recommendedScale,
+      opacity: 0.85,
+      layers: [
+        { id: 'density', label: 'Electron density', path: `${orbitalId}_density.ply`, opacity: 0.38, sizeScale: 1.08, defaultVisible: true },
+        { id: 'homo', label: 'HOMO', path: `${orbitalId}_homo.ply`, opacity: 0.42, sizeScale: 0.96, defaultVisible: false }
       ]
     };
   }
