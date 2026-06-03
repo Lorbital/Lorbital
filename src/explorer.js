@@ -81,6 +81,88 @@ const CATEGORY_TITLE_KEYS = {
 const TUTORIAL_STORAGE_KEY = 'lorbital_tutorial_shown';
 const TUTORIAL_TOTAL_STEPS = 3;
 
+// --- 进入查看器时的初始化缩放动画（教程结束后触发）---
+const INTRO_SCALE_START = 0.05;
+const INTRO_SCALE_END = 0.8;
+const INTRO_SCALE_HOLD_MS = 200;
+const INTRO_SCALE_DURATION_MS = 500;
+
+let introAnimationActive = false;
+let introAnimationPending = false;
+let introAnimationStartTime = 0;
+let introAnimationBaseScale = 1.0;
+
+function easeOutBack(t) {
+    const c1 = 1.70158;
+    const c3 = c1 + 1;
+    return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+}
+
+function resetIntroAnimation() {
+    introAnimationActive = false;
+    introAnimationPending = false;
+    introAnimationStartTime = 0;
+}
+
+function prepareIntroAnimation(baseScale) {
+    introAnimationBaseScale = baseScale;
+    introAnimationPending = true;
+    introAnimationActive = false;
+    const startScale = baseScale * INTRO_SCALE_START;
+    if (renderController) {
+        renderController.currentScale = startScale;
+        renderController.targetScale = startScale;
+    }
+    if (orbitalGroup) orbitalGroup.scale.setScalar(startScale);
+}
+
+function startIntroAnimation() {
+    if (!renderController || !introAnimationPending) return;
+    introAnimationPending = false;
+    introAnimationActive = true;
+    introAnimationStartTime = performance.now();
+    const startScale = introAnimationBaseScale * INTRO_SCALE_START;
+    renderController.currentScale = startScale;
+    renderController.targetScale = startScale;
+    orbitalGroup.scale.setScalar(startScale);
+}
+
+function updateIntroAnimation(now) {
+    if (!introAnimationActive || !renderController) return false;
+    const elapsed = now - introAnimationStartTime;
+    const startScale = introAnimationBaseScale * INTRO_SCALE_START;
+    const endScale = introAnimationBaseScale * INTRO_SCALE_END;
+
+    if (elapsed < INTRO_SCALE_HOLD_MS) {
+        renderController.currentScale = startScale;
+        renderController.targetScale = startScale;
+        return true;
+    }
+
+    const animElapsed = elapsed - INTRO_SCALE_HOLD_MS;
+    const progress = Math.min(animElapsed / INTRO_SCALE_DURATION_MS, 1);
+    const eased = easeOutBack(progress);
+    const scale = startScale + (endScale - startScale) * eased;
+    renderController.currentScale = scale;
+    renderController.targetScale = scale;
+    if (progress >= 1) {
+        introAnimationActive = false;
+        renderController.targetScale = endScale;
+        renderController.currentScale = endScale;
+    }
+    return introAnimationActive;
+}
+
+function tryStartIntroAnimation() {
+    if (currentView !== 'viewer') return;
+    if (introAnimationPending) startIntroAnimation();
+}
+
+function isTutorialVisible() {
+    const overlay = document.getElementById('gesture-tutorial-overlay');
+    return overlay != null && !overlay.classList.contains('hidden');
+}
+
 /** @type {ReturnType<typeof setTimeout> | null} */
 let previewHideTimer = null;
 
@@ -263,6 +345,7 @@ function initUI() {
 }
 
 function handleViewerBack() {
+    resetIntroAnimation();
     hideElementPreviewCard();
     if (viewerReturnContext.type === 'periodic') {
         showPeriodicTable();
@@ -1001,14 +1084,6 @@ async function loadOrbital(orbitalId, opts = {}) {
                 setAxesLabelsVisibility(settings.showAxes);
                 orbitalGroup.add(axesHelper);
 
-                if (currentMetadata?.recommendedScale) {
-                    if (renderController) {
-                        renderController.targetScale = currentMetadata.recommendedScale;
-                        renderController.currentScale = currentMetadata.recommendedScale;
-                    }
-                    orbitalGroup.scale.setScalar(currentMetadata.recommendedScale);
-                }
-
                 currentOrbitalId = orbitalId;
                 currentCategory = getOrbitalType(orbitalId);
 
@@ -1020,13 +1095,17 @@ async function loadOrbital(orbitalId, opts = {}) {
                 if (renderController) {
                     renderController.targetQuaternion.set(0, 0, 0, 1);
                     renderController.currentQuaternion.set(0, 0, 0, 1);
-                    renderController.targetScale = initialScale;
-                    renderController.currentScale = initialScale;
                 }
                 if (orbitalGroup) {
                     orbitalGroup.quaternion.set(0, 0, 0, 1);
-                    orbitalGroup.scale.setScalar(initialScale);
                     orbitalGroup.position.set(0, 0, 0);
+                }
+                if (!opts.isSwitch) {
+                    prepareIntroAnimation(initialScale);
+                } else if (renderController) {
+                    renderController.targetScale = initialScale;
+                    renderController.currentScale = initialScale;
+                    orbitalGroup.scale.setScalar(initialScale);
                 }
 
                 requestAnimationFrame(() => {
@@ -1303,10 +1382,12 @@ function showViewer(opts = {}) {
 
     if (cameraVisible && gestureController && gestureController.enabled) gestureController.start();
     
-    // 检查是否需要显示教程（首次打开模型时）
+    // 检查是否需要显示教程（首次打开模型时）；初始化缩放动画在教程结束后再播放
     if (!opts?.isSwitch) {
         checkAndShowTutorial();
-    } else {
+        if (sessionStorage.getItem(TUTORIAL_STORAGE_KEY)) {
+            tryStartIntroAnimation();
+        }
     }
 }
 
@@ -1333,6 +1414,7 @@ function showTutorial() {
     const overlay = document.getElementById('gesture-tutorial-overlay');
     if (!overlay) {
         console.warn('Tutorial overlay not found');
+        tryStartIntroAnimation();
         return;
     }
     
@@ -1357,6 +1439,7 @@ function hideTutorial() {
     }
     stopTutorialGestureTracking();
     sessionStorage.setItem(TUTORIAL_STORAGE_KEY, 'true');
+    tryStartIntroAnimation();
 }
 
 function updateTutorialStep() {
@@ -1791,10 +1874,13 @@ function animate() {
 
     // 始终渲染，但只在viewer模式下更新模型
     if (currentView === 'viewer') {
+        const introRunning = updateIntroAnimation(performance.now());
+        const blockAutoRotate = introRunning || introAnimationPending || isTutorialVisible();
         // 自动旋转：排除鼠标拖拽（isMouseDown）和手势交互（isInteracting）
         // 当单手或双手捏合时，isInteracting 为 true，自动旋转停止
         // 当松开时，isInteracting 为 false，自动旋转恢复
-        if (renderController && !isMouseDown && !renderController.isInteracting && settings.autoRotate) {
+        // 教程或初始化缩放动画期间暂停自动旋转
+        if (renderController && !blockAutoRotate && !isMouseDown && !renderController.isInteracting && settings.autoRotate) {
             renderController.setTargetRotation(settings.rotationSpeed, 0, true);
         }
     }
