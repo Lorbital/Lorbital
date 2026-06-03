@@ -123,11 +123,8 @@ nav a:hover, nav a.active {
     z-index: 1; /* 位于最底层 */
 }
 
-/* 手势引导面板 */
+/* 手势引导面板（explorer 页由 #left-viewer-stack 布局，见 explorer.html） */
 #instructions {
-    position: absolute;
-    top: 100px;
-    left: 30px;
     background: var(--glass-heavy);
     backdrop-filter: blur(10px);
     padding: 20px;
@@ -135,9 +132,8 @@ nav a:hover, nav a.active {
     border: 1px solid var(--glass-border);
     color: white;
     line-height: 1.6;
-    z-index: 100;
     font-size: 14px;
-    pointer-events: none; /* 允许点击穿透到 3D 场景 */
+    pointer-events: none;
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
@@ -160,18 +156,12 @@ nav a:hover, nav a.active {
     text-shadow: 0 0 30px var(--accent-glow);
 }
 
-/* 摄像头副屏容器 - 解决显示不全的问题 */
+/* 摄像头副屏容器（explorer 页宽度/位置见 explorer.html #left-viewer-stack） */
 #video-container {
-    position: absolute;
-    bottom: 30px;
-    left: 30px;
-    width: 396px; /* 220px × 1.8 */
-    height: 297px; /* 165px × 1.8，保持 4:3 */
     border-radius: 16px;
     border: 2px solid var(--accent);
     overflow: hidden;
-    transform: scaleX(-1); /* 镜像翻转，符合镜面直觉 */
-    z-index: 100;
+    transform: scaleX(-1);
     background: #000;
     box-shadow: 0 0 25px rgba(0, 255, 255, 0.2);
 }
