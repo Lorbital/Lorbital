@@ -144,7 +144,7 @@ nav a:hover, nav a.active {
 /* 轨道名称标签 */
 #orbital-tag {
     position: absolute;
-    bottom: 40px;
+    bottom: 45px;
     right: 40px;
     text-align: right;
     pointer-events: none;
@@ -165,8 +165,8 @@ nav a:hover, nav a.active {
     position: absolute;
     bottom: 30px;
     left: 30px;
-    width: 220px; /* 适度增大增强观测感 */
-    height: 165px; /* 保持 4:3 比例 */
+    width: 396px; /* 220px × 1.8 */
+    height: 297px; /* 165px × 1.8，保持 4:3 */
     border-radius: 16px;
     border: 2px solid var(--accent);
     overflow: hidden;
