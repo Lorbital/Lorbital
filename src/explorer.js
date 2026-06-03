@@ -82,7 +82,7 @@ const TUTORIAL_STORAGE_KEY = 'lorbital_tutorial_shown';
 const TUTORIAL_TOTAL_STEPS = 3;
 
 // --- 进入查看器时的初始化缩放动画（教程结束后触发）---
-const INTRO_SCALE_START = 0.05;
+const INTRO_SCALE_START = 0.01;
 const INTRO_SCALE_END = 0.8;
 const INTRO_SCALE_HOLD_MS = 200;
 const INTRO_SCALE_DURATION_MS = 4000;
