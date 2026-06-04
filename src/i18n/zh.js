@@ -151,6 +151,8 @@
       currentOrbital: '当前 block 轨道',
       currentModel: '当前模型',
       viewOrbitalInfo: '查看轨道信息',
+      clearScreen: '清屏模式',
+      clearScreenExit: '退出清屏',
 
       // Knowledge card
       basicInfo: '基本信息',

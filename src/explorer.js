@@ -38,6 +38,7 @@ let orbitalLayerVisibility = { density: true, homo: false, main: true };
 let lastErrorOrbitalId = null;
 let lastErrorOpts = null;
 let cameraVisible = true; // 摄像头显示状态
+let clearScreenMode = false;
 
 // --- 手势控制器 ---
 let gestureController = null;
@@ -244,6 +245,9 @@ function init() {
                     showKnowledgeCard(currentOrbitalId);
                 }
             }
+            if (currentView === 'viewer') {
+                setClearScreenMode(clearScreenMode);
+            }
             // Update tutorial button text if visible
             const nextBtn = document.getElementById('gesture-tutorial-next');
             if (nextBtn) {
@@ -316,6 +320,11 @@ function initUI() {
         cameraToggleCard.addEventListener('click', () => toggleCamera(true));
     }
 
+    const viewerClearScreenButton = document.getElementById('viewer-clear-screen-button');
+    if (viewerClearScreenButton) {
+        viewerClearScreenButton.addEventListener('click', () => toggleClearScreenMode());
+    }
+
     // 加载遮罩：重试、返回
     const retryBtn = document.getElementById('loading-retry');
     const backBtn = document.getElementById('loading-back');
@@ -344,9 +353,38 @@ function initUI() {
     }
 }
 
+function setClearScreenMode(on) {
+    clearScreenMode = on;
+    document.body.classList.toggle('viewer-clear-screen', on);
+    const btn = document.getElementById('viewer-clear-screen-button');
+    if (btn) {
+        btn.classList.toggle('is-active', on);
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        const titleKey = on ? 'explorer.clearScreenExit' : 'explorer.clearScreen';
+        btn.title = typeof t === 'function' ? t(titleKey) : (on ? '退出清屏' : '清屏模式');
+    }
+}
+
+function exitClearScreenMode() {
+    if (clearScreenMode) setClearScreenMode(false);
+}
+
+function toggleClearScreenMode() {
+    if (currentView !== 'viewer') return;
+    setClearScreenMode(!clearScreenMode);
+}
+
+function hideViewerOverlayControls() {
+    exitClearScreenMode();
+    document.getElementById('viewer-clear-screen-button')?.classList.add('hidden');
+    document.getElementById('viewer-knowledge-button')?.classList.add('hidden');
+    document.getElementById('knowledge-card')?.classList.add('hidden');
+}
+
 function handleViewerBack() {
     resetIntroAnimation();
     hideElementPreviewCard();
+    exitClearScreenMode();
     if (viewerReturnContext.type === 'periodic') {
         showPeriodicTable();
     } else if (viewerReturnContext.type === 'orbital' && viewerReturnContext.category) {
@@ -387,14 +425,7 @@ function showHomeView() {
     const consoleEl = document.getElementById('experiment-console');
     if (consoleEl) consoleEl.classList.add('hidden');
     
-    const viewerKnowledgeButton = document.getElementById('viewer-knowledge-button');
-    if (viewerKnowledgeButton) {
-        viewerKnowledgeButton.classList.add('hidden');
-    }
-    const knowledgeCard = document.getElementById('knowledge-card');
-    if (knowledgeCard) {
-        knowledgeCard.classList.add('hidden');
-    }
+    hideViewerOverlayControls();
     
     if (gestureController) gestureController.stop();
 }
@@ -419,8 +450,7 @@ function showAtomicHome() {
     const cameraCard = document.getElementById('camera-toggle-card');
     if (cameraCard) cameraCard.classList.add('hidden');
     document.getElementById('experiment-console')?.classList.add('hidden');
-    document.getElementById('viewer-knowledge-button')?.classList.add('hidden');
-    document.getElementById('knowledge-card')?.classList.add('hidden');
+    hideViewerOverlayControls();
     if (gestureController) gestureController.stop();
 }
 
@@ -444,8 +474,7 @@ function showMolecularHome() {
     const cameraCard = document.getElementById('camera-toggle-card');
     if (cameraCard) cameraCard.classList.add('hidden');
     document.getElementById('experiment-console')?.classList.add('hidden');
-    document.getElementById('viewer-knowledge-button')?.classList.add('hidden');
-    document.getElementById('knowledge-card')?.classList.add('hidden');
+    hideViewerOverlayControls();
     if (gestureController) gestureController.stop();
     renderMolecularList();
 }
@@ -495,10 +524,7 @@ function showPeriodicTable() {
     if (cameraCard) cameraCard.classList.add('hidden');
     const consoleEl = document.getElementById('experiment-console');
     if (consoleEl) consoleEl.classList.add('hidden');
-    const viewerKnowledgeButton = document.getElementById('viewer-knowledge-button');
-    if (viewerKnowledgeButton) viewerKnowledgeButton.classList.add('hidden');
-    const knowledgeCard = document.getElementById('knowledge-card');
-    if (knowledgeCard) knowledgeCard.classList.add('hidden');
+    hideViewerOverlayControls();
     if (gestureController) gestureController.stop();
     renderPeriodicTable();
 }
@@ -711,15 +737,7 @@ function showOrbitalList(categoryType, options = {}) {
     // 设置网格布局
     setupGridLayout(categoryType, orbitalList);
     
-    // 隐藏 viewer 页面信息按钮和知识卡片
-    const viewerKnowledgeButton = document.getElementById('viewer-knowledge-button');
-    if (viewerKnowledgeButton) {
-        viewerKnowledgeButton.classList.add('hidden');
-    }
-    const knowledgeCard = document.getElementById('knowledge-card');
-    if (knowledgeCard) {
-        knowledgeCard.classList.add('hidden');
-    }
+    hideViewerOverlayControls();
     
     orbitals.forEach(orbitalId => {
         const item = document.createElement('div');
@@ -1350,6 +1368,12 @@ function showViewer(opts = {}) {
                 showKnowledgeCard(currentOrbitalId);
             }
         };
+    }
+
+    const viewerClearScreenButton = document.getElementById('viewer-clear-screen-button');
+    if (viewerClearScreenButton) {
+        viewerClearScreenButton.classList.remove('hidden');
+        setClearScreenMode(clearScreenMode);
     }
     
     // 确保知识卡片在viewer页面默认隐藏（只有点击按钮时才显示）

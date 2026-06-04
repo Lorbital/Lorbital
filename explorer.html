@@ -439,16 +439,16 @@
             top: 0;
             left: 0;
             width: 100%;
-            min-height: 100%;
+            height: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 88px 16px 32px;
+            padding: 88px 0 0;
             box-sizing: border-box;
             background: rgba(0, 0, 0, 0.96);
             z-index: 295;
             backdrop-filter: blur(20px);
-            overflow-y: auto;
+            overflow: hidden;
         }
         #periodic-selector.hidden {
             display: none;
@@ -462,6 +462,22 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            box-sizing: border-box;
+            flex-shrink: 0;
+            padding: 0 16px;
+        }
+        .periodic-scroll {
+            flex: 1;
+            min-height: 0;
+            width: 100%;
+            overflow-x: hidden;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 0 16px 32px;
             box-sizing: border-box;
         }
         #periodic-selector .periodic-back-button {
@@ -988,6 +1004,57 @@
         .viewer-knowledge-button.hidden {
             display: none;
         }
+        .viewer-clear-screen-button {
+            position: fixed;
+            top: 490px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--glass-border);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+        }
+        .viewer-clear-screen-button:hover {
+            background: rgba(0, 255, 255, 0.2);
+            border-color: var(--accent);
+            transform: scale(1.1);
+        }
+        .viewer-clear-screen-button.hidden {
+            display: none;
+        }
+        .viewer-clear-screen-button.is-active {
+            background: rgba(0, 255, 255, 0.25);
+            border-color: var(--accent);
+            box-shadow: 0 0 16px rgba(0, 255, 255, 0.35);
+        }
+        body.viewer-clear-screen nav {
+            display: none;
+        }
+        body.viewer-clear-screen #left-viewer-stack,
+        body.viewer-clear-screen #orbital-tag,
+        body.viewer-clear-screen #experiment-console,
+        body.viewer-clear-screen #viewer-knowledge-button,
+        body.viewer-clear-screen #knowledge-card {
+            display: none !important;
+        }
+        body.viewer-clear-screen .viewer-back-button {
+            top: 20px;
+            left: 20px;
+        }
+        body.viewer-clear-screen .viewer-clear-screen-button {
+            top: 20px;
+            right: 20px;
+        }
         .back-button:hover {
             background: rgba(0, 255, 255, 0.2);
             border-color: var(--accent);
@@ -1418,9 +1485,11 @@
             <button type="button" class="back-button periodic-back-button" id="periodic-back-button" data-i18n="explorer.backBtn">← 返回</button>
             <p class="periodic-intro" data-i18n="explorer.periodicIntro">格子内为各元素的「代表性占据亚层」示意，并非完整电子排布。悬停显示静态预览图（若已提供），点击进入三维查看器。</p>
         </div>
-        <div id="periodic-grid" aria-label="Periodic table">
-            <span class="periodic-f-label periodic-f-label--row8" data-i18n="explorer.periodicLanth">镧系 58–71</span>
-            <span class="periodic-f-label periodic-f-label--row9" data-i18n="explorer.periodicAct">锕系 90–103</span>
+        <div class="periodic-scroll">
+            <div id="periodic-grid" aria-label="Periodic table">
+                <span class="periodic-f-label periodic-f-label--row8" data-i18n="explorer.periodicLanth">镧系 58–71</span>
+                <span class="periodic-f-label periodic-f-label--row9" data-i18n="explorer.periodicAct">锕系 90–103</span>
+            </div>
         </div>
     </div>
 
@@ -1505,6 +1574,7 @@
         </div>
     </div>
     <button id="viewer-knowledge-button" class="viewer-knowledge-button hidden" title="View orbital info">ℹ</button>
+    <button id="viewer-clear-screen-button" class="viewer-clear-screen-button hidden" type="button" title="清屏模式" aria-pressed="false">c</button>
     <div id="container"></div>
 
     <!-- 手势教程覆盖层 -->

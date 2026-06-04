@@ -151,6 +151,8 @@
       currentOrbital: 'Current Block Orbital',
       currentModel: 'Current model',
       viewOrbitalInfo: 'View orbital info',
+      clearScreen: 'Clear screen',
+      clearScreenExit: 'Exit clear screen',
 
       // Knowledge card
       basicInfo: 'Basic Info',
