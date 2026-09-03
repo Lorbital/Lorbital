@@ -433,6 +433,97 @@
             font-weight: 500;
         }
         .knowledge-main .kb-content-html .formula-box { margin-top: 0.5rem; }
+        .knowledge-main .kb-figure {
+            margin: 1.15rem 0 1.35rem;
+        }
+        .knowledge-main .kb-figure img,
+        .knowledge-main .kb-figure video {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.25);
+        }
+        .knowledge-main .kb-figure img {
+            width: 100%;
+        }
+        .knowledge-main .kb-figure video {
+            width: auto;
+            max-height: min(70vh, 640px);
+            margin: 0 auto;
+        }
+        .knowledge-main .kb-figure.kb-structure img {
+            width: auto;
+            max-width: min(280px, 100%);
+            margin: 0 auto;
+            padding: 1rem 1.15rem;
+            background: #f4fbff;
+            border-color: rgba(0, 255, 255, 0.35);
+        }
+        .knowledge-main .kb-figure-row {
+            display: flex;
+            gap: 0.85rem;
+            flex-wrap: wrap;
+            margin: 1.15rem 0 1.35rem;
+        }
+        .knowledge-main .kb-figure-row .kb-figure {
+            flex: 1 1 calc(50% - 0.45rem);
+            min-width: 220px;
+            margin: 0;
+        }
+        .knowledge-main .kb-caption {
+            margin-top: 0.45rem;
+            font-size: 0.8rem;
+            line-height: 1.45;
+            color: rgba(232, 248, 255, 0.55);
+            text-align: center;
+        }
+        .knowledge-main .kb-quote {
+            margin: 1rem 0 1.2rem;
+            padding: 0.35rem 0 0.35rem 1rem;
+            border-left: 3px solid var(--accent);
+            color: rgba(0, 255, 255, 0.88);
+            font-style: italic;
+            line-height: 1.65;
+        }
+        .knowledge-main .kb-ebook {
+            margin: 1.15rem 0 1.35rem;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.22);
+        }
+        .knowledge-main .kb-ebook-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.65rem 1rem;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.14);
+            font-size: 0.9rem;
+        }
+        .knowledge-main .kb-ebook-bar a {
+            color: var(--accent);
+            text-decoration: none;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.35);
+        }
+        .knowledge-main .kb-ebook-bar a:hover {
+            border-bottom-color: var(--accent);
+        }
+        .knowledge-main .kb-ebook-note {
+            color: rgba(232, 248, 255, 0.5);
+            font-size: 0.78rem;
+        }
+        .knowledge-main .kb-ebook iframe,
+        .knowledge-main .kb-ebook object {
+            display: block;
+            width: 100%;
+            height: min(80vh, 920px);
+            border: 0;
+            background: #0b1220;
+        }
         @media (max-width: 768px) {
             .knowledge-layout {
                 flex-direction: column;
@@ -445,6 +536,12 @@
                 left: auto;
                 max-height: 500vh;
                 margin-bottom: 1rem;
+            }
+            .knowledge-main .kb-figure-row {
+                flex-direction: column;
+            }
+            .knowledge-main .kb-figure-row .kb-figure {
+                min-width: 0;
             }
         }
     </style>
@@ -487,6 +584,7 @@
         </div>
     </div>
     <script src="src/data/knowledgeBase.js"></script>
+    <script src="src/data/knowledgeSulfuring.js"></script>
     <script src="src/knowledgePage.js"></script>
 </body>
 </html>
