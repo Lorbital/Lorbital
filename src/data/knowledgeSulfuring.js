@@ -36,10 +36,10 @@
     return (
       '<div class="kb-ebook">' +
         '<div class="kb-ebook-bar">' +
-          '<a href="' + href + '" target="_blank" rel="noopener noreferrer">' + openLabel + "</a>" +
+          '<a href="' + href + '" target="_blank" rel="noopener noreferrer" download="Jason-Ye-ebook.pdf">' + openLabel + "</a>" +
           '<span class="kb-ebook-note">' + note + "</span>" +
         "</div>" +
-        '<iframe src="' + href + '" title="' + title + '" loading="lazy"></iframe>' +
+        '<iframe src="' + href + '#toolbar=1&navpanes=0" title="' + title + '" loading="lazy"></iframe>' +
       "</div>"
     );
   }
@@ -289,13 +289,13 @@
             zh: ebook(
               "public/files/knowledge/sulfuring/Jason-Ye-ebook.pdf",
               "Asian Drug Crisis eBook",
-              "PDF · 约 111 MB",
+              "PDF · 约 28 MB",
               "在线阅读 / 下载电子书"
             ),
             en: ebook(
               "public/files/knowledge/sulfuring/Jason-Ye-ebook.pdf",
               "Asian Drug Crisis eBook",
-              "PDF · about 111 MB",
+              "PDF · about 28 MB",
               "Read online / download eBook"
             )
           },
