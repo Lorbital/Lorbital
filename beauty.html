@@ -5,7 +5,7 @@
     <meta name="theme-color" content="#0a192f">
     <meta name="color-scheme" content="dark">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>知识库 | Quantum Orbital</title>
+    <title>化学之美 | Quantum Orbital</title>
     <link rel="stylesheet" href="css/shared.css">
     
     <script>
@@ -558,15 +558,15 @@
     <script>window.I18N && window.I18N.init();</script>
 
     <div id="page-loader">
-        <div class="loader-text" data-i18n="knowledge.loader">正在校准量子公式...</div>
+        <div class="loader-text" data-i18n="beauty.loader">正在校准量子公式...</div>
     </div>
 
     <nav>
         <div class="nav-links">
             <a href="index.html" data-i18n="nav.home">首页</a>
             <a href="story.html" data-i18n="nav.story">我们的故事</a>
-            <a href="knowledge.html" class="active" data-i18n="nav.knowledge">知识库</a>
-            <a href="beauty.html" data-i18n="nav.beauty">化学之美</a>
+            <a href="knowledge.html" data-i18n="nav.knowledge">知识库</a>
+            <a href="beauty.html" class="active" data-i18n="nav.beauty">化学之美</a>
             <a href="explorer.html" data-i18n="nav.explorer">探测器</a>
         </div>
         <button class="lang-toggle" id="lang-toggle">EN</button>
@@ -582,14 +582,18 @@
         </div>
         <div class="knowledge-layout">
             <aside class="knowledge-sidebar">
-                <nav id="knowledge-toc" aria-label="知识库目录"></nav>
+                <nav id="knowledge-toc" aria-label="化学之美目录"></nav>
             </aside>
             <main class="knowledge-main">
                 <div id="knowledge-content"></div>
             </main>
         </div>
     </div>
-    <script src="src/data/knowledgeBase.js"></script>
+    <script src="src/data/knowledgeSulfuring.js"></script>
+    <script>
+        window.KNOWLEDGE_PAGE_SECTIONS = window.CHEMISTRY_BEAUTY ? [window.CHEMISTRY_BEAUTY] : [];
+        window.KNOWLEDGE_PAGE_I18N = 'beauty';
+    </script>
     <script src="src/knowledgePage.js"></script>
 </body>
 </html>

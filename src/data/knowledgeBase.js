@@ -1,6 +1,6 @@
 /**
- * 知识库：由中英 Word 稿解析；第 9 章为 Sulfuring Chemistry Club（见 knowledgeSulfuring.js）；
- * 第 10 章为参考文献与整理说明（含 AI 辅助说明）；
+ * 知识库：由中英 Word 稿解析；化学之美为独立页面 beauty.html（见 knowledgeSulfuring.js）；
+ * 第 9 章为参考文献与整理说明（含 AI 辅助说明）；
  * 表格保留为 HTML；关键式以块级公式附于小节末。
  */
 window.KNOWLEDGE_BASE = [
@@ -349,18 +349,18 @@ window.KNOWLEDGE_BASE = [
   },
   {
     id: "kb-reference",
-    title: { zh: "10 Reference（参考文献）", en: "10 Reference" },
+    title: { zh: "9 Reference（参考文献）", en: "9 Reference" },
     children: [
       {
         id: "m8-1",
-        title: { zh: "10.1 参考文献", en: "10.1 References" },
+        title: { zh: "9.1 参考文献", en: "9.1 References" },
         content: [
           { zh: "本知识库各章专题内容主要依据项目组提供的中英文原始文稿编写。更完整的引用格式、具体原典与版权信息请以原始 Word 稿件或作者提供的书目为准。重要公式与结论建议对照权威教材与原始研究论文复核。", en: "The chapters in this knowledge base are based primarily on the Chinese and English source manuscripts supplied for the project. For full citation details, primary sources, and rights information, please refer to the original Word files or the bibliography provided by the authors. Key formulas and claims should be checked against standard textbooks and peer-reviewed literature." },
         ]
       },
       {
         id: "m8-2",
-        title: { zh: "10.2 知识库整理说明", en: "10.2 About this knowledge base" },
+        title: { zh: "9.2 知识库整理说明", en: "9.2 About this knowledge base" },
         content: [
           { zh: "各章节正文在从源稿自动抽取与排版后，**由人工智能辅助**完成分段润色、中英对齐、以及公式与表格的格式统一与局部补全。AI 参与整理可能引入疏漏或不严谨的表述，不构成正式学术引用依据；如发现错误欢迎反馈勘误。", en: "After extraction and initial typesetting from the source manuscripts, the text was **organized and edited with AI assistance** for paragraph polish, bilingual alignment, and consistent handling of formulas and tables. AI-assisted compilation may contain errors or oversimplifications and should not be treated as a formal academic citation; please report corrections if you find issues." },
         ]

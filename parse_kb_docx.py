@@ -1231,7 +1231,8 @@ def main():
     # build JS manually with formula append
     chunks = [
         "/**",
-        " * 知识库：由中英 Word 稿解析；第 9 章为参考文献与整理说明（含 AI 辅助说明）；",
+        " * 知识库：由中英 Word 稿解析；化学之美为独立页面 beauty.html（见 knowledgeSulfuring.js）；",
+        " * 第 9 章为参考文献与整理说明（含 AI 辅助说明）；",
         " * 表格保留为 HTML；关键式以块级公式附于小节末。",
         " */",
         "window.KNOWLEDGE_BASE = [",

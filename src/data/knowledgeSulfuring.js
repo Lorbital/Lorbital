@@ -1,11 +1,9 @@
 /**
- * 第 9 章：Sulfuring Chemistry Club
+ * 化学之美：Sulfuring Chemistry Club
  * 文稿摘自桌面资料夹中的 Word（Preface / Luminol / Quantum Dots / Golden Rain / Gold Mirror / eBook / Epilogue）。
- * 插入于第 8 章与参考文献之间。
+ * 独立页面 beauty.html，与知识库并列；不并入知识库章节目录。
  */
 (function () {
-  var kb = window.KNOWLEDGE_BASE;
-  if (!Array.isArray(kb)) return;
 
   var P = "public/images/knowledge/sulfuring/";
 
@@ -50,11 +48,11 @@
 
   var chapter = {
     id: "sulfuring-chemistry-club",
-    title: { zh: "9 Sulfuring Chemistry Club", en: "9 Sulfuring Chemistry Club" },
+    title: { zh: "化学之美", en: "The Beauty of Chemistry" },
     children: [
       {
         id: "scc-preface",
-        title: { zh: "9.1 前言", en: "9.1 Preface" },
+        title: { zh: "前言", en: "Preface" },
         content: [
           { zh: "致本站读者：你好。", en: "To readers of this site: Hello there." },
           { zh: "化学常被称作物质的科学，但对我而言，它也是关于惊奇的科学。每一次色彩斑斓的反应背后，都有一段等待被发现的故事。鲁米诺被发现之初，很少有人能想到，它有朝一日会帮助法医在现场揭示被掩盖的证据。这样的发现提醒我们：今天的好奇心，可以成为明天的创新。", en: "Chemistry is often described as the science of matter, but to me, it is also a science of wonder. Behind every colorful reaction lies a story waiting to be uncovered. When luminol was first discovered, few could have imagined that it would one day help forensic scientists uncover hidden evidence at crime scenes. Discoveries like this remind us that curiosity today can become innovation in the future." },
@@ -91,7 +89,7 @@
       },
       {
         id: "scc-luminol",
-        title: { zh: "9.2 鲁米诺反应", en: "9.2 Luminol Reactions" },
+        title: { zh: "鲁米诺反应", en: "Luminol Reactions" },
         content: [
           { zh: quote("有时，最重要的证据，恰恰是我们看不见的证据。"), en: quote("Sometimes, the most important evidence is the evidence we cannot see.") },
           { zh: "想象你走进一间全黑的房间。乍看之下，一切都很平常。接着，法医把一种看不见的溶液喷在地面上。几秒后，明亮的蓝光铺开，揭示出本已被仔细擦去的足迹与血迹。它几乎像魔术。", en: "Imagine walking into a completely dark room. At first glance, everything appears ordinary. Then, a forensic investigator sprays an invisible solution across the floor. Seconds later, brilliant blue light spreads across the room, revealing footprints and bloodstains that had been carefully cleaned away. It almost looks like magic." },
@@ -143,7 +141,7 @@
       },
       {
         id: "scc-qdots",
-        title: { zh: "9.3 碳与氧化锌量子点", en: "9.3 Carbon & Zinc Oxide Quantum Dots" },
+        title: { zh: "碳与氧化锌量子点", en: "Carbon & Zinc Oxide Quantum Dots" },
         content: [
           { zh: quote("在纳米尺度上，改变一颗粒子的大小，就可以改变光本身的颜色。"), en: quote("At the nanoscale, changing the size of a particle can change the color of light itself.") },
           { zh: "实验台上静静放着两支几乎难以分辨的试管。但一旦用紫外手电照上去，它们便化作蓝、绿、黄、白等明亮色泽，像一片星空。", en: "Two test tubes sit quietly on a laboratory bench, appearing almost indistinguishable. Yet the moment they are illuminated with an ultraviolet light torch, they transform into brilliant shades of blue, green, yellow, and white, like the starry sky." },
@@ -189,7 +187,7 @@
       },
       {
         id: "scc-golden-rain",
-        title: { zh: "9.4 黄金雨反应", en: "9.4 The Golden Rain Reaction" },
+        title: { zh: "黄金雨反应", en: "The Golden Rain Reaction" },
         content: [
           { zh: quote("有时，化学并不发生在一瞬间。有时，它一颗晶体、一颗晶体地展开。"), en: quote("Sometimes, chemistry doesn't happen in an instant. Sometimes, it unfolds one crystal at a time.") },
           { zh: "把清澈溶液轻轻加热，直到晶体全部消失。起初并无特别之处。随后，溶液缓缓冷却，闪亮的金色薄片开始出现。它们一片接一片地在液体中漂落，像叶子一样——化学家长久以来称之为黄金雨反应。", en: "A clear solution is gently heated until every crystal disappears. At first, nothing seems remarkable. Then, as the solution slowly cools, shimmering golden plates begin to appear. One by one, they drift through the liquid like leaves, creating what chemists have long called the Golden Rain Reaction." },
@@ -238,7 +236,7 @@
       },
       {
         id: "scc-gold-mirror",
-        title: { zh: "9.5 金镜实验", en: "9.5 The Gold Mirror Experiment" },
+        title: { zh: "金镜实验", en: "The Gold Mirror Experiment" },
         content: [
           { zh: quote("人们常因黄金的美丽而赞美它，但化学揭示：它更动人的美，在于它如何被转化。"), en: quote("Gold is often admired for its beauty, but chemistry reveals that its greatest beauty lies in how it is transformed.") },
           { zh: "多数人想到金，会想到首饰或宝藏。在实验室里，金讲述的是另一个故事。", en: "When most people think of gold, they imagine jewelry or treasures. In the laboratory, however, gold tells a very different story." },
@@ -282,7 +280,7 @@
       },
       {
         id: "scc-ebook",
-        title: { zh: "9.6 Asian Drug Crisis 电子书", en: "9.6 Asian Drug Crisis eBook" },
+        title: { zh: "Asian Drug Crisis 电子书", en: "Asian Drug Crisis eBook" },
         content: [
           { zh: "这是我撰写的电子书，旨在提升亚洲地区的毒品认知。它考察多个亚洲国家的相关问题，并倡导音乐与运动疗法。目前该书已分发至 30 余个国家、2000 余位读者，以及国际学校、图书馆和医院。", en: "This is an eBook I wrote dedicated to raise drug awareness in Asia. It investigates various Asian countries whilst examining their drug issues and promotes music & sports therapy. Currently, this eBook has been distributed to 30+ countries with 2000+ readers, as well as international schools, libraries, and hospitals." },
           {
@@ -304,7 +302,7 @@
       },
       {
         id: "scc-epilogue",
-        title: { zh: "9.7 结语", en: "9.7 Epilogue" },
+        title: { zh: "结语", en: "Epilogue" },
         content: [
           { zh: quote("最有意义的实验，不是以一次成功的反应结束的那些，而是让我们带着更好的问题离开的那些。"), en: quote("The most meaningful experiments are not the ones that end with a successful reaction, but the ones that leave us with a better question.") },
           { zh: "创办 We're Sulfuring Chemistry Club 时，我以为目标是教化学。回望时才发现，我从希望启发的人身上，学到了同样多的东西。", en: "When I founded We're Sulfuring Chemistry Club, I thought my goal was to teach chemistry. Looking back, I realize that I have learned just as much from the people I hoped to inspire." },
@@ -324,13 +322,5 @@
     ]
   };
 
-  var refIdx = -1;
-  for (var i = 0; i < kb.length; i++) {
-    if (kb[i] && kb[i].id === "kb-reference") {
-      refIdx = i;
-      break;
-    }
-  }
-  if (refIdx === -1) kb.push(chapter);
-  else kb.splice(refIdx, 0, chapter);
+  window.CHEMISTRY_BEAUTY = chapter;
 })();

@@ -10,6 +10,7 @@
       home: 'Home',
       story: 'Our Story',
       knowledge: 'Knowledge',
+      beauty: 'Beauty of Chemistry',
       explorer: 'Explorer'
     },
 
@@ -50,6 +51,13 @@
       loader: 'Calibrating quantum formulas...',
       loadError: 'Failed to load knowledge base. Please refresh and try again.',
       tocLabel: 'Knowledge Base'
+    },
+
+    // --- beauty.html ---
+    beauty: {
+      loader: 'Calibrating quantum formulas...',
+      loadError: 'Failed to load The Beauty of Chemistry. Please refresh and try again.',
+      tocLabel: 'The Beauty of Chemistry'
     },
 
     // --- explorer.html ---

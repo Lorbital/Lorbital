@@ -10,6 +10,7 @@
       home: '首页',
       story: '我们的故事',
       knowledge: '知识库',
+      beauty: '化学之美',
       explorer: '探测器'
     },
 
@@ -50,6 +51,13 @@
       loader: '正在校准量子公式...',
       loadError: '知识库数据加载失败，请刷新页面重试。',
       tocLabel: '知识库目录'
+    },
+
+    // --- beauty.html ---
+    beauty: {
+      loader: '正在校准量子公式...',
+      loadError: '化学之美内容加载失败，请刷新页面重试。',
+      tocLabel: '化学之美目录'
     },
 
     // --- explorer.html ---

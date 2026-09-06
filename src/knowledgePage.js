@@ -1,7 +1,8 @@
 /**
- * 知识库页面：左侧目录 + 中间内容
- * 点击左侧大标题，中间显示该模块的知识点。
- * 依赖：先加载 src/data/knowledgeBase.js（写入 window.KNOWLEDGE_BASE），避免 ES 模块在 file:// 下不可用。
+ * 知识库 / 化学之美页面：左侧目录 + 中间内容
+ * 点击目录项，中间显示对应知识点。
+ * 知识库：先加载 knowledgeBase.js（window.KNOWLEDGE_BASE）
+ * 化学之美：先加载 knowledgeSulfuring.js，并设置 window.KNOWLEDGE_PAGE_SECTIONS
  */
 
 /** 将 **text** 转为 <strong>text</strong> */
@@ -120,15 +121,18 @@ function wrapMathExpressions(text) {
 
 // 等待 DOM 加载完成后再执行
 document.addEventListener('DOMContentLoaded', () => {
-  const KNOWLEDGE_BASE = window.KNOWLEDGE_BASE || [];
+  const KNOWLEDGE_BASE = window.KNOWLEDGE_PAGE_SECTIONS || window.KNOWLEDGE_BASE || [];
+  const pageI18n = window.KNOWLEDGE_PAGE_I18N || 'knowledge';
   
   // 数据验证：检查知识库数据是否加载
   if (!KNOWLEDGE_BASE || KNOWLEDGE_BASE.length === 0) {
     const contentEl = document.getElementById('knowledge-content');
     if (contentEl) {
-      var errMsg = (window.I18N && window.I18N.getLang() === 'en')
-        ? 'Knowledge base failed to load. Please refresh the page.'
-        : '知识库数据加载失败，请刷新页面重试。';
+      var errMsg = (window.I18N && window.I18N.t)
+        ? window.I18N.t(pageI18n + '.loadError')
+        : ((window.I18N && window.I18N.getLang() === 'en')
+          ? 'Knowledge base failed to load. Please refresh the page.'
+          : '知识库数据加载失败，请刷新页面重试。');
       contentEl.innerHTML = '<div class="glass-panel"><p style="color: rgba(255, 255, 255, 0.7);">' + errMsg + '</p></div>';
     }
     console.error('知识库数据未加载：KNOWLEDGE_BASE 为空或未定义');
@@ -945,7 +949,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return true;
     }
 
-    const sec = getSectionById(id);
+    const sec = KNOWLEDGE_BASE.find((s) => s.id === id);
     if (sec) {
       expandSectionItemById(sec.id);
       setActive(sec.id);
