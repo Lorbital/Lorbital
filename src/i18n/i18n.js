@@ -13,12 +13,16 @@
 (function () {
   'use strict';
 
-  var STORAGE_KEY = 'lorbital_lang';
-  var DEFAULT_LANG = 'zh';
+  // v3：重置旧偏好，站点默认英语
+  var STORAGE_KEY = 'lorbital_lang_v3';
+  var DEFAULT_LANG = 'en';
 
   // Will be populated by zh.js / en.js
   var dictionaries = {};
   var currentLang = localStorage.getItem(STORAGE_KEY) || DEFAULT_LANG;
+  if (currentLang !== 'zh' && currentLang !== 'en') {
+    currentLang = DEFAULT_LANG;
+  }
   var listeners = [];
 
   /** Deep-get a nested key like 'nav.home' from an object */
